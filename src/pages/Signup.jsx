@@ -69,7 +69,10 @@ export default function Signup() {
         }
       }
       const errorCode = e.code || "";
-      const msg = e.message || "Failed to send OTP. Please check your number or try again.";
+      let msg = e.message || "Failed to send OTP. Please check your number or try again.";
+      if (errorCode === "auth/unauthorized-domain") {
+        msg = "This domain is not authorized in Firebase. Please add your Vercel URL to Authorized Domains in Firebase Console.";
+      }
       setError(`${msg} (${errorCode})`);
     } finally {
       setLoading(false);
