@@ -335,7 +335,7 @@ function DressCodeWheel({ catering, selectedRole }) {
         
         <div 
           className="absolute inset-0 transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
-          style={{ transform: `translateY(${activeIndex === -1 ? 0 : -activeIndex * 100 + 20}px)` }}
+          style={{ transform: `translateY(${activeIndex === -1 ? 0 : -activeIndex * 100 + 35}px)` }}
         >
           {roles.map((r, i) => {
             const isSelected = r === selectedRole;
