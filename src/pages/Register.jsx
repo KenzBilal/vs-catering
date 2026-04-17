@@ -31,6 +31,15 @@ export default function Register() {
   }
 
   const availableRoles = [...new Set(catering.slots.filter((s) => s.day === 0).map((s) => s.role))];
+  
+  // Filter roles by user gender
+  const filteredRoles = availableRoles.filter(r => {
+    if (user.gender === "male") {
+      return r === "service_boy" || r === "captain_male";
+    } else {
+      return r === "service_girl" || r === "captain_female"; // Support captain_female if ever added
+    }
+  });
 
   const daysToRegister = catering.isTwoDay && catering.joinRule === "both_days" ? [0, 1] : selectedDays;
 
@@ -129,7 +138,7 @@ export default function Register() {
         <div>
           <label className="label">Select Role</label>
           <div className="flex flex-col gap-2">
-            {availableRoles.map((r) => {
+            {filteredRoles.map((r) => {
               const slot = catering.slots.find((s) => s.role === r && s.day === 0);
               const isSelected = role === r;
               return (
@@ -147,6 +156,13 @@ export default function Register() {
                 </button>
               );
             })}
+            {filteredRoles.length === 0 && (
+              <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-center">
+                <p className="text-[14px] font-medium text-red-600">
+                  Sorry, there are no roles available for {user.gender === "male" ? "males" : "females"} for this event.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

@@ -63,7 +63,18 @@ export const register = mutation({
     const isConfirmed = slot ? queuePosition <= slot.limit : false;
 
     const user = await ctx.db.get(args.userId);
-    if (!user) throw new Error("User not found.");
+    if (!user) throw new Error("User find failed.");
+
+    // Enforce gender-based role restrictions
+    if (user.gender === "male") {
+      if (args.role !== "service_boy" && args.role !== "captain_male") {
+        throw new Error("Males can only register as Service Boy or Captain.");
+      }
+    } else if (user.gender === "female") {
+      if (args.role !== "service_girl" && args.role !== "captain_female") {
+        throw new Error("Females can only register as Service Girl.");
+      }
+    }
 
     // Logic for persistent photo
     let finalPhotoStorageId = args.photoStorageId;
@@ -157,7 +168,21 @@ export const changeRole = mutation({
   },
   handler: async (ctx, { registrationId, role, token }) => {
     if (!VALID_ROLES.includes(role)) throw new Error("Invalid role.");
-    await requireSubAdmin(ctx, token);
+    const reg = await ctx.db.get(registrationId);
+    if (!reg) throw new Error("Registration not found.");
+    const user = await ctx.db.get(reg.userId);
+    if (!user) throw new Error("User not found.");
+
+    if (user.gender === "male") {
+      if (role !== "service_boy" && role !== "captain_male") {
+        throw new Error("Male students can only be assigned to Service Boy or Captain roles.");
+      }
+    } else if (user.gender === "female") {
+      if (role !== "service_girl" && role !== "captain_female") {
+        throw new Error("Female students can only be assigned to Service Girl roles.");
+      }
+    }
+
     await ctx.db.patch(registrationId, { role });
   },
 });
