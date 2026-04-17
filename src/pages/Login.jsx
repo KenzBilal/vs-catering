@@ -30,7 +30,7 @@ export default function Login() {
         setError("No account found with this name and phone number.");
       } else {
         login(result);
-        navigate("/");
+        navigate("/", { replace: true });
       }
     } catch (e) {
       setTried(false);

@@ -36,10 +36,9 @@ export default function Signup() {
     }
     setLoading(true);
     try {
-      const id = await createUser(form);
-      login({ _id: id, ...form, role: "student", sessionToken: "TEMP_FOR_INIT" }); 
-      // The actual secure token will be generated upon full login, but createUser just initializes them
-      navigate("/");
+      const result = await createUser(form);
+      login(result);
+      navigate("/", { replace: true });
     } catch (e) {
       // Extract clean error message from Convex error data or message
       const rawMsg = e.data || e.message || "";
