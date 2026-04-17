@@ -38,7 +38,7 @@ export const createCatering = mutation({
   args: {
     title: v.string(),
     place: v.string(),
-    timeOfDay: v.union(v.literal("evening"), v.literal("night")),
+    timeOfDay: v.union(v.literal("day"), v.literal("night")),
     specificTime: v.string(),
     dates: v.array(v.string()),
     isTwoDay: v.boolean(),
@@ -82,7 +82,7 @@ export const updateCatering = mutation({
   args: {
     cateringId: v.id("caterings"),
     place: v.optional(v.string()),
-    timeOfDay: v.optional(v.union(v.literal("evening"), v.literal("night"))),
+    timeOfDay: v.optional(v.union(v.literal("day"), v.literal("night"))),
     specificTime: v.optional(v.string()),
     photoRequired: v.optional(v.boolean()),
     dressCodeNotes: v.optional(v.string()),

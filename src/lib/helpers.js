@@ -14,6 +14,11 @@ export function getRoleLabel(role) {
   return ROLES[role] || role;
 }
 
+export function getTimeOfDayLabel(time) {
+  const map = { day: "Day", night: "Night" };
+  return map[time] || time;
+}
+
 export function formatDate(dateStr) {
   const d = new Date(dateStr);
   return d.toLocaleDateString("en-IN", {
@@ -39,11 +44,11 @@ export function generateWhatsAppMessage(catering, registrationUrl) {
     ? `${formatDate(catering.dates[0])} and ${formatDate(catering.dates[1])}`
     : formatDate(catering.dates[0]);
 
-  return `VS-Catering — New Work Posted
+  return `Catering — New Work Posted
 
 Place: ${catering.place}
 Date: ${dateStr}
-Time: ${catering.specificTime} (${catering.timeOfDay})
+Time: ${catering.specificTime} (${getTimeOfDayLabel(catering.timeOfDay)})
 Pickup: Main Gate
 
 Roles and Pay:

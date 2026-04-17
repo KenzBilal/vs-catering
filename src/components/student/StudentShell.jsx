@@ -34,7 +34,7 @@ export default function StudentShell({ children }) {
           <div className="w-7 h-7 bg-stone-900 rounded-lg flex items-center justify-center shrink-0">
             <UtensilsCrossed size={14} className="text-cream-50" />
           </div>
-          <span className="font-bold text-[15px] text-stone-900 tracking-tight">VS-Catering</span>
+          <span className="font-bold text-[15px] text-stone-900 tracking-tight">Catering</span>
         </div>
 
         {/* User badge */}
@@ -91,7 +91,7 @@ export default function StudentShell({ children }) {
           <div className="w-7 h-7 bg-stone-900 rounded-lg flex items-center justify-center">
             <UtensilsCrossed size={14} className="text-cream-50" />
           </div>
-          <span className="font-bold text-[15px] text-stone-900">VS-Catering</span>
+          <span className="font-bold text-[15px] text-stone-900">Catering</span>
         </div>
         <button
           onClick={handleLogout}

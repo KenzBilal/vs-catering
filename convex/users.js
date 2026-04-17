@@ -137,11 +137,13 @@ export const updatePreferences = mutation({
     userId: v.id("users"),
     defaultDropPoint: v.string(),
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
+    photoStorageId: v.optional(v.id("_storage")),
   },
-  handler: async (ctx, { userId, defaultDropPoint, stayType }) => {
+  handler: async (ctx, { userId, defaultDropPoint, stayType, photoStorageId }) => {
     await ctx.db.patch(userId, {
       defaultDropPoint: sanitize(defaultDropPoint, 100),
       stayType,
+      ...(photoStorageId ? { photoStorageId } : {}),
     });
   },
 });

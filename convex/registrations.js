@@ -62,6 +62,19 @@ export const register = mutation({
     );
     const isConfirmed = slot ? queuePosition <= slot.limit : false;
 
+    const user = await ctx.db.get(args.userId);
+    if (!user) throw new Error("User not found.");
+
+    // Logic for persistent photo
+    let finalPhotoStorageId = args.photoStorageId;
+    if (finalPhotoStorageId && !user.photoStorageId) {
+      // Save newly uploaded photo to user profile for future use
+      await ctx.db.patch(args.userId, { photoStorageId: finalPhotoStorageId });
+    } else if (!finalPhotoStorageId && user.photoStorageId) {
+      // Use existing photo from profile
+      finalPhotoStorageId = user.photoStorageId;
+    }
+
     return await ctx.db.insert("registrations", {
       userId: args.userId,
       cateringId: args.cateringId,
@@ -69,7 +82,7 @@ export const register = mutation({
       role: args.role,
       dropPoint: sanitize(args.dropPoint, 100),
       ...(photoUrl ? { photoUrl } : {}),
-      ...(args.photoStorageId ? { photoStorageId: args.photoStorageId } : {}),
+      ...(finalPhotoStorageId ? { photoStorageId: finalPhotoStorageId } : {}),
       queuePosition,
       isConfirmed,
       status: "registered",

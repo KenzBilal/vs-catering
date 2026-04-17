@@ -8,6 +8,7 @@ export default defineSchema({
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     gender: v.union(v.literal("male"), v.literal("female")),
     defaultDropPoint: v.string(),
+    photoStorageId: v.optional(v.id("_storage")),
     role: v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student")),
     createdAt: v.number(),
   })
@@ -34,7 +35,7 @@ export default defineSchema({
   caterings: defineTable({
     title: v.string(),
     place: v.string(),
-    timeOfDay: v.union(v.literal("evening"), v.literal("night")),
+    timeOfDay: v.union(v.literal("day"), v.literal("night")),
     specificTime: v.string(),
     dates: v.array(v.string()),
     isTwoDay: v.boolean(),

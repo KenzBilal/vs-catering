@@ -21,7 +21,7 @@ export default function Navbar() {
           <div className="w-6 h-6 bg-stone-900 rounded-md flex items-center justify-center">
             <UtensilsCrossed size={13} className="text-cream-50" />
           </div>
-          VS-Catering
+          Catering
         </Link>
 
         {user && (

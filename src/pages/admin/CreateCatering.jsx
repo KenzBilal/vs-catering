@@ -18,7 +18,7 @@ export default function CreateCatering() {
   const createCatering = useMutation(api.caterings.createCatering);
 
   const [place, setPlace] = useState("");
-  const [timeOfDay, setTimeOfDay] = useState("evening");
+  const [timeOfDay, setTimeOfDay] = useState("day");
   const [specificTime, setSpecificTime] = useState("");
   const [isTwoDay, setIsTwoDay] = useState(false);
   const [dates, setDates] = useState(["", ""]);
@@ -134,7 +134,7 @@ export default function CreateCatering() {
                 <label className="label">Time of Day</label>
                 <SegmentedControl
                   options={[
-                    { label: "Evening", value: "evening", icon: Sun },
+                    { label: "Day", value: "day", icon: Sun },
                     { label: "Night", value: "night", icon: Moon }
                   ]}
                   value={timeOfDay}

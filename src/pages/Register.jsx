@@ -43,9 +43,13 @@ export default function Register() {
     setError("");
     if (!role) return setError("Please select a role.");
     if (daysToRegister.length === 0) return setError("Please select at least one day.");
-    if (catering.photoRequired && !selectedFile) return setError("Please upload a photo to register.");
-
     setLoading(true);
+    if (catering.photoRequired && !selectedFile && !user?.photoStorageId) {
+      setError("Please upload a photo to register.");
+      setLoading(false);
+      return;
+    }
+
     try {
       let photoStorageId = undefined;
       if (selectedFile) {
@@ -69,6 +73,12 @@ export default function Register() {
         dropPoint,
         ...(photoStorageId ? { photoStorageId } : {}),
       });
+
+      // If they uploaded a new photo, update local state
+      if (photoStorageId) {
+        login({ ...user, photoStorageId });
+      }
+
       setDone(true);
     } catch (e) {
       setError(e.message || "Something went wrong.");
@@ -205,9 +215,21 @@ export default function Register() {
 
         {catering.photoRequired && (
           <div>
-            <label className="label">Upload Photo <span className="text-stone-400 lowercase">(Required)</span></label>
+            <label className="label">Photo Verification <span className="text-stone-400 lowercase">(Required)</span></label>
             <div className="mt-2">
-              {!selectedFile ? (
+              {user?.photoStorageId && !selectedFile ? (
+                <div className="bg-white border border-cream-200 rounded-2xl overflow-hidden p-3 flex items-center gap-4">
+                  <ConvexImage storageId={user.photoStorageId} className="w-16 h-16 rounded-xl object-cover" />
+                  <div className="flex-1">
+                    <p className="text-[14px] font-bold text-stone-800">Using saved photo</p>
+                    <p className="text-[12.5px] text-stone-500 font-medium">From your account profile</p>
+                  </div>
+                  <label className="p-2.5 bg-cream-50 hover:bg-cream-100 text-stone-600 rounded-xl cursor-pointer transition-colors border border-cream-200">
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => setSelectedFile(e.target.files[0])} />
+                    <Camera size={18} />
+                  </label>
+                </div>
+              ) : !selectedFile ? (
                 <div className="relative border-2 border-dashed border-cream-200 rounded-2xl p-8 flex flex-col items-center justify-center hover:border-stone-300 transition-colors cursor-pointer group">
                   <input
                     type="file"
@@ -234,13 +256,28 @@ export default function Register() {
                   >
                     <XCircle size={18} />
                   </button>
-                  <div className="p-2">
-                    <p className="text-[12px] font-semibold text-stone-500 truncate">{selectedFile.name}</p>
-                    <p className="text-[11px] text-stone-400 font-medium">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  <div className="p-2 flex justify-between items-center">
+                    <div>
+                      <p className="text-[12px] font-semibold text-stone-500 truncate max-w-[200px]">{selectedFile.name}</p>
+                      <p className="text-[11px] text-stone-400 font-medium">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    </div>
+                    {user?.photoStorageId && (
+                      <button 
+                        onClick={() => setSelectedFile(null)}
+                        className="text-[11px] font-bold text-stone-400 hover:text-stone-600 uppercase tracking-wider"
+                      >
+                        Use Saved
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
             </div>
+            {selectedFile && (
+              <p className="text-[11px] text-[#8b3a00] font-bold mt-2 px-1 flex items-center gap-1.5">
+                <AlertCircle size={12} /> This will also update your account profile photo.
+              </p>
+            )}
           </div>
         )}
 

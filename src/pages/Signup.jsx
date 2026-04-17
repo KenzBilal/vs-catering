@@ -51,7 +51,7 @@ export default function Signup() {
             <UtensilsCrossed className="text-cream-50" size={24} />
           </div>
           <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Create Account</h1>
-          <p className="text-[14.5px] text-stone-500 mt-1 font-medium">Join VS-Catering</p>
+          <p className="text-[14.5px] text-stone-500 mt-1 font-medium">Join Catering</p>
         </div>
 
         <div className="card p-6 sm:p-8 flex flex-col gap-5">

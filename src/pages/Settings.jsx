@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
-import { Save, CheckCircle2, User, Phone, MapPin } from "lucide-react";
+import { Save, CheckCircle2, User, Phone, MapPin, Camera, XCircle, Trash2 } from "lucide-react";
 import SegmentedControl from "../components/ui/SegmentedControl";
+import ConvexImage from "../components/shared/ConvexImage";
 
 const ROLE_LABEL = { student: "Student", sub_admin: "Sub-Admin", admin: "Admin" };
 const ROLE_BADGE = {
@@ -16,11 +17,32 @@ export default function Settings() {
   const { user, login } = useAuth();
   const dropPoints = useQuery(api.dropPoints.getDropPoints);
   const updatePrefs = useMutation(api.users.updatePreferences);
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 
   const [dropPoint, setDropPoint] = useState(user?.defaultDropPoint || "Main Gate");
   const [stayType, setStayType]   = useState(user?.stayType || "hostel");
   const [saved, setSaved]         = useState(false);
   const [loading, setLoading]     = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const postUrl = await generateUploadUrl();
+      const result = await fetch(postUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      const { storageId } = await result.json();
+      await updatePrefs({ userId: user._id, defaultDropPoint: dropPoint, stayType, photoStorageId: storageId });
+      login({ ...user, photoStorageId: storageId });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -36,9 +58,32 @@ export default function Settings() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Settings</h1>
-        <p className="text-[14px] font-medium text-stone-500 mt-1">Your account and preferences.</p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Settings</h1>
+          <p className="text-[14px] font-medium text-stone-500 mt-1">Your account and preferences.</p>
+        </div>
+        
+        {/* Profile Photo */}
+        <div className="flex items-center gap-4">
+          <div className="relative w-16 h-16 shrink-0">
+            {user?.photoStorageId ? (
+              <ConvexImage storageId={user.photoStorageId} className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-cream-200 border-2 border-white shadow-sm flex items-center justify-center">
+                <User size={28} className="text-stone-400" />
+              </div>
+            )}
+            <label className="absolute -bottom-1 -right-1 w-7 h-7 bg-stone-900 text-cream-50 rounded-full flex items-center justify-center cursor-pointer hover:bg-stone-800 transition-colors shadow-lg border-2 border-white">
+              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+              <Camera size={14} className={uploading ? "animate-pulse" : ""} />
+            </label>
+          </div>
+          <div>
+            <p className="text-[14px] font-bold text-stone-800">Profile Picture</p>
+            <p className="text-[12px] text-stone-500 font-medium">Used for event registration</p>
+          </div>
+        </div>
       </div>
 
       {/* Account card */}

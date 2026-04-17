@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getRoleLabel, formatDate } from "../../lib/helpers";
 import { useState } from "react";
 import { useAuth } from "../../lib/AuthContext";
-import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Users, MapPin, CalendarDays, Filter, Clock, Camera, ExternalLink } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Users, MapPin, CalendarDays, Filter, Clock, Camera, ExternalLink, Search } from "lucide-react";
 import ConvexImage from "../../components/shared/ConvexImage";
 
 export default function AttendancePage() {
@@ -21,6 +21,7 @@ export default function AttendancePage() {
   const [rejectionInput, setRejectionInput] = useState({});
   const [saving, setSaving] = useState({});
   const [viewPhoto, setViewPhoto] = useState(null); // { storageId, photoUrl }
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleMark = async (regId, status, reason) => {
     setSaving((s) => ({ ...s, [regId]: true }));
@@ -38,6 +39,12 @@ export default function AttendancePage() {
   const filtered = (registrations || []).filter((r) => {
     if (roleFilter !== "all" && r.role !== roleFilter) return false;
     if (statusFilter !== "all" && r.status !== statusFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const nameMatch = r.user?.name.toLowerCase().includes(q);
+      const phoneMatch = r.user?.phone.includes(q);
+      if (!nameMatch && !phoneMatch) return false;
+    }
     return true;
   });
 
@@ -63,31 +70,46 @@ export default function AttendancePage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 mb-6 bg-cream-50 p-3 rounded-xl border border-cream-200 shadow-sm">
-        <Filter size={16} className="text-stone-400 ml-1" />
-        <select 
-          value={roleFilter} 
-          onChange={(e) => setRoleFilter(e.target.value)} 
-          className="bg-white border border-cream-200 text-stone-700 text-[13px] font-medium rounded-lg px-3 py-2 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
-        >
-          <option value="all">All Roles</option>
-          {roles.map((r) => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
-        </select>
-        <select 
-          value={statusFilter} 
-          onChange={(e) => setStatusFilter(e.target.value)} 
-          className="bg-white border border-cream-200 text-stone-700 text-[13px] font-medium rounded-lg px-3 py-2 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
-        >
-          <option value="all">All Status</option>
-          <option value="registered">Not Marked</option>
-          <option value="attended">Attended</option>
-          <option value="absent">Absent</option>
-          <option value="rejected">Rejected</option>
-        </select>
-        <div className="ml-auto text-[13px] font-semibold text-stone-500 bg-cream-200/50 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-          <Users size={14} />
-          {filtered.length} student{filtered.length !== 1 ? "s" : ""}
+      {/* Search & Filters */}
+      <div className="flex flex-col gap-3 mb-6 bg-cream-50 p-4 rounded-2xl border border-cream-200 shadow-sm">
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+          <input
+            type="text"
+            placeholder="Search by name or phone number..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-11 bg-white border-cream-200 focus:border-stone-400 transition-all"
+          />
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Filter size={16} className="text-stone-400" />
+            <select 
+              value={roleFilter} 
+              onChange={(e) => setRoleFilter(e.target.value)} 
+              className="bg-white border border-cream-200 text-stone-700 text-[13px] font-medium rounded-lg px-3 py-2 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+            >
+              <option value="all">All Roles</option>
+              {roles.map((r) => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
+            </select>
+          </div>
+          <select 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value)} 
+            className="bg-white border border-cream-200 text-stone-700 text-[13px] font-medium rounded-lg px-3 py-2 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+          >
+            <option value="all">All Status</option>
+            <option value="registered">Not Marked</option>
+            <option value="attended">Attended</option>
+            <option value="absent">Absent</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <div className="ml-auto text-[13px] font-semibold text-stone-500 bg-cream-200/50 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+            <Users size={14} />
+            {filtered.length} student{filtered.length !== 1 ? "s" : ""}
+          </div>
         </div>
       </div>
 
