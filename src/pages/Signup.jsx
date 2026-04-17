@@ -57,7 +57,9 @@ export default function Signup() {
       setStep("otp");
     } catch (e) {
       console.error(e);
-      setError("Failed to send OTP. Please check your number or try again.");
+      const errorCode = e.code || "";
+      const msg = e.message || "Failed to send OTP. Please check your number or try again.";
+      setError(`${msg} (${errorCode})`);
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.render().then(widgetId => {
           grecaptcha.reset(widgetId);

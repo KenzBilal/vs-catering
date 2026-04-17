@@ -38,14 +38,17 @@ export default function Login() {
     
     if (!auth) return setError("Authentication service is unavailable. Please check your connection.");
     setLoading(true);
+
     try {
-      const formattedPhone = `+91${phone}`; // Assuming India, adjust if needed
+      const formattedPhone = `+91${phone}`;
       const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
       setConfirmationResult(confirmation);
       setStep("otp");
     } catch (e) {
       console.error(e);
-      setError("Failed to send OTP. Please check your number or try again.");
+      const errorCode = e.code || "";
+      const msg = e.message || "Failed to send OTP. Please check your number or try again.";
+      setError(`${msg} (${errorCode})`);
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.render().then(widgetId => {
           grecaptcha.reset(widgetId);
