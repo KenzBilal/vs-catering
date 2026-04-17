@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { UserPlus, Mail, Lock, User, MapPin, Hash, Phone, ArrowRight } from "lucide-react";
+import { UserPlus, Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
 import SegmentedControl from "../components/ui/SegmentedControl";
-import { isValidEmail, isValidRegNumber, isValidPhone } from "../lib/helpers";
+import { isValidEmail, isValidPhone } from "../lib/helpers";
 import { auth } from "../lib/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 
@@ -13,7 +13,6 @@ export default function Signup() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const createUserMutation = useMutation(api.users.createUser);
-  const dropPoints = useQuery(api.dropPoints.getDropPoints);
 
   const [form, setForm] = useState({
     name: "",
@@ -22,8 +21,8 @@ export default function Signup() {
     phone: "",
     stayType: "hostel",
     gender: "male",
-    defaultDropPoint: "Main Gate",
-    registrationNumber: "",
+    // registrationNumber and defaultDropPoint removed for minimal signup
+    defaultDropPoint: "Main Gate", // Hidden default
   });
   
   const [error, setError] = useState("");
@@ -39,9 +38,6 @@ export default function Signup() {
     if (!form.email.trim()) return setError("Email is required.");
     if (!isValidEmail(form.email)) return setError("Enter a valid email address.");
     if (form.password.length < 6) return setError("Password must be at least 6 characters.");
-    if (form.registrationNumber.trim() && !isValidRegNumber(form.registrationNumber.trim())) {
-      return setError("Enter a valid 8-digit registration number.");
-    }
     
     setLoading(true);
     try {
@@ -49,7 +45,7 @@ export default function Signup() {
       await createUserWithEmailAndPassword(auth, form.email.toLowerCase().trim(), form.password);
       
       // 2. Create user in Convex
-      const { password, ...userData } = form; // Don't send password to Convex
+      const { password, ...userData } = form;
       const result = await createUserMutation({
         ...userData,
         email: form.email.toLowerCase().trim(),
@@ -105,66 +101,48 @@ export default function Signup() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-5">
-              <div>
-                <label className="label">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-                  <input
-                    type="email"
-                    placeholder="name@example.com"
-                    className="pl-11"
-                    value={form.email}
-                    onChange={(e) => set("email", e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="label">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-                  <input
-                    type="password"
-                    placeholder="Min. 6 characters"
-                    className="pl-11"
-                    value={form.password}
-                    onChange={(e) => set("password", e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
+            <div>
+              <label className="label">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <input
+                  type="email"
+                  placeholder="name@example.com"
+                  className="pl-11"
+                  value={form.email}
+                  onChange={(e) => set("email", e.target.value)}
+                  disabled={loading}
+                />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="label">Phone <span className="text-stone-400">(Optional)</span></label>
-                <div className="relative">
-                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-                  <input
-                    type="tel"
-                    placeholder="10-digit"
-                    className="pl-11"
-                    value={form.phone}
-                    onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
-                    disabled={loading}
-                  />
-                </div>
+            <div>
+              <label className="label">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <input
+                  type="password"
+                  placeholder="Min. 6 characters"
+                  className="pl-11"
+                  value={form.password}
+                  onChange={(e) => set("password", e.target.value)}
+                  disabled={loading}
+                />
               </div>
-              <div>
-                <label className="label">Reg. No. <span className="text-stone-400">(Opt.)</span></label>
-                <div className="relative">
-                  <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-                  <input
-                    type="text"
-                    placeholder="eg. 12517494"
-                    className="pl-11"
-                    value={form.registrationNumber}
-                    onChange={(e) => set("registrationNumber", e.target.value.replace(/\D/g, "").slice(0, 8))}
-                    disabled={loading}
-                  />
-                </div>
+            </div>
+
+            <div>
+              <label className="label">Phone <span className="text-stone-400">(Optional)</span></label>
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <input
+                  type="tel"
+                  placeholder="10-digit mobile number"
+                  className="pl-11"
+                  value={form.phone}
+                  onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  disabled={loading}
+                />
               </div>
             </div>
 
@@ -183,7 +161,7 @@ export default function Signup() {
               </div>
 
               <div>
-                <label className="label mb-2">Accommodation</label>
+                <label className="label mb-2">Stay Type</label>
                 <SegmentedControl
                   options={[
                     { label: "Hostel", value: "hostel" },
@@ -193,25 +171,6 @@ export default function Signup() {
                   onChange={(val) => set("stayType", val)}
                   disabled={loading}
                 />
-              </div>
-            </div>
-
-            <div>
-              <label className="label">Default Drop Point</label>
-              <div className="relative">
-                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-                <select
-                  value={form.defaultDropPoint}
-                  className="pl-11"
-                  onChange={(e) => set("defaultDropPoint", e.target.value)}
-                  disabled={loading}
-                >
-                  {(dropPoints || [{name: "Main Gate"}]).map((dp) => (
-                    <option key={dp.name || dp} value={dp.name || dp}>
-                      {dp.name || dp}
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
 

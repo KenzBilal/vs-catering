@@ -52,6 +52,8 @@ export default function Register() {
     setSelectedDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
   };
 
+  const updatePrefs = useMutation(api.users.updatePreferences);
+
   const handleSubmit = async () => {
     setError("");
     if (!role) return setError("Please select a role.");
@@ -87,9 +89,22 @@ export default function Register() {
         ...(photoStorageId ? { photoStorageId } : {}),
       });
 
-      // If they uploaded a new photo, update local state
-      if (photoStorageId) {
-        login({ ...user, photoStorageId });
+      // SMART UPDATE: Save this drop point as the new default for the account
+      // Also update local user state for immediate effect
+      try {
+        await updatePrefs({ 
+          userId: user._id, 
+          defaultDropPoint: dropPoint,
+          stayType: user.stayType,
+          registrationNumber: user.registrationNumber
+        });
+        login({ ...user, defaultDropPoint: dropPoint, photoStorageId: photoStorageId || user.photoStorageId });
+      } catch (prefErr) {
+        console.warn("Failed to update default drop point preference", prefErr);
+        // We don't block registration if preference update fails
+        if (photoStorageId) {
+          login({ ...user, photoStorageId });
+        }
       }
 
       setDone(true);
