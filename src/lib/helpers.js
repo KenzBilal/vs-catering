@@ -65,6 +65,7 @@ export function getStatusBadgeClass(status) {
     today: "badge-today",
     tomorrow: "badge-tomorrow",
     ended: "badge-ended",
+    cancelled: "badge-cancelled",
   };
   return map[status] || "badge-ended";
 }
@@ -75,6 +76,12 @@ export function getStatusLabel(status) {
     today: "Today",
     tomorrow: "Tomorrow",
     ended: "Ended",
+    cancelled: "Cancelled",
   };
   return map[status] || status;
+}
+
+// Validate Indian mobile: 10 digits, starting with 6–9
+export function isValidPhone(phone) {
+  return /^[6-9]\d{9}$/.test(phone.trim());
 }

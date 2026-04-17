@@ -56,7 +56,6 @@ export default function PaymentsPage() {
     try {
       await clearPayment({
         paymentId,
-        clearedBy: user._id,
         upiRef: upiRefs[paymentId] || undefined,
         token,
       });

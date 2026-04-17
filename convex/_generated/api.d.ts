@@ -12,9 +12,9 @@ import type * as auth from "../auth.js";
 import type * as caterings from "../caterings.js";
 import type * as crons from "../crons.js";
 import type * as dropPoints from "../dropPoints.js";
+import type * as maintenance from "../maintenance.js";
 import type * as payments from "../payments.js";
 import type * as registrations from "../registrations.js";
-import type * as setup from "../setup.js";
 import type * as users from "../users.js";
 
 import type {
@@ -28,9 +28,9 @@ declare const fullApi: ApiFromModules<{
   caterings: typeof caterings;
   crons: typeof crons;
   dropPoints: typeof dropPoints;
+  maintenance: typeof maintenance;
   payments: typeof payments;
   registrations: typeof registrations;
-  setup: typeof setup;
   users: typeof users;
 }>;
 

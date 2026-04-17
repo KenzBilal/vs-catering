@@ -1,20 +1,24 @@
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate } from "react-router-dom";
 import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRoleLabel } from "../../lib/helpers";
 import { useState } from "react";
-import { Plus, Search, UserCheck, CreditCard, CalendarDays, Clock, Users, Filter } from "lucide-react";
+import { Plus, Search, UserCheck, CreditCard, CalendarDays, Clock, Users, Edit, XCircle, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../lib/AuthContext";
 
 const STATUS_FILTERS = ["All", "Upcoming", "Today", "Tomorrow", "Ended"];
 
 export default function AdminEvents() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const caterings = useQuery(api.caterings.listCaterings);
+  const cancelCatering = useMutation(api.caterings.cancelCatering);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [confirmCancel, setConfirmCancel] = useState(null); // cateringId
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   const filtered = (caterings || []).filter((c) => {
     const matchesSearch = c.place.toLowerCase().includes(search.toLowerCase());
@@ -22,6 +26,19 @@ export default function AdminEvents() {
       statusFilter === "All" || c.status === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
+
+  const handleCancel = async (cateringId) => {
+    setCancelling(true);
+    setCancelError("");
+    try {
+      await cancelCatering({ cateringId, token });
+      setConfirmCancel(null);
+    } catch (e) {
+      setCancelError(e.message || "Failed to cancel event.");
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <div>
@@ -141,6 +158,14 @@ export default function AdminEvents() {
 
                 {/* Actions */}
                 <div className="flex gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                  {c.status !== "cancelled" && c.status !== "ended" && user?.role === "admin" && (
+                    <button
+                      className="btn-secondary py-1.5 px-3 text-[12px]"
+                      onClick={() => navigate(`/admin/catering/${c._id}/edit`)}
+                    >
+                      <Edit size={14} /> Edit
+                    </button>
+                  )}
                   <button
                     className="btn-secondary py-1.5 px-3 text-[12px]"
                     onClick={() => navigate(`/admin/catering/${c._id}/attendance`)}
@@ -153,12 +178,58 @@ export default function AdminEvents() {
                   >
                     <CreditCard size={14} /> Payments
                   </button>
+                  {c.status !== "cancelled" && c.status !== "ended" && user?.role === "admin" && (
+                    <button
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-red-600 border border-red-100 bg-white hover:bg-red-50 transition-all active:scale-95"
+                      onClick={() => { setConfirmCancel(c._id); setCancelError(""); }}
+                    >
+                      <XCircle size={14} /> Cancel
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Cancel confirmation modal */}
+      {confirmCancel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl border border-cream-200 p-6 max-w-sm w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center shrink-0">
+                <AlertTriangle size={20} className="text-red-600" />
+              </div>
+              <div>
+                <p className="font-bold text-[15px] text-stone-900">Cancel Event</p>
+                <p className="text-[13px] text-stone-500 mt-0.5">This action cannot be undone.</p>
+              </div>
+            </div>
+            <p className="text-[14px] text-stone-600 mb-5">
+              Are you sure you want to cancel this event? Students will still see it as cancelled in their registrations.
+            </p>
+            {cancelError && (
+              <p className="text-[13px] text-red-600 font-medium mb-3">{cancelError}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                className="flex-1 py-2.5 rounded-xl bg-red-700 text-white text-[13px] font-bold hover:bg-red-800 transition-colors active:scale-[0.98] disabled:opacity-60"
+                disabled={cancelling}
+                onClick={() => handleCancel(confirmCancel)}
+              >
+                {cancelling ? "Cancelling..." : "Yes, Cancel Event"}
+              </button>
+              <button
+                className="flex-1 btn-secondary py-2.5 text-[13px]"
+                onClick={() => setConfirmCancel(null)}
+              >
+                Keep Event
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

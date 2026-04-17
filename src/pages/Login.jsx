@@ -4,6 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { LogIn, Phone, User, UtensilsCrossed } from "lucide-react";
+import { isValidPhone } from "../lib/helpers";
 
 export default function Login() {
   const { login } = useAuth();
@@ -18,7 +19,8 @@ export default function Login() {
 
   const handleSubmit = async () => {
     setError("");
-    if (!phone.trim() || phone.length < 10) return setError("Enter a valid phone number.");
+    if (!phone.trim()) return setError("Phone number is required.");
+    if (!isValidPhone(phone)) return setError("Enter a valid 10-digit number starting with 6, 7, 8, or 9.");
     if (!name.trim()) return setError("Enter your name.");
     setTried(true);
     try {

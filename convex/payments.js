@@ -1,6 +1,11 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireSubAdmin, requireAdmin } from "./auth";
+import { requireSubAdmin, requireAdmin, getUserFromToken } from "./auth";
+
+function sanitize(str, maxLen = 500) {
+  if (typeof str !== "string") return "";
+  return str.replace(/<[^>]*>/g, "").replace(/[<>]/g, "").trim().slice(0, maxLen);
+}
 
 export const createPayment = mutation({
   args: {
@@ -15,6 +20,17 @@ export const createPayment = mutation({
   },
   handler: async (ctx, args) => {
     await requireSubAdmin(ctx, args.token);
+
+    if (args.amount < 0) throw new Error("Payment amount cannot be negative.");
+
+    // Prevent duplicate payment for same registration
+    const existing = await ctx.db
+      .query("payments")
+      .withIndex("by_catering", (q) => q.eq("cateringId", args.cateringId))
+      .collect();
+    const duplicate = existing.find((p) => p.registrationId === args.registrationId);
+    if (duplicate) throw new Error("A payment record already exists for this registration.");
+
     const { token, ...dataToInsert } = args;
     return await ctx.db.insert("payments", {
       ...dataToInsert,
@@ -27,17 +43,22 @@ export const createPayment = mutation({
 export const clearPayment = mutation({
   args: {
     paymentId: v.id("payments"),
-    clearedBy: v.id("users"),
     upiRef: v.optional(v.string()),
     token: v.string(),
   },
-  handler: async (ctx, { paymentId, clearedBy, upiRef, token }) => {
-    await requireAdmin(ctx, token);
+  handler: async (ctx, { paymentId, upiRef, token }) => {
+    // Derive clearedBy from session token — never trust the client
+    const adminUser = await requireAdmin(ctx, token);
+
+    const payment = await ctx.db.get(paymentId);
+    if (!payment) throw new Error("Payment not found.");
+    if (payment.status === "cleared") throw new Error("Payment is already cleared.");
+
     await ctx.db.patch(paymentId, {
       status: "cleared",
-      clearedBy,
+      clearedBy: adminUser._id,
       clearedAt: Date.now(),
-      ...(upiRef ? { upiRef } : {}),
+      ...(upiRef ? { upiRef: sanitize(upiRef, 100) } : {}),
     });
   },
 });

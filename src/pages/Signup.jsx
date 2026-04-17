@@ -5,6 +5,7 @@ import { useAuth } from "../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { UserPlus, Phone, User, UtensilsCrossed, MapPin } from "lucide-react";
 import SegmentedControl from "../components/ui/SegmentedControl";
+import { isValidPhone } from "../lib/helpers";
 
 export default function Signup() {
   const { login } = useAuth();
@@ -27,7 +28,8 @@ export default function Signup() {
   const handleSubmit = async () => {
     setError("");
     if (!form.name.trim()) return setError("Name is required.");
-    if (!form.phone.trim() || form.phone.length < 10) return setError("Enter a valid phone number.");
+    if (!form.phone.trim()) return setError("Phone number is required.");
+    if (!isValidPhone(form.phone)) return setError("Enter a valid 10-digit number starting with 6, 7, 8, or 9.");
     setLoading(true);
     try {
       const id = await createUser(form);

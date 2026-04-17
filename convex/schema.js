@@ -19,6 +19,13 @@ export default defineSchema({
     expiresAt: v.number(),
   }).index("by_token", ["token"]),
 
+  // Rate limiting for login attempts
+  loginAttempts: defineTable({
+    phone: v.string(),
+    attempts: v.number(),
+    windowStart: v.number(), // timestamp of first attempt in current window
+  }).index("by_phone", ["phone"]),
+
   dropPoints: defineTable({
     name: v.string(),
     isActive: v.boolean(),
@@ -29,15 +36,15 @@ export default defineSchema({
     place: v.string(),
     timeOfDay: v.union(v.literal("evening"), v.literal("night")),
     specificTime: v.string(),
-    dates: v.array(v.string()),          // ["2024-04-19"] or ["2024-04-19","2024-04-20"]
+    dates: v.array(v.string()),
     isTwoDay: v.boolean(),
     sameSlotsForBothDays: v.boolean(),
     joinRule: v.union(v.literal("any_day"), v.literal("both_days")),
     photoRequired: v.boolean(),
     dressCodeNotes: v.string(),
     slots: v.array(v.object({
-      day: v.number(),                   // 0 = day1, 1 = day2
-      role: v.string(),                  // "service_boy","service_girl","captain_male"
+      day: v.number(),
+      role: v.string(),
       limit: v.number(),
       pay: v.number(),
     })),
@@ -45,7 +52,8 @@ export default defineSchema({
       v.literal("upcoming"),
       v.literal("today"),
       v.literal("tomorrow"),
-      v.literal("ended")
+      v.literal("ended"),
+      v.literal("cancelled"),
     ),
     createdBy: v.id("users"),
     createdAt: v.number(),
@@ -55,12 +63,12 @@ export default defineSchema({
   registrations: defineTable({
     userId: v.id("users"),
     cateringId: v.id("caterings"),
-    days: v.array(v.number()),           // [0] or [0,1]
+    days: v.array(v.number()),
     role: v.string(),
     dropPoint: v.string(),
     photoUrl: v.optional(v.string()),
     queuePosition: v.number(),
-    isConfirmed: v.boolean(),            // within slot limit
+    isConfirmed: v.boolean(),
     status: v.union(
       v.literal("registered"),
       v.literal("attended"),

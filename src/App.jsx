@@ -14,6 +14,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminUsers from "./pages/admin/AdminUsers";
 import CreateCatering from "./pages/admin/CreateCatering";
+import EditCatering from "./pages/admin/EditCatering";
 import AttendancePage from "./pages/admin/AttendancePage";
 import PaymentsPage from "./pages/admin/PaymentsPage";
 import AdminSettings from "./pages/admin/AdminSettings";
@@ -139,6 +140,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute adminOnly>
             <AdminShell><CreateCatering /></AdminShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/catering/:id/edit"
+        element={
+          <ProtectedRoute adminOnly>
+            <AdminShell><EditCatering /></AdminShell>
           </ProtectedRoute>
         }
       />
