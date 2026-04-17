@@ -2,12 +2,14 @@ export const ROLES = {
   service_boy: "Service Boy",
   service_girl: "Service Girl",
   captain_male: "Captain",
+  captain_female: "Captain",
 };
 
 export const DRESS_CODE_DEFAULTS = {
   service_boy: "Black formal pants, formal shoes, clean shave. Short or long hair is acceptable.",
   service_girl: "Black formal pants or skirt, formal shoes.",
   captain_male: "Black blazer, tie, white shirt, black formal pants, formal shoes, clean shave. Short or long hair is acceptable.",
+  captain_female: "Black blazer, white shirt, black formal pants or skirt, formal shoes.",
 };
 
 export function getRoleLabel(role) {
