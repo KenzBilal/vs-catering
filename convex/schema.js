@@ -5,7 +5,7 @@ export default defineSchema({
   users: defineTable({
     name: v.string(),
     email: v.string(),
-    phone: v.optional(v.string()),
+    phone: v.string(),
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     gender: v.union(v.literal("male"), v.literal("female")),
     defaultDropPoint: v.string(),

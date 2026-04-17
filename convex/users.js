@@ -11,7 +11,7 @@ export const createUser = mutation({
   args: {
     name: v.string(),
     email: v.string(),
-    phone: v.optional(v.string()),
+    phone: v.string(),
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     gender: v.union(v.literal("male"), v.literal("female")),
     defaultDropPoint: v.string(),
@@ -23,7 +23,8 @@ export const createUser = mutation({
       throw new ConvexError("Enter a valid email address.");
     }
 
-    if (args.phone && !validatePhone(args.phone)) {
+    const phone = args.phone.replace(/\D/g, "").slice(-10);
+    if (!validatePhone(phone)) {
       throw new ConvexError("Enter a valid 10-digit mobile number.");
     }
 
@@ -43,7 +44,7 @@ export const createUser = mutation({
     const userId = await ctx.db.insert("users", {
       name,
       email,
-      phone: args.phone ? args.phone.replace(/\D/g, "").slice(-10) : undefined,
+      phone,
       stayType: args.stayType,
       gender: args.gender,
       defaultDropPoint: sanitizeString(args.defaultDropPoint).slice(0, 100),

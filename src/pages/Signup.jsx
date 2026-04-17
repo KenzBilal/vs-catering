@@ -21,8 +21,7 @@ export default function Signup() {
     phone: "",
     stayType: "hostel",
     gender: "male",
-    // registrationNumber and defaultDropPoint removed for minimal signup
-    defaultDropPoint: "Main Gate", // Hidden default
+    defaultDropPoint: "Main Gate",
   });
   
   const [error, setError] = useState("");
@@ -38,6 +37,8 @@ export default function Signup() {
     if (!form.email.trim()) return setError("Email is required.");
     if (!isValidEmail(form.email)) return setError("Enter a valid email address.");
     if (form.password.length < 6) return setError("Password must be at least 6 characters.");
+    if (!form.phone.trim()) return setError("Phone number is required.");
+    if (!isValidPhone(form.phone)) return setError("Enter a valid 10-digit number.");
     
     setLoading(true);
     try {
@@ -132,7 +133,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <label className="label">Phone <span className="text-stone-400">(Optional)</span></label>
+              <label className="label">Phone Number</label>
               <div className="relative">
                 <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
                 <input
