@@ -211,29 +211,41 @@ export default function CateringDetail() {
         {registrations && registrations.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
             {registrations.map((r) => (
-              <button
-                key={r._id}
-                onClick={() => setViewUser({
-                  name: r.user?.name,
-                  photo: r.photoStorageId || r.user?.photoStorageId,
-                  phone: r.user?.phone,
-                  stayType: r.user?.stayType,
-                  registrationNumber: r.user?.registrationNumber
-                })}
-                className="flex items-center gap-3 p-2.5 rounded-xl border border-cream-100 hover:border-stone-300 hover:bg-white transition-all text-left group"
-              >
-                <div className="w-8 h-8 rounded-full bg-cream-100 border border-cream-200 overflow-hidden flex items-center justify-center shrink-0">
-                  {r.photoStorageId || r.user?.photoStorageId ? (
-                    <ConvexImage storageId={r.photoStorageId || r.user?.photoStorageId} className="w-full h-full object-cover" />
-                  ) : (
-                    <User size={14} className="text-stone-400" />
-                  )}
+              isAdmin ? (
+                <button
+                  key={r._id}
+                  onClick={() => setViewUser({
+                    name: r.user?.name,
+                    photo: r.photoStorageId || r.user?.photoStorageId,
+                    phone: r.user?.phone,
+                    stayType: r.user?.stayType,
+                    registrationNumber: r.user?.registrationNumber
+                  })}
+                  className="flex items-center gap-3 p-2.5 rounded-xl border border-cream-100 hover:border-stone-300 hover:bg-white transition-all text-left group"
+                >
+                  <div className="w-8 h-8 rounded-full bg-cream-100 border border-cream-200 overflow-hidden flex items-center justify-center shrink-0">
+                    {r.photoStorageId || r.user?.photoStorageId ? (
+                      <ConvexImage storageId={r.photoStorageId || r.user?.photoStorageId} className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={14} className="text-stone-400" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[13.5px] font-bold text-stone-800 truncate group-hover:text-stone-900">{r.user?.name}</p>
+                    <p className="text-[11px] font-medium text-stone-500 uppercase tracking-wide">{getRoleLabel(r.role)}</p>
+                  </div>
+                </button>
+              ) : (
+                <div 
+                  key={r._id}
+                  className="flex items-center gap-2.5 p-2.5 rounded-xl border border-cream-100 bg-cream-50/30"
+                >
+                  <div className="w-6 h-6 rounded-full bg-cream-100 flex items-center justify-center">
+                    <User size={12} className="text-stone-400" />
+                  </div>
+                  <p className="text-[13px] font-semibold text-stone-700 truncate">{r.user?.name}</p>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[13.5px] font-bold text-stone-800 truncate group-hover:text-stone-900">{r.user?.name}</p>
-                  <p className="text-[11px] font-medium text-stone-500 uppercase tracking-wide">{getRoleLabel(r.role)}</p>
-                </div>
-              </button>
+              )
             ))}
           </div>
         ) : (
