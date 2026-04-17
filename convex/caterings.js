@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { requireAdmin, requireSubAdmin } from "./auth";
 
@@ -23,10 +23,10 @@ function computeStatus(dates) {
 
 function validateSlots(slots) {
   for (const s of slots) {
-    if (!Number.isInteger(s.limit) || s.limit < 0) throw new Error("Slot limit cannot be negative.");
-    if (typeof s.pay !== "number" || s.pay < 0) throw new Error("Pay cannot be negative.");
+    if (!Number.isInteger(s.limit) || s.limit < 0) throw new ConvexError("Slot limit cannot be negative.");
+    if (typeof s.pay !== "number" || s.pay < 0) throw new ConvexError("Pay cannot be negative.");
     if (!["service_boy", "service_girl", "captain_male", "captain_female"].includes(s.role)) {
-      throw new Error(`Unknown role: ${s.role}`);
+      throw new ConvexError(`Unknown role: ${s.role}`);
     }
   }
 }
@@ -57,8 +57,8 @@ export const createCatering = mutation({
 
     const place = sanitizeString(args.place).slice(0, 200);
     const dressCodeNotes = sanitizeString(args.dressCodeNotes).slice(0, 2000);
-    if (!place) throw new Error("Place is required.");
-    if (args.dates.length === 0) throw new Error("At least one date is required.");
+    if (!place) throw new ConvexError("Place is required.");
+    if (args.dates.length === 0) throw new ConvexError("At least one date is required.");
     validateSlots(args.slots);
 
     const { token, place: _p, dressCodeNotes: _d, ...rest } = args;
@@ -95,14 +95,14 @@ export const updateCatering = mutation({
     await requireAdmin(ctx, token);
 
     const existing = await ctx.db.get(cateringId);
-    if (!existing) throw new Error("Event not found.");
-    if (existing.status === "cancelled") throw new Error("Cannot edit a cancelled event.");
+    if (!existing) throw new ConvexError("Event not found.");
+    if (existing.status === "cancelled") throw new ConvexError("Cannot edit a cancelled event.");
 
     const sanitized = {};
     if (updates.place !== undefined) {
       sanitized.place = sanitizeString(updates.place).slice(0, 200);
       sanitized.title = sanitized.place;
-      if (!sanitized.place) throw new Error("Place cannot be empty.");
+      if (!sanitized.place) throw new ConvexError("Place cannot be empty.");
     }
     if (updates.dressCodeNotes !== undefined) {
       sanitized.dressCodeNotes = sanitizeString(updates.dressCodeNotes).slice(0, 2000);
@@ -127,9 +127,9 @@ export const cancelCatering = mutation({
   handler: async (ctx, { cateringId, token }) => {
     await requireAdmin(ctx, token);
     const existing = await ctx.db.get(cateringId);
-    if (!existing) throw new Error("Event not found.");
-    if (existing.status === "cancelled") throw new Error("Event is already cancelled.");
-    if (existing.status === "ended") throw new Error("Cannot cancel an event that has already ended.");
+    if (!existing) throw new ConvexError("Event not found.");
+    if (existing.status === "cancelled") throw new ConvexError("Event is already cancelled.");
+    if (existing.status === "ended") throw new ConvexError("Cannot cancel an event that has already ended.");
     await ctx.db.patch(cateringId, { status: "cancelled" });
   },
 });

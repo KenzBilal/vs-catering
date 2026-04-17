@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./auth";
 
@@ -19,21 +19,21 @@ export const createUser = mutation({
   handler: async (ctx, args) => {
     const phone = args.phone.trim();
     if (!validatePhone(phone)) {
-      throw new Error("Enter a valid 10-digit mobile number.");
+      throw new ConvexError("Enter a valid 10-digit mobile number.");
     }
 
     if (args.registrationNumber && !validateRegistrationNumber(args.registrationNumber)) {
-      throw new Error("Enter a valid 8-digit registration number. Trivial numbers (e.g., 11111111) are not allowed.");
+      throw new ConvexError("Enter a valid 8-digit registration number. Trivial numbers (e.g., 11111111) are not allowed.");
     }
 
     const name = sanitizeString(args.name).slice(0, 100);
-    if (name.length < 2) throw new Error("Name is too short.");
+    if (name.length < 2) throw new ConvexError("Name is too short.");
 
     const existing = await ctx.db
       .query("users")
       .withIndex("by_phone", (q) => q.eq("phone", phone))
       .first();
-    if (existing) throw new Error("This phone number is already registered.");
+    if (existing) throw new ConvexError("This phone number is already registered.");
 
     return await ctx.db.insert("users", {
       name,
@@ -55,7 +55,7 @@ export const loginUser = mutation({
 
     // Enforce valid format before even touching DB
     if (!validatePhone(cleanPhone)) {
-      throw new Error("Enter a valid 10-digit mobile number.");
+      throw new ConvexError("Enter a valid 10-digit mobile number.");
     }
 
     // Rate limiting
@@ -69,7 +69,7 @@ export const loginUser = mutation({
       const withinWindow = now - attemptRecord.windowStart < RATE_LIMIT_WINDOW_MS;
       if (withinWindow && attemptRecord.attempts >= RATE_LIMIT_MAX) {
         const waitMins = Math.ceil((RATE_LIMIT_WINDOW_MS - (now - attemptRecord.windowStart)) / 60000);
-        throw new Error(`Too many login attempts. Try again in ${waitMins} minute${waitMins !== 1 ? "s" : ""}.`);
+        throw new ConvexError(`Too many login attempts. Try again in ${waitMins} minute${waitMins !== 1 ? "s" : ""}.`);
       }
       // Reset window if expired
       if (!withinWindow) {
@@ -139,7 +139,7 @@ export const updatePreferences = mutation({
   },
   handler: async (ctx, { userId, defaultDropPoint, stayType, photoStorageId, registrationNumber }) => {
     if (registrationNumber && !validateRegistrationNumber(registrationNumber)) {
-      throw new Error("Enter a valid 8-digit registration number. Trivial numbers (e.g., 11111111) are not allowed.");
+      throw new ConvexError("Enter a valid 8-digit registration number. Trivial numbers (e.g., 11111111) are not allowed.");
     }
     await ctx.db.patch(userId, {
       defaultDropPoint: sanitizeString(defaultDropPoint).slice(0, 100),

@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireSubAdmin, requireAdmin, getUserFromToken } from "./auth";
 
@@ -18,7 +18,7 @@ export const createPayment = mutation({
   handler: async (ctx, args) => {
     await requireSubAdmin(ctx, args.token);
 
-    if (args.amount < 0) throw new Error("Payment amount cannot be negative.");
+    if (args.amount < 0) throw new ConvexError("Payment amount cannot be negative.");
 
     // Prevent duplicate payment for same registration
     const existing = await ctx.db
@@ -26,7 +26,7 @@ export const createPayment = mutation({
       .withIndex("by_catering", (q) => q.eq("cateringId", args.cateringId))
       .collect();
     const duplicate = existing.find((p) => p.registrationId === args.registrationId);
-    if (duplicate) throw new Error("A payment record already exists for this registration.");
+    if (duplicate) throw new ConvexError("A payment record already exists for this registration.");
 
     const { token, ...dataToInsert } = args;
     return await ctx.db.insert("payments", {
@@ -48,8 +48,8 @@ export const clearPayment = mutation({
     const adminUser = await requireAdmin(ctx, token);
 
     const payment = await ctx.db.get(paymentId);
-    if (!payment) throw new Error("Payment not found.");
-    if (payment.status === "cleared") throw new Error("Payment is already cleared.");
+    if (!payment) throw new ConvexError("Payment not found.");
+    if (payment.status === "cleared") throw new ConvexError("Payment is already cleared.");
 
     await ctx.db.patch(paymentId, {
       status: "cleared",

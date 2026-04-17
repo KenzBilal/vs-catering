@@ -34,13 +34,15 @@ export default function Login() {
       }
     } catch (e) {
       setTried(false);
-      const msg = e.message || "";
+      const rawMsg = e.data || e.message || "";
+      const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
+
       if (msg.includes("ConvexError:")) {
         setError(msg.split("ConvexError:")[1].trim());
       } else if (msg.includes("Error:")) {
         setError(msg.split("Error:")[1].trim());
       } else {
-        setError("An error occurred during login.");
+        setError(msg || "An error occurred during login.");
       }
     }
   };

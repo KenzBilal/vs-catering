@@ -24,7 +24,7 @@ export async function getUserFromToken(ctx, token) {
 export async function requireAdmin(ctx, token) {
   const user = await getUserFromToken(ctx, token);
   if (!user || user.role !== "admin") {
-    throw new Error("Unauthorized: Admin access required.");
+    throw new ConvexError("Unauthorized: Admin access required.");
   }
   return user;
 }
@@ -33,7 +33,7 @@ export async function requireAdmin(ctx, token) {
 export async function requireSubAdmin(ctx, token) {
   const user = await getUserFromToken(ctx, token);
   if (!user || (user.role !== "admin" && user.role !== "sub_admin")) {
-    throw new Error("Unauthorized: Sub-admin or admin access required.");
+    throw new ConvexError("Unauthorized: Sub-admin or admin access required.");
   }
   return user;
 }

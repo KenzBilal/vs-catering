@@ -41,14 +41,16 @@ export default function Signup() {
       // The actual secure token will be generated upon full login, but createUser just initializes them
       navigate("/");
     } catch (e) {
-      // Extract clean error message from Convex error
-      const msg = e.message || "";
+      // Extract clean error message from Convex error data or message
+      const rawMsg = e.data || e.message || "";
+      const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
+      
       if (msg.includes("ConvexError:")) {
         setError(msg.split("ConvexError:")[1].trim());
       } else if (msg.includes("Error:")) {
         setError(msg.split("Error:")[1].trim());
       } else {
-        setError(msg || "Something went wrong.");
+        setError(msg);
       }
     } finally {
       setLoading(false);
