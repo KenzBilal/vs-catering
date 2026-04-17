@@ -57,6 +57,15 @@ export default function Settings() {
       login({ ...user, defaultDropPoint: dropPoint, stayType, registrationNumber: regNumber });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+    } catch (e) {
+      const msg = e.message || "";
+      if (msg.includes("ConvexError:")) {
+        setError(msg.split("ConvexError:")[1].trim());
+      } else if (msg.includes("Error:")) {
+        setError(msg.split("Error:")[1].trim());
+      } else {
+        setError(msg || "Something went wrong.");
+      }
     } finally {
       setLoading(false);
     }
@@ -146,7 +155,7 @@ export default function Settings() {
               <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={15} />
               <input
                 type="text"
-                placeholder="8-digit number"
+                placeholder="eg. 12517494"
                 value={regNumber}
                 onChange={(e) => setRegNumber(e.target.value.replace(/\D/g, "").slice(0, 8))}
                 className="pl-9 bg-white"

@@ -2,10 +2,7 @@ import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { requireAdmin, requireSubAdmin } from "./auth";
 
-function sanitize(str, maxLen = 500) {
-  if (typeof str !== "string") return "";
-  return str.replace(/<[^>]*>/g, "").replace(/[<>]/g, "").trim().slice(0, maxLen);
-}
+import { sanitizeString } from "./utils";
 
 function computeStatus(dates) {
   const today = new Date();
@@ -28,7 +25,7 @@ function validateSlots(slots) {
   for (const s of slots) {
     if (!Number.isInteger(s.limit) || s.limit < 0) throw new Error("Slot limit cannot be negative.");
     if (typeof s.pay !== "number" || s.pay < 0) throw new Error("Pay cannot be negative.");
-    if (!["service_boy", "service_girl", "captain_male"].includes(s.role)) {
+    if (!["service_boy", "service_girl", "captain_male", "captain_female"].includes(s.role)) {
       throw new Error(`Unknown role: ${s.role}`);
     }
   }
@@ -58,8 +55,8 @@ export const createCatering = mutation({
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.token);
 
-    const place = sanitize(args.place, 200);
-    const dressCodeNotes = sanitize(args.dressCodeNotes, 2000);
+    const place = sanitizeString(args.place).slice(0, 200);
+    const dressCodeNotes = sanitizeString(args.dressCodeNotes).slice(0, 2000);
     if (!place) throw new Error("Place is required.");
     if (args.dates.length === 0) throw new Error("At least one date is required.");
     validateSlots(args.slots);
@@ -103,12 +100,12 @@ export const updateCatering = mutation({
 
     const sanitized = {};
     if (updates.place !== undefined) {
-      sanitized.place = sanitize(updates.place, 200);
+      sanitized.place = sanitizeString(updates.place).slice(0, 200);
       sanitized.title = sanitized.place;
       if (!sanitized.place) throw new Error("Place cannot be empty.");
     }
     if (updates.dressCodeNotes !== undefined) {
-      sanitized.dressCodeNotes = sanitize(updates.dressCodeNotes, 2000);
+      sanitized.dressCodeNotes = sanitizeString(updates.dressCodeNotes).slice(0, 2000);
     }
     if (updates.slots !== undefined) {
       validateSlots(updates.slots);

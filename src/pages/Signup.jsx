@@ -41,7 +41,15 @@ export default function Signup() {
       // The actual secure token will be generated upon full login, but createUser just initializes them
       navigate("/");
     } catch (e) {
-      setError(e.message || "Something went wrong.");
+      // Extract clean error message from Convex error
+      const msg = e.message || "";
+      if (msg.includes("ConvexError:")) {
+        setError(msg.split("ConvexError:")[1].trim());
+      } else if (msg.includes("Error:")) {
+        setError(msg.split("Error:")[1].trim());
+      } else {
+        setError(msg || "Something went wrong.");
+      }
     } finally {
       setLoading(false);
     }
@@ -93,7 +101,7 @@ export default function Signup() {
               <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
               <input
                 type="text"
-                placeholder="8-digit number (e.g. 12517494)"
+                placeholder="eg. 12517494"
                 className="pl-11"
                 value={form.registrationNumber}
                 onChange={(e) => set("registrationNumber", e.target.value.replace(/\D/g, "").slice(0, 8))}

@@ -2,10 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireSubAdmin, requireAdmin, getUserFromToken } from "./auth";
 
-function sanitize(str, maxLen = 500) {
-  if (typeof str !== "string") return "";
-  return str.replace(/<[^>]*>/g, "").replace(/[<>]/g, "").trim().slice(0, maxLen);
-}
+import { sanitizeString } from "./utils";
 
 export const createPayment = mutation({
   args: {
@@ -58,7 +55,7 @@ export const clearPayment = mutation({
       status: "cleared",
       clearedBy: adminUser._id,
       clearedAt: Date.now(),
-      ...(upiRef ? { upiRef: sanitize(upiRef, 100) } : {}),
+      ...(upiRef ? { upiRef: sanitizeString(upiRef).slice(0, 100) } : {}),
     });
   },
 });

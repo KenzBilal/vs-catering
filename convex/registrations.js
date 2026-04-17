@@ -2,12 +2,9 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireSubAdmin, getUserFromToken } from "./auth";
 
-const VALID_ROLES = ["service_boy", "service_girl", "captain_male"];
+import { sanitizeString } from "./utils";
 
-function sanitize(str, maxLen = 500) {
-  if (typeof str !== "string") return "";
-  return str.replace(/<[^>]*>/g, "").replace(/[<>]/g, "").trim().slice(0, maxLen);
-}
+const VALID_ROLES = ["service_boy", "service_girl", "captain_male", "captain_female"];
 
 export const register = mutation({
   args: {
@@ -91,7 +88,7 @@ export const register = mutation({
       cateringId: args.cateringId,
       days: args.days,
       role: args.role,
-      dropPoint: sanitize(args.dropPoint, 100),
+      dropPoint: sanitizeString(args.dropPoint).slice(0, 100),
       ...(photoUrl ? { photoUrl } : {}),
       ...(finalPhotoStorageId ? { photoStorageId: finalPhotoStorageId } : {}),
       queuePosition,
@@ -154,7 +151,7 @@ export const markAttendance = mutation({
     await ctx.db.patch(registrationId, {
       status,
       ...(rejectionReason
-        ? { rejectionReason: sanitize(rejectionReason, 300) }
+        ? { rejectionReason: sanitizeString(rejectionReason).slice(0, 300) }
         : {}),
     });
   },

@@ -34,7 +34,14 @@ export default function Login() {
       }
     } catch (e) {
       setTried(false);
-      setError("An error occurred during login.");
+      const msg = e.message || "";
+      if (msg.includes("ConvexError:")) {
+        setError(msg.split("ConvexError:")[1].trim());
+      } else if (msg.includes("Error:")) {
+        setError(msg.split("Error:")[1].trim());
+      } else {
+        setError("An error occurred during login.");
+      }
     }
   };
 
