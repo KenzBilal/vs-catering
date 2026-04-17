@@ -71,6 +71,8 @@ export default function Signup() {
       let msg = e.message || "Failed to send OTP. Please check your number or try again.";
       if (errorCode === "auth/unauthorized-domain") {
         msg = "This domain is not authorized in Firebase. Please add your Vercel URL to Authorized Domains in Firebase Console.";
+      } else if (errorCode === "auth/invalid-app-credential") {
+        msg = "Invalid app credentials. Please check your Firebase API key restrictions and ensure Phone Auth is fully set up.";
       }
       setError(`${msg} (${errorCode})`);
     } finally {
