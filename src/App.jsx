@@ -29,7 +29,11 @@ import AdminSettings  from "./pages/admin/AdminSettings";
 import Login  from "./pages/Login";
 import Signup from "./pages/Signup";
 
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+const convexUrl = import.meta.env.VITE_CONVEX_URL;
+if (!convexUrl) {
+  console.error("VITE_CONVEX_URL is missing! The app will not be able to connect to the database.");
+}
+const convex = new ConvexReactClient(convexUrl || "https://dummy.convex.cloud");
 
 function ProtectedRoute({ children, adminOnly }) {
   const { user, loading } = useAuth();

@@ -30,9 +30,11 @@ export default function Signup() {
   const [confirmationResult, setConfirmationResult] = useState(null);
 
   useEffect(() => {
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "invisible",
-    });
+    if (auth) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+        size: "invisible",
+      });
+    }
   }, []);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -46,6 +48,7 @@ export default function Signup() {
       return setError("Enter a valid 8-digit registration number.");
     }
     
+    if (!auth) return setError("Authentication service is unavailable. Please check your connection.");
     setLoading(true);
     try {
       const formattedPhone = `+91${form.phone}`;

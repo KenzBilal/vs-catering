@@ -23,9 +23,11 @@ export default function Login() {
   const loginUser = useMutation(api.users.loginUser);
 
   useEffect(() => {
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "invisible",
-    });
+    if (auth) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+        size: "invisible",
+      });
+    }
   }, []);
 
   const handleSendOTP = async () => {
@@ -34,6 +36,7 @@ export default function Login() {
     if (!isValidPhone(phone)) return setError("Enter a valid 10-digit number.");
     if (!name.trim()) return setError("Enter your name.");
     
+    if (!auth) return setError("Authentication service is unavailable. Please check your connection.");
     setLoading(true);
     try {
       const formattedPhone = `+91${phone}`; // Assuming India, adjust if needed

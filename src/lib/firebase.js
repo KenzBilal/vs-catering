@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
+// Vite environment variables must start with VITE_
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -11,10 +12,20 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+let app;
+let auth;
+
 try {
-  auth.useDeviceLanguage();
-} catch (e) {
-  console.warn("Firebase: could not set device language", e);
+  // Only initialize if we have at least the API key
+  if (firebaseConfig.apiKey) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    auth.useDeviceLanguage();
+  } else {
+    console.error("Firebase API Key is missing. Phone Auth will not work.");
+  }
+} catch (error) {
+  console.error("Firebase initialization failed:", error);
 }
+
+export { auth };
