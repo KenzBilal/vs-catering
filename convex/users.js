@@ -36,7 +36,7 @@ export const createUser = mutation({
       .first();
     if (existing) throw new ConvexError("This phone number is already registered.");
 
-    return await ctx.db.insert("users", {
+    const userId = await ctx.db.insert("users", {
       name,
       phone,
       stayType: args.stayType,
@@ -46,6 +46,13 @@ export const createUser = mutation({
       role: "student",
       createdAt: Date.now(),
     });
+
+    const user = await ctx.db.get(userId);
+    const token = crypto.randomUUID();
+    const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30; // 30 days
+    await ctx.db.insert("sessions", { userId, token, expiresAt });
+
+    return { ...user, token };
   },
 });
 
