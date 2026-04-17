@@ -90,3 +90,11 @@ export function getStatusLabel(status) {
 export function isValidPhone(phone) {
   return /^[6-9]\d{9}$/.test(phone.trim());
 }
+
+// Validate 8-digit LPU Reg Number, no trivial (11111111)
+export function isValidRegNumber(reg) {
+  if (!reg) return true;
+  if (!/^\d{8}$/.test(reg)) return false;
+  if (/^(\d)\1{7}$/.test(reg)) return false;
+  return true;
+}

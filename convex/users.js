@@ -13,6 +13,14 @@ function isValidPhone(phone) {
   return /^[6-9]\d{9}$/.test(phone);
 }
 
+function isValidRegNumber(reg) {
+  if (!reg) return true; // Optional
+  if (!/^\d{8}$/.test(reg)) return false;
+  // Check if all digits are the same
+  if (/^(\d)\1{7}$/.test(reg)) return false;
+  return true;
+}
+
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const RATE_LIMIT_MAX = 5;
 
@@ -23,11 +31,16 @@ export const createUser = mutation({
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     gender: v.union(v.literal("male"), v.literal("female")),
     defaultDropPoint: v.string(),
+    registrationNumber: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const phone = args.phone.trim();
     if (!isValidPhone(phone)) {
       throw new Error("Enter a valid 10-digit Indian mobile number (starting with 6–9).");
+    }
+
+    if (args.registrationNumber && !isValidRegNumber(args.registrationNumber)) {
+      throw new Error("Enter a valid 8-digit registration number. Trivial numbers (e.g., 11111111) are not allowed.");
     }
 
     const name = sanitize(args.name, 100);
@@ -45,6 +58,7 @@ export const createUser = mutation({
       stayType: args.stayType,
       gender: args.gender,
       defaultDropPoint: sanitize(args.defaultDropPoint, 100),
+      registrationNumber: args.registrationNumber,
       role: "student",
       createdAt: Date.now(),
     });
@@ -138,12 +152,17 @@ export const updatePreferences = mutation({
     defaultDropPoint: v.string(),
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     photoStorageId: v.optional(v.id("_storage")),
+    registrationNumber: v.optional(v.string()),
   },
-  handler: async (ctx, { userId, defaultDropPoint, stayType, photoStorageId }) => {
+  handler: async (ctx, { userId, defaultDropPoint, stayType, photoStorageId, registrationNumber }) => {
+    if (registrationNumber && !isValidRegNumber(registrationNumber)) {
+      throw new Error("Enter a valid 8-digit registration number. Trivial numbers (e.g., 11111111) are not allowed.");
+    }
     await ctx.db.patch(userId, {
       defaultDropPoint: sanitize(defaultDropPoint, 100),
       stayType,
       ...(photoStorageId ? { photoStorageId } : {}),
+      registrationNumber,
     });
   },
 });

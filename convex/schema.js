@@ -9,6 +9,7 @@ export default defineSchema({
     gender: v.union(v.literal("male"), v.literal("female")),
     defaultDropPoint: v.string(),
     photoStorageId: v.optional(v.id("_storage")),
+    registrationNumber: v.optional(v.string()),
     role: v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student")),
     createdAt: v.number(),
   })

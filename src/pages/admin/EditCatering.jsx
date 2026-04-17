@@ -224,15 +224,15 @@ function SlotEditor({ slots, allSlots, updateSlot, isDay1 = false }) {
             </div>
             <input
               type="number"
-              value={s.limit}
+              value={s.limit || ""}
               min={1}
-              onChange={(e) => updateSlot(realIndex, "limit", Number(e.target.value))}
+              onChange={(e) => updateSlot(realIndex, "limit", e.target.value === "" ? "" : Number(e.target.value))}
             />
             <input
               type="number"
-              value={s.pay}
+              value={s.pay || ""}
               min={0}
-              onChange={(e) => updateSlot(realIndex, "pay", Number(e.target.value))}
+              onChange={(e) => updateSlot(realIndex, "pay", e.target.value === "" ? "" : Number(e.target.value))}
             />
           </div>
         );

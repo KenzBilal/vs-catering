@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
-import { Save, CheckCircle2, User, Phone, MapPin, Camera, XCircle, Trash2 } from "lucide-react";
+import { Save, CheckCircle2, User, Phone, MapPin, Camera, XCircle, Trash2, Hash } from "lucide-react";
 import SegmentedControl from "../components/ui/SegmentedControl";
 import ConvexImage from "../components/shared/ConvexImage";
+import { isValidRegNumber } from "../lib/helpers";
 
 const ROLE_LABEL = { student: "Student", sub_admin: "Sub-Admin", admin: "Admin" };
 const ROLE_BADGE = {
@@ -24,6 +25,7 @@ export default function Settings() {
   const [saved, setSaved]         = useState(false);
   const [loading, setLoading]     = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [regNumber, setRegNumber] = useState(user?.registrationNumber || "");
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -37,18 +39,22 @@ export default function Settings() {
         body: file,
       });
       const { storageId } = await result.json();
-      await updatePrefs({ userId: user._id, defaultDropPoint: dropPoint, stayType, photoStorageId: storageId });
-      login({ ...user, photoStorageId: storageId });
+      await updatePrefs({ userId: user._id, defaultDropPoint: dropPoint, stayType, photoStorageId: storageId, registrationNumber: regNumber });
+      login({ ...user, photoStorageId: storageId, registrationNumber: regNumber });
     } finally {
       setUploading(false);
     }
   };
 
   const handleSave = async () => {
+    if (regNumber.trim() && !isValidRegNumber(regNumber.trim())) {
+      setError("Enter a valid 8-digit registration number.");
+      return;
+    }
     setLoading(true);
     try {
-      await updatePrefs({ userId: user._id, defaultDropPoint: dropPoint, stayType });
-      login({ ...user, defaultDropPoint: dropPoint, stayType });
+      await updatePrefs({ userId: user._id, defaultDropPoint: dropPoint, stayType, registrationNumber: regNumber });
+      login({ ...user, defaultDropPoint: dropPoint, stayType, registrationNumber: regNumber });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } finally {
@@ -131,6 +137,20 @@ export default function Settings() {
                   <option key={dp._id} value={dp.name}>{dp.name}</option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="label">LPU Registration Number <span className="text-stone-400 lowercase">(Optional)</span></label>
+            <div className="relative">
+              <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={15} />
+              <input
+                type="text"
+                placeholder="8-digit number"
+                value={regNumber}
+                onChange={(e) => setRegNumber(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                className="pl-9 bg-white"
+              />
             </div>
           </div>
 

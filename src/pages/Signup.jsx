@@ -3,9 +3,9 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { UserPlus, Phone, User, UtensilsCrossed, MapPin } from "lucide-react";
+import { UserPlus, Phone, User, UtensilsCrossed, MapPin, Hash } from "lucide-react";
 import SegmentedControl from "../components/ui/SegmentedControl";
-import { isValidPhone } from "../lib/helpers";
+import { isValidPhone, isValidRegNumber } from "../lib/helpers";
 
 export default function Signup() {
   const { login } = useAuth();
@@ -19,6 +19,7 @@ export default function Signup() {
     stayType: "hostel",
     gender: "male",
     defaultDropPoint: "Main Gate",
+    registrationNumber: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,9 @@ export default function Signup() {
     if (!form.name.trim()) return setError("Name is required.");
     if (!form.phone.trim()) return setError("Phone number is required.");
     if (!isValidPhone(form.phone)) return setError("Enter a valid 10-digit number starting with 6, 7, 8, or 9.");
+    if (form.registrationNumber.trim() && !isValidRegNumber(form.registrationNumber.trim())) {
+      return setError("Enter a valid 8-digit registration number (e.g. 12345678).");
+    }
     setLoading(true);
     try {
       const id = await createUser(form);
@@ -79,6 +83,20 @@ export default function Signup() {
                 className="pl-11"
                 value={form.phone}
                 onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="label">LPU Registration Number <span className="text-stone-400 lowercase">(Optional)</span></label>
+            <div className="relative">
+              <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+              <input
+                type="text"
+                placeholder="8-digit number (e.g. 12517494)"
+                className="pl-11"
+                value={form.registrationNumber}
+                onChange={(e) => set("registrationNumber", e.target.value.replace(/\D/g, "").slice(0, 8))}
               />
             </div>
           </div>

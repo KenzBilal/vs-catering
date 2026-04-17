@@ -217,15 +217,15 @@ export default function CreateCatering() {
                 <input
                   type="number"
                   placeholder="0"
-                  value={s.limit}
-                  onChange={(e) => updateSlot(i, "limit", Number(e.target.value))}
+                  value={s.limit || ""}
+                  onChange={(e) => updateSlot(i, "limit", e.target.value === "" ? "" : Number(e.target.value))}
                   min={1}
                 />
                 <input
                   type="number"
                   placeholder="0"
-                  value={s.pay}
-                  onChange={(e) => updateSlot(i, "pay", Number(e.target.value))}
+                  value={s.pay || ""}
+                  onChange={(e) => updateSlot(i, "pay", e.target.value === "" ? "" : Number(e.target.value))}
                   min={0}
                 />
               </div>
@@ -258,8 +258,8 @@ export default function CreateCatering() {
                         <div className="px-3 py-2.5 bg-cream-50 border border-cream-200 rounded-xl text-[14px] text-stone-700 font-medium">
                           {getRoleLabel(s.role)}
                         </div>
-                        <input type="number" placeholder="0" value={s.limit} onChange={(e) => updateSlot(realIndex, "limit", Number(e.target.value))} min={1} />
-                        <input type="number" placeholder="0" value={s.pay} onChange={(e) => updateSlot(realIndex, "pay", Number(e.target.value))} min={0} />
+                        <input type="number" placeholder="0" value={s.limit || ""} onChange={(e) => updateSlot(realIndex, "limit", e.target.value === "" ? "" : Number(e.target.value))} min={1} />
+                        <input type="number" placeholder="0" value={s.pay || ""} onChange={(e) => updateSlot(realIndex, "pay", e.target.value === "" ? "" : Number(e.target.value))} min={0} />
                       </div>
                     );
                   })}
