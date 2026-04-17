@@ -105,7 +105,7 @@ export default function Login() {
                 }
                 <input
                   type="text"
-                  placeholder="9876543210 or name@example.com"
+                  placeholder="Phone or email"
                   value={identifier}
                   className="pl-11"
                   onChange={(e) => setIdentifier(e.target.value)}
