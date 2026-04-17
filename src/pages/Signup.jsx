@@ -58,14 +58,13 @@ export default function Signup() {
     } catch (e) {
       console.error("Firebase Send OTP Error (Signup):", e);
       // Reset reCAPTCHA on failure so they can try again
-      if (window.recaptchaVerifier) {
+      if (window.recaptchaVerifier && window.grecaptcha) {
         try {
-          window.recaptchaVerifier.clear();
-          const container = document.getElementById("recaptcha-container");
-          if (container) container.innerHTML = "";
-          window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", { size: "invisible" });
-        } catch (clearErr) {
-          console.error("Failed to clear verifier", clearErr);
+          window.recaptchaVerifier.render().then(widgetId => {
+            window.grecaptcha.reset(widgetId);
+          });
+        } catch (resetErr) {
+          console.error("Failed to reset recaptcha", resetErr);
         }
       }
       const errorCode = e.code || "";
