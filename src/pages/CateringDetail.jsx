@@ -12,7 +12,7 @@ import {
   getTimeOfDayLabel,
 } from "../lib/helpers";
 import { useState } from "react";
-import { ArrowLeft, MapPin, CalendarDays, Clock, Camera, AlertCircle, Link as LinkIcon, Edit, UserCheck, CreditCard, Share2, Users, CheckCircle2, User, Phone, Hash, Home } from "lucide-react";
+import { ArrowLeft, MapPin, CalendarDays, Clock, Camera, AlertCircle, Link as LinkIcon, Edit, UserCheck, CreditCard, Share2, Users, CheckCircle2, User, Phone, Hash, Home, XCircle } from "lucide-react";
 import ConvexImage from "../components/shared/ConvexImage";
 
 export default function CateringDetail() {
