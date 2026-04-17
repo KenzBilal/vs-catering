@@ -111,10 +111,14 @@ export default function AdminDashboard() {
 
           <div className="flex flex-col gap-2">
             {activeCaterings.map((c) => (
-              <div key={c._id} className="bg-white border border-cream-200 rounded-xl p-4 hover:border-stone-300 transition-colors">
+              <div 
+                key={c._id} 
+                className="bg-white border border-cream-200 rounded-xl p-4 hover:border-stone-300 hover:shadow-sm transition-all cursor-pointer group"
+                onClick={() => navigate(`/catering/${c._id}`)}
+              >
                 <div className="flex justify-between items-start gap-3">
                   <div className="min-w-0">
-                    <p className="font-bold text-[14.5px] text-stone-900 truncate">{c.place}</p>
+                    <p className="font-bold text-[14.5px] text-stone-900 truncate group-hover:text-stone-800 transition-colors">{c.place}</p>
                     <p className="text-[12.5px] font-medium text-stone-500 mt-0.5">
                       {c.isTwoDay
                         ? `${formatDate(c.dates[0])} – ${formatDate(c.dates[1])}`
@@ -122,7 +126,7 @@ export default function AdminDashboard() {
                       <span className="mx-1.5">·</span>{c.specificTime}
                     </p>
                   </div>
-                  <div className="flex gap-1.5 shrink-0">
+                  <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                     <button
                       className="p-1.5 rounded-lg bg-cream-50 border border-cream-200 text-stone-500 hover:text-stone-900 hover:bg-cream-100 transition-colors"
                       onClick={() => navigate(`/admin/catering/${c._id}/attendance`)}
