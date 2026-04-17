@@ -23,11 +23,9 @@ export default function Login() {
   const loginUser = useMutation(api.users.loginUser);
 
   useEffect(() => {
-    if (auth) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-        size: "invisible",
-      });
-    }
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: "invisible",
+    });
   }, []);
 
   const handleSendOTP = async () => {
@@ -36,19 +34,7 @@ export default function Login() {
     if (!isValidPhone(phone)) return setError("Enter a valid 10-digit number.");
     if (!name.trim()) return setError("Enter your name.");
     
-    if (!auth) return setError("Authentication service is unavailable. Please check your config.");
-    
-    // Initialize reCAPTCHA on-demand if it doesn't exist
-    if (!window.recaptchaVerifier) {
-      try {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", { size: "invisible" });
-      } catch (err) {
-        return setError("Failed to initialize security check. Please refresh.");
-      }
-    }
-
     setLoading(true);
-
     try {
       // Sanitize: Remove all non-numeric characters and handle existing +91
       const cleanPhone = phone.replace(/\D/g, "").slice(-10);

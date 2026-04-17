@@ -30,11 +30,9 @@ export default function Signup() {
   const [confirmationResult, setConfirmationResult] = useState(null);
 
   useEffect(() => {
-    if (auth) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-        size: "invisible",
-      });
-    }
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: "invisible",
+    });
   }, []);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -46,17 +44,6 @@ export default function Signup() {
     if (!isValidPhone(form.phone)) return setError("Enter a valid 10-digit number.");
     if (form.registrationNumber.trim() && !isValidRegNumber(form.registrationNumber.trim())) {
       return setError("Enter a valid 8-digit registration number.");
-    }
-    
-    if (!auth) return setError("Authentication service is unavailable. Please check your config.");
-
-    // Initialize reCAPTCHA on-demand if it doesn't exist
-    if (!window.recaptchaVerifier) {
-      try {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", { size: "invisible" });
-      } catch (err) {
-        return setError("Failed to initialize security check. Please refresh.");
-      }
     }
     
     setLoading(true);
