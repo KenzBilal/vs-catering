@@ -26,7 +26,7 @@ function computeStatus(dates) {
 
 function validateSlots(slots) {
   for (const s of slots) {
-    if (!Number.isInteger(s.limit) || s.limit < 1) throw new Error("Each slot must have at least 1 position.");
+    if (!Number.isInteger(s.limit) || s.limit < 0) throw new Error("Slot limit cannot be negative.");
     if (typeof s.pay !== "number" || s.pay < 0) throw new Error("Pay cannot be negative.");
     if (!["service_boy", "service_girl", "captain_male"].includes(s.role)) {
       throw new Error(`Unknown role: ${s.role}`);
