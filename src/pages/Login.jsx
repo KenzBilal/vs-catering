@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { LogIn, Mail, Lock, Utensils, ArrowRight } from "lucide-react";
+import { Mail, Lock, Utensils, ArrowRight, Phone } from "lucide-react";
 import { auth } from "../lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
@@ -11,30 +11,49 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState(""); // phone or email
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const loginUserMutation = useMutation(api.users.loginUser);
 
+  // Detect if the user typed a phone number (10 digits) or email
+  const isPhone = /^\d{10}$/.test(identifier.replace(/\D/g, ""));
+
+  // Lazily resolve the email from Convex when identifier looks like a phone
+  const resolvedEmail = useQuery(
+    api.users.resolveLoginEmail,
+    identifier.trim().length >= 6 ? { identifier: identifier.trim() } : "skip"
+  );
+
   const handleLogin = async (e) => {
     e?.preventDefault();
     setError("");
-    
-    if (!email.trim()) return setError("Email is required.");
+
+    if (!identifier.trim()) return setError("Enter your phone number or email.");
     if (!password.trim()) return setError("Password is required.");
-    
+
+    // If it looks like a phone, we need an email to pass to Firebase
+    const firebaseEmail = isPhone ? resolvedEmail : identifier.toLowerCase().trim();
+
+    if (isPhone && resolvedEmail === undefined) {
+      return setError("Looking up your account... please try again.");
+    }
+    if (isPhone && resolvedEmail === null) {
+      return setError("No account found with this phone number.");
+    }
+
     setLoading(true);
     try {
-      // 1. Authenticate with Firebase
-      await signInWithEmailAndPassword(auth, email.toLowerCase().trim(), password);
-      
-      // 2. Authenticate with Convex
-      const result = await loginUserMutation({ email: email.toLowerCase().trim() });
-      
+      // 1. Authenticate with Firebase using the resolved email
+      await signInWithEmailAndPassword(auth, firebaseEmail, password);
+
+      // 2. Create a session in Convex
+      const result = await loginUserMutation({ email: firebaseEmail });
+
       if (result === null) {
-        setError("Account not found in our records. Please sign up.");
+        setError("Account not found. Please sign up first.");
       } else {
         login(result);
         navigate("/", { replace: true });
@@ -42,13 +61,19 @@ export default function Login() {
     } catch (e) {
       console.error("Login Error:", e);
       const errorCode = e.code || "";
-      let msg = "Invalid email or password.";
-      
+      let msg = "Incorrect password or account not found.";
+
       if (errorCode === "auth/user-not-found") msg = "No account found with this email.";
-      if (errorCode === "auth/wrong-password") msg = "Incorrect password.";
-      if (errorCode === "auth/too-many-requests") msg = "Too many failed attempts. Try again later.";
-      
-      setError(msg);
+      if (errorCode === "auth/wrong-password" || errorCode === "auth/invalid-credential") msg = "Incorrect password. Please try again.";
+      if (errorCode === "auth/too-many-requests") msg = "Too many failed attempts. Please try again later.";
+      if (errorCode === "auth/operation-not-allowed") msg = "Email/Password login is not enabled. Enable it in the Firebase Console.";
+
+      const rawMsg = e.data || e.message || "";
+      if (typeof rawMsg === "string" && rawMsg.includes("ConvexError:")) {
+        msg = rawMsg.split("ConvexError:")[1].trim();
+      }
+
+      setError(`${msg}${errorCode ? ` (${errorCode})` : ""}`);
     } finally {
       setLoading(false);
     }
@@ -63,25 +88,37 @@ export default function Login() {
           </div>
           <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Welcome Back</h1>
           <p className="text-[14.5px] text-stone-500 mt-1 font-medium text-center">
-            Sign in to your catering account
+            Sign in with your phone or email
           </p>
         </div>
 
         <div className="card p-6 sm:p-8 flex flex-col gap-5 shadow-xl shadow-stone-200/50">
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
+
+            {/* Identifier field — phone or email */}
             <div>
-              <label className="label">Email Address</label>
+              <label className="label">Phone Number or Email</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                {isPhone
+                  ? <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                  : <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                }
                 <input
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
+                  type="text"
+                  placeholder="9876543210 or name@example.com"
+                  value={identifier}
                   className="pl-11"
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   disabled={loading}
+                  autoComplete="username"
                 />
               </div>
+              {/* Subtle indicator */}
+              {identifier.trim().length > 0 && (
+                <p className="text-[11.5px] font-medium text-stone-400 mt-1.5 ml-1">
+                  {isPhone ? "🔢 Signing in with phone number" : "✉️ Signing in with email"}
+                </p>
+              )}
             </div>
 
             <div>
@@ -95,6 +132,7 @@ export default function Login() {
                   className="pl-11"
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
+                  autoComplete="current-password"
                 />
               </div>
             </div>

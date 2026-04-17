@@ -63,6 +63,19 @@ export const createUser = mutation({
   },
 });
 
+// Resolve a phone number to the account email (for Firebase login by phone)
+export const getEmailByPhone = query({
+  args: { phone: v.string() },
+  handler: async (ctx, { phone }) => {
+    const clean = phone.replace(/\D/g, "").slice(-10);
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("phone"), clean))
+      .first();
+    return user ? user.email : null;
+  },
+});
+
 export const loginUser = mutation({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
@@ -181,5 +194,29 @@ export const getAllStudents = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("users").collect();
+  },
+});
+
+// Resolve identifier (phone or email) → email for Firebase sign-in
+export const resolveLoginEmail = query({
+  args: { identifier: v.string() },
+  handler: async (ctx, { identifier }) => {
+    const cleaned = identifier.trim();
+    // Phone: purely numeric after stripping non-digits
+    const isPhone = /^\d{10}$/.test(cleaned.replace(/\D/g, ""));
+    if (isPhone) {
+      const phone = cleaned.replace(/\D/g, "").slice(-10);
+      const user = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("phone"), phone))
+        .first();
+      return user ? user.email : null;
+    }
+    // Otherwise treat as email
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", cleaned.toLowerCase()))
+      .first();
+    return user ? user.email : null;
   },
 });
