@@ -79,6 +79,10 @@ export default function CreateCatering() {
     const finalDates = isTwoDay ? dates : [dates[0]];
     const finalSlots = buildFinalSlots();
 
+    // Ensure at least one slot has a limit > 0
+    const totalSlots = finalSlots.reduce((sum, s) => sum + (Number(s.limit) || 0), 0);
+    if (totalSlots === 0) return setError("At least one role must have more than 0 slots.");
+
     setLoading(true);
     try {
       const id = await createCatering({
@@ -226,7 +230,7 @@ export default function CreateCatering() {
                   placeholder="0"
                   value={s.limit || ""}
                   onChange={(e) => updateSlot(i, "limit", e.target.value === "" ? "" : Number(e.target.value))}
-                  min={1}
+                  min={0}
                 />
                 <input
                   type="number"
@@ -265,7 +269,7 @@ export default function CreateCatering() {
                         <div className="px-3 py-2.5 bg-cream-50 border border-cream-200 rounded-xl text-[14px] text-stone-700 font-medium">
                           {getRoleLabel(s.role)}
                         </div>
-                        <input type="number" placeholder="0" value={s.limit || ""} onChange={(e) => updateSlot(realIndex, "limit", e.target.value === "" ? "" : Number(e.target.value))} min={1} />
+                        <input type="number" placeholder="0" value={s.limit || ""} onChange={(e) => updateSlot(realIndex, "limit", e.target.value === "" ? "" : Number(e.target.value))} min={0} />
                         <input type="number" placeholder="0" value={s.pay || ""} onChange={(e) => updateSlot(realIndex, "pay", e.target.value === "" ? "" : Number(e.target.value))} min={0} />
                       </div>
                     );

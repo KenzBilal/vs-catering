@@ -110,7 +110,7 @@ export default function CateringDetail() {
           <h3 className="section-title !mb-0">Roles and Pay</h3>
         </div>
         <div className="flex flex-col gap-3">
-          {catering.slots.map((s, i) => {
+          {catering.slots.filter(s => s.limit > 0).map((s, i) => {
             const key = `${s.role}-${s.day}`;
             const filled = roleCounts[key] || 0;
             const confirmed = Math.min(filled, s.limit);

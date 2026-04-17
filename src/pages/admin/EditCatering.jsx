@@ -52,6 +52,10 @@ export default function EditCatering() {
     if (!place.trim()) return setError("Place is required.");
     if (!specificTime.trim()) return setError("Time is required.");
 
+    // Ensure at least one slot has a limit > 0
+    const totalSlots = slots.reduce((sum, s) => sum + (Number(s.limit) || 0), 0);
+    if (totalSlots === 0) return setError("At least one role must have more than 0 slots.");
+
     setLoading(true);
     try {
       await updateCatering({
@@ -232,7 +236,7 @@ function SlotEditor({ slots, allSlots, updateSlot, isDay1 = false }) {
             <input
               type="number"
               value={s.limit || ""}
-              min={1}
+              min={0}
               onChange={(e) => updateSlot(realIndex, "limit", e.target.value === "" ? "" : Number(e.target.value))}
             />
             <input

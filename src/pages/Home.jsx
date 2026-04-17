@@ -142,7 +142,7 @@ function EventCard({ c, isRegistered }) {
         </div>
 
         <div className="pt-4 border-t border-cream-100 flex flex-wrap gap-2">
-          {c.slots.filter((s) => s.day === 0).map((s, i) => (
+          {c.slots.filter((s) => s.day === 0 && s.limit > 0).map((s, i) => (
             <div key={i} className="flex items-center gap-2 bg-cream-50 border border-cream-200 rounded-lg px-3 py-1.5 text-[12px]">
               <Users size={12} className="text-stone-400" />
               <span className="text-stone-700 font-semibold">{getRoleLabel(s.role)}</span>

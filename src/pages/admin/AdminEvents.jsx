@@ -144,7 +144,7 @@ export default function AdminEvents() {
                   {/* Role pay summary */}
                   <div className="flex flex-wrap gap-2 mt-3">
                     {c.slots
-                      .filter((s) => s.day === 0)
+                      .filter((s) => s.day === 0 && s.limit > 0)
                       .map((s, i) => (
                         <span
                           key={i}
