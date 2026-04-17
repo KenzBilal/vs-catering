@@ -1,5 +1,6 @@
 import { useAuth } from "../../lib/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { LogOut, LayoutDashboard, User, UtensilsCrossed, CalendarDays } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -14,97 +15,55 @@ export default function Navbar() {
   const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
 
   return (
-    <nav
-      style={{
-        background: "var(--cream-card)",
-        borderBottom: "1px solid var(--cream-border)",
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 900,
-          margin: "0 auto",
-          padding: "0 16px",
-          height: 52,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Link
-          to="/"
-          style={{
-            fontWeight: 700,
-            fontSize: 16,
-            color: "var(--text-primary)",
-            textDecoration: "none",
-            letterSpacing: "-0.3px",
-          }}
-        >
+    <nav className="sticky top-0 z-50 bg-cream-card/90 backdrop-blur-md border-b border-cream-border transition-all duration-300">
+      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 font-bold text-[17px] tracking-tight text-stone-900 hover:opacity-80 transition-opacity">
+          <UtensilsCrossed size={18} className="text-stone-700" />
           VS-Catering
         </Link>
 
         {user && (
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div className="flex items-center gap-5 sm:gap-6">
             {isAdmin && (
               <Link
                 to="/admin"
-                style={{
-                  fontSize: 13,
-                  color:
-                    location.pathname.startsWith("/admin")
-                      ? "var(--text-primary)"
-                      : "var(--text-muted)",
-                  textDecoration: "none",
-                  fontWeight: location.pathname.startsWith("/admin") ? 600 : 400,
-                }}
+                className={`text-[13px] font-medium transition-colors flex items-center gap-1.5 ${
+                  location.pathname.startsWith("/admin") ? "text-stone-900" : "text-stone-500 hover:text-stone-800"
+                }`}
               >
+                <LayoutDashboard size={15} className="hidden sm:block" />
                 Admin
               </Link>
             )}
             <Link
               to="/my-caterings"
-              style={{
-                fontSize: 13,
-                color:
-                  location.pathname === "/my-caterings"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
-                textDecoration: "none",
-                fontWeight: location.pathname === "/my-caterings" ? 600 : 400,
-              }}
+              className={`text-[13px] font-medium transition-colors flex items-center gap-1.5 ${
+                location.pathname === "/my-caterings" ? "text-stone-900" : "text-stone-500 hover:text-stone-800"
+              }`}
             >
-              My Caterings
+              <CalendarDays size={15} className="hidden sm:block" />
+              <span className="hidden sm:inline">My Caterings</span>
+              <span className="sm:hidden">Events</span>
             </Link>
+            
+            <div className="h-4 w-px bg-cream-300 mx-0.5 hidden sm:block"></div>
+            
             <Link
               to="/profile"
-              style={{
-                fontSize: 13,
-                color:
-                  location.pathname === "/profile"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
-                textDecoration: "none",
-                fontWeight: location.pathname === "/profile" ? 600 : 400,
-              }}
+              className={`text-[13px] font-medium transition-colors flex items-center gap-1.5 ${
+                location.pathname === "/profile" ? "text-stone-900" : "text-stone-500 hover:text-stone-800"
+              }`}
             >
+              <User size={15} className="hidden sm:block" />
               {user.name.split(" ")[0]}
             </Link>
+            
             <button
               onClick={handleLogout}
-              style={{
-                fontSize: 12,
-                color: "var(--text-muted)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-              }}
+              className="text-[13px] font-medium text-stone-500 hover:text-red-600 transition-colors flex items-center gap-1.5 p-1 rounded-md hover:bg-red-50"
+              aria-label="Sign out"
             >
-              Log out
+              <LogOut size={16} />
             </button>
           </div>
         )}

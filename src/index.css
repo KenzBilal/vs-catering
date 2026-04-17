@@ -31,23 +31,15 @@
   }
 
   input, select, textarea {
-    background-color: var(--cream-card);
-    border: 1px solid var(--cream-border);
-    color: var(--text-primary);
-    border-radius: 6px;
-    padding: 10px 14px;
+    @apply bg-cream-50 border border-cream-300 text-stone-800 rounded-xl px-4 py-3 text-[15px] w-full outline-none transition-all duration-200 shadow-sm;
     font-family: 'Gabarito', sans-serif;
-    font-size: 15px;
-    width: 100%;
-    outline: none;
-    transition: border-color 0.15s;
   }
 
   input:focus, select:focus, textarea:focus {
-    border-color: var(--accent);
+    @apply border-stone-800 ring-2 ring-stone-800/10;
   }
 
-  input::placeholder {
+  input::placeholder, textarea::placeholder {
     color: var(--text-muted);
   }
 
@@ -59,69 +51,75 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-stone-800 text-cream-50 px-5 py-2.5 rounded-md text-sm font-medium hover:bg-stone-900 transition-colors;
+    @apply bg-stone-800 text-cream-50 px-6 py-3 rounded-xl text-[15px] font-semibold hover:bg-stone-900 transition-all duration-200 active:scale-[0.98] shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-stone-800 focus:ring-offset-2 focus:ring-offset-cream-100 flex items-center justify-center gap-2;
   }
 
   .btn-secondary {
-    @apply bg-cream-100 text-stone-800 border border-cream-300 px-5 py-2.5 rounded-md text-sm font-medium hover:bg-cream-200 transition-colors;
+    @apply bg-cream-100 text-stone-800 border border-cream-300 px-6 py-3 rounded-xl text-[15px] font-semibold hover:bg-cream-200 transition-all duration-200 active:scale-[0.98] shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-cream-300 focus:ring-offset-2 focus:ring-offset-cream-100 flex items-center justify-center gap-2;
   }
 
   .btn-danger {
-    @apply bg-red-700 text-white px-5 py-2.5 rounded-md text-sm font-medium hover:bg-red-800 transition-colors;
+    @apply bg-red-700 text-white px-6 py-3 rounded-xl text-[15px] font-semibold hover:bg-red-800 transition-all duration-200 active:scale-[0.98] shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2 focus:ring-offset-cream-100 flex items-center justify-center gap-2;
   }
 
   .card {
     background: var(--cream-card);
     border: 1px solid var(--cream-border);
-    border-radius: 10px;
-    padding: 20px;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+  }
+
+  .card-hover:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
   }
 
   .label {
-    @apply block text-xs font-medium uppercase tracking-wide mb-1.5;
-    color: var(--text-muted);
+    @apply block text-xs font-semibold uppercase tracking-wider mb-2 text-stone-500;
   }
 
   .badge-upcoming {
     background: #e8f5ee;
     color: var(--status-upcoming);
     border: 1px solid #b8dfc8;
-    @apply text-xs font-medium px-2.5 py-0.5 rounded-full;
+    @apply text-xs font-semibold px-3 py-1 rounded-full inline-flex items-center gap-1;
   }
 
   .badge-today {
     background: #fdf0e6;
     color: var(--status-today);
     border: 1px solid #f5d0aa;
-    @apply text-xs font-medium px-2.5 py-0.5 rounded-full;
+    @apply text-xs font-semibold px-3 py-1 rounded-full inline-flex items-center gap-1;
   }
 
   .badge-tomorrow {
     background: #e8eef8;
     color: var(--status-tomorrow);
     border: 1px solid #b8cce8;
-    @apply text-xs font-medium px-2.5 py-0.5 rounded-full;
+    @apply text-xs font-semibold px-3 py-1 rounded-full inline-flex items-center gap-1;
   }
 
   .badge-ended {
     background: #f0ece8;
     color: var(--status-ended);
     border: 1px solid #d8cfc8;
-    @apply text-xs font-medium px-2.5 py-0.5 rounded-full;
+    @apply text-xs font-semibold px-3 py-1 rounded-full inline-flex items-center gap-1;
   }
 
   .divider {
     border: none;
     border-top: 1px solid var(--cream-border);
-    margin: 16px 0;
+    margin: 20px 0;
   }
 
   .page-container {
-    @apply max-w-2xl mx-auto px-4 py-6;
+    @apply max-w-3xl mx-auto px-4 py-8;
   }
 
   .section-title {
-    @apply text-base font-semibold mb-4;
+    @apply text-lg font-bold mb-4 tracking-tight;
     color: var(--text-primary);
   }
 }

@@ -1,63 +1,47 @@
 import { Link } from "react-router-dom";
 import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRoleLabel } from "../../lib/helpers";
+import { MapPin, Clock, CalendarDays, Users } from "lucide-react";
 
 export default function CateringCard({ catering }) {
   const badgeClass = getStatusBadgeClass(catering.status);
 
-  // Unique roles for day 0 (or combined)
-  const roles = [...new Set(catering.slots.filter((s) => s.day === 0).map((s) => s.role))];
-
   return (
-    <Link
-      to={`/catering/${catering._id}`}
-      style={{ textDecoration: "none", display: "block" }}
-    >
-      <div
-        className="card"
-        style={{
-          cursor: "pointer",
-          transition: "border-color 0.15s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#b8a898")}
-        onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--cream-border)")}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+    <Link to={`/catering/${catering._id}`} className="block outline-none">
+      <div className="card p-5 bg-white hover:border-stone-300 card-hover transition-all duration-200">
+        <div className="flex justify-between items-start gap-4 mb-4">
           <div>
-            <p className="font-semibold text-base" style={{ color: "var(--text-primary)" }}>
+            <h3 className="font-bold text-[17px] text-stone-900 leading-tight mb-1">
               {catering.place}
-            </p>
-            <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
-              {catering.isTwoDay
-                ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}`
-                : formatDate(catering.dates[0])}
-              {" · "}
-              {catering.specificTime}
-            </p>
+            </h3>
+            <div className="flex flex-wrap items-center gap-3 text-[13px] font-medium text-stone-500">
+              <span className="flex items-center gap-1.5">
+                <CalendarDays size={14} />
+                {catering.isTwoDay
+                  ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}`
+                  : formatDate(catering.dates[0])}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock size={14} />
+                {catering.specificTime}
+              </span>
+            </div>
           </div>
           <span className={badgeClass}>{getStatusLabel(catering.status)}</span>
         </div>
 
-        <hr className="divider" style={{ margin: "10px 0" }} />
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <div className="pt-4 border-t border-cream-100 flex flex-wrap gap-2">
           {catering.slots
             .filter((s) => s.day === 0)
             .map((s, i) => (
               <div
                 key={i}
-                style={{
-                  background: "var(--cream-bg)",
-                  border: "1px solid var(--cream-border)",
-                  borderRadius: 6,
-                  padding: "5px 10px",
-                  fontSize: 12,
-                }}
+                className="flex items-center gap-2 bg-cream-50 border border-cream-200 rounded-lg px-3 py-1.5 text-[12px]"
               >
-                <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>
-                  {getRoleLabel(s.role)}
-                </span>
-                <span style={{ color: "var(--text-muted)", marginLeft: 6 }}>
-                  {s.limit} slots · {formatCurrency(s.pay)}
+                <Users size={12} className="text-stone-400" />
+                <span className="text-stone-700 font-semibold">{getRoleLabel(s.role)}</span>
+                <span className="text-stone-400 mx-0.5">•</span>
+                <span className="text-stone-500 font-medium">
+                  {s.limit} slots <span className="mx-1">•</span> {formatCurrency(s.pay)}
                 </span>
               </div>
             ))}

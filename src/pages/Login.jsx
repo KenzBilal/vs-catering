@@ -3,6 +3,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { LogIn, Phone, User, UtensilsCrossed } from "lucide-react";
 
 export default function Login() {
   const { login } = useAuth();
@@ -36,58 +37,71 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10">
-      <div style={{ width: "100%", maxWidth: 420 }}>
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>
-            VS-Catering
-          </h1>
-          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-            Log in to your account.
-          </p>
+    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-cream-bg">
+      <div className="w-full max-w-md animate-slide-up">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-12 h-12 bg-stone-900 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-stone-900/20">
+            <UtensilsCrossed className="text-cream-50" size={24} />
+          </div>
+          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Welcome Back</h1>
+          <p className="text-[14.5px] text-stone-500 mt-1 font-medium">Sign in to your account</p>
         </div>
 
-        <div className="card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="card p-6 sm:p-8 flex flex-col gap-5">
           <div>
             <label className="label">Phone Number</label>
-            <input
-              type="tel"
-              placeholder="10-digit number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-            />
+            <div className="relative">
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+              <input
+                type="tel"
+                placeholder="10-digit number"
+                value={phone}
+                className="pl-11"
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              />
+            </div>
           </div>
 
           <div>
             <label className="label">Full Name</label>
-            <input
-              type="text"
-              placeholder="Your name as registered"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <div className="relative">
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+              <input
+                type="text"
+                placeholder="Your name as registered"
+                value={name}
+                className="pl-11"
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSubmit();
+                }}
+              />
+            </div>
           </div>
 
           {error && (
-            <p className="text-sm" style={{ color: "#b91c1c" }}>
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium animate-fade-in">
               {error}
-            </p>
+            </div>
           )}
 
           <button
-            className="btn-primary"
+            className="btn-primary w-full py-3.5 mt-2 text-[15px]"
             onClick={handleSubmit}
             disabled={tried}
-            style={{ marginTop: 4 }}
           >
-            {tried ? "Checking..." : "Log In"}
+            {tried ? "Signing in..." : (
+              <>
+                <LogIn size={18} /> Sign In
+              </>
+            )}
           </button>
         </div>
 
-        <p className="text-sm text-center mt-4" style={{ color: "var(--text-muted)" }}>
+        <p className="text-[14px] text-center mt-6 font-medium text-stone-500">
           Don't have an account?{" "}
-          <Link to="/signup" style={{ color: "var(--text-primary)", fontWeight: 500 }}>
-            Sign up
+          <Link to="/signup" className="text-stone-900 font-bold hover:underline underline-offset-4 decoration-2 decoration-cream-300">
+            Create one
           </Link>
         </p>
       </div>

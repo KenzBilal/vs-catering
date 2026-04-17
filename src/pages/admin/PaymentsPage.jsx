@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { formatCurrency, getRoleLabel, formatDate } from "../../lib/helpers";
 import { useState } from "react";
+import { ArrowLeft, MapPin, CalendarDays, CheckCircle2, Clock, IndianRupee, HandCoins } from "lucide-react";
 
 export default function PaymentsPage() {
   const { id } = useParams();
@@ -23,8 +24,7 @@ export default function PaymentsPage() {
   // Only attended students
   const attendedRegs = (registrations || []).filter((r) => r.status === "attended");
 
-  const getPaymentForReg = (regId) =>
-    (payments || []).find((p) => p.registrationId === regId);
+  const getPaymentForReg = (regId) => (payments || []).find((p) => p.registrationId === regId);
 
   const getPayForRole = (role, day) => {
     const slot = catering?.slots.find((s) => s.role === role && s.day === day);
@@ -66,123 +66,135 @@ export default function PaymentsPage() {
     }
   };
 
-  const totalPaid = (payments || [])
-    .filter((p) => p.status === "cleared")
-    .reduce((sum, p) => sum + p.amount, 0);
-
-  const totalPending = (payments || [])
-    .filter((p) => p.status === "pending")
-    .reduce((sum, p) => sum + p.amount, 0);
+  const totalPaid = (payments || []).filter((p) => p.status === "cleared").reduce((sum, p) => sum + p.amount, 0);
+  const totalPending = (payments || []).filter((p) => p.status === "pending").reduce((sum, p) => sum + p.amount, 0);
 
   return (
     <div className="page-container" style={{ maxWidth: 760 }}>
-      <button onClick={() => navigate(-1)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 13, cursor: "pointer", padding: 0, marginBottom: 16 }}>
-        ← Back
+      <button 
+        onClick={() => navigate(-1)} 
+        className="flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors mb-6"
+      >
+        <ArrowLeft size={16} /> Back
       </button>
 
-      <div style={{ marginBottom: 20 }}>
-        <h2 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>Payments</h2>
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-          {catering?.place} · {catering ? (catering.isTwoDay ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}` : formatDate(catering.dates[0])) : ""}
-        </p>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-stone-900 tracking-tight">Payments</h2>
+        <div className="flex flex-wrap items-center gap-4 mt-2 text-[14px] text-stone-500 font-medium">
+          <span className="flex items-center gap-1.5"><MapPin size={16} /> {catering?.place}</span>
+          <span className="flex items-center gap-1.5">
+            <CalendarDays size={16} /> 
+            {catering ? (catering.isTwoDay ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}` : formatDate(catering.dates[0])) : ""}
+          </span>
+        </div>
       </div>
 
-      {/* Summary */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
-        <div className="card" style={{ textAlign: "center" }}>
-          <p style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Attended</p>
-          <p style={{ fontSize: 22, fontWeight: 700, color: "var(--text-primary)" }}>{attendedRegs.length}</p>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="bg-white border border-cream-200 rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-1">
+            <CheckCircle2 size={14} /> Attended
+          </div>
+          <p className="text-3xl font-black text-stone-800">{attendedRegs.length}</p>
         </div>
-        <div className="card" style={{ textAlign: "center", background: "#e8f5ee", border: "1px solid #b8dfc8" }}>
-          <p style={{ fontSize: 11, color: "#2d7a52", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Paid Out</p>
-          <p style={{ fontSize: 22, fontWeight: 700, color: "#1a5c3a" }}>{formatCurrency(totalPaid)}</p>
+        <div className="bg-[#e8f5ee] border border-[#b8dfc8] rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#2d7a52] uppercase tracking-widest mb-1">
+            <IndianRupee size={14} /> Paid Out
+          </div>
+          <p className="text-3xl font-black text-[#1a5c3a]">{formatCurrency(totalPaid)}</p>
         </div>
-        <div className="card" style={{ textAlign: "center", background: "#fdf0e6", border: "1px solid #f5d0aa" }}>
-          <p style={{ fontSize: 11, color: "#a05020", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Pending</p>
-          <p style={{ fontSize: 22, fontWeight: 700, color: "#8b3a00" }}>{formatCurrency(totalPending)}</p>
+        <div className="bg-[#fdf0e6] border border-[#f5d0aa] rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#a05020] uppercase tracking-widest mb-1">
+            <Clock size={14} /> Pending
+          </div>
+          <p className="text-3xl font-black text-[#8b3a00]">{formatCurrency(totalPending)}</p>
         </div>
       </div>
 
       {attendedRegs.length === 0 && (
-        <div className="card" style={{ textAlign: "center", padding: 32 }}>
-          <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
-            No attended students yet. Mark attendance first.
-          </p>
+        <div className="card text-center py-12">
+          <HandCoins size={48} className="mx-auto text-cream-300 mb-4" />
+          <p className="text-stone-500 font-medium text-[15px]">No attended students yet.</p>
+          <p className="text-stone-400 text-[14px] mt-1">Mark attendance first before managing payments.</p>
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="flex flex-col gap-4">
         {attendedRegs.map((reg) => {
           const payment = getPaymentForReg(reg._id);
           const pay = getPayForRole(reg.role, reg.days[0]);
 
           return (
-            <div key={reg._id} className="card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+            <div key={reg._id} className="card bg-white p-5 hover:border-cream-300 transition-colors">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
                 <div>
-                  <p style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{reg.user?.name}</p>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-                    {reg.user?.phone} · {getRoleLabel(reg.role)}
+                  <p className="font-bold text-[16px] text-stone-900">{reg.user?.name}</p>
+                  <p className="text-[13px] text-stone-500 mt-0.5 font-medium">
+                    {reg.user?.phone} <span className="mx-1.5">•</span> {getRoleLabel(reg.role)}
                   </p>
                 </div>
-                <p style={{ fontWeight: 700, fontSize: 16, color: "var(--text-primary)" }}>{formatCurrency(pay)}</p>
+                <div className="bg-cream-100 border border-cream-200 px-3 py-1.5 rounded-lg">
+                  <p className="font-bold text-[16px] text-stone-900">{formatCurrency(pay)}</p>
+                </div>
               </div>
 
               {!payment && (
-                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-cream-100">
                   <select
                     value={methods[reg._id] || "cash"}
                     onChange={(e) => setMethods((m) => ({ ...m, [reg._id]: e.target.value }))}
-                    style={{ width: "auto", padding: "6px 10px", fontSize: 13 }}
+                    className="bg-white border border-cream-200 text-stone-700 text-[13px] font-medium rounded-lg px-3 py-2 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
                   >
-                    <option value="cash">Cash</option>
-                    <option value="upi">UPI</option>
+                    <option value="cash">Cash Payment</option>
+                    <option value="upi">UPI Transfer</option>
                   </select>
                   <button
-                    className="btn-secondary"
-                    style={{ fontSize: 12, padding: "6px 12px" }}
+                    className="btn-secondary py-2 text-[13px]"
                     disabled={saving[reg._id]}
                     onClick={() => handleCreatePayment(reg)}
                   >
-                    Add to Pending
+                    <Clock size={16} /> Add to Pending
                   </button>
                 </div>
               )}
 
               {payment && payment.status === "pending" && (
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                    <span style={{ fontSize: 12, color: "#8b3a00", background: "#fdf0e6", border: "1px solid #f5d0aa", borderRadius: 12, padding: "3px 10px", fontWeight: 500 }}>
-                      Pending · {payment.method === "upi" ? "UPI" : "Cash"}
+                <div className="pt-4 border-t border-cream-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#8b3a00] bg-[#fdf0e6] border border-[#f5d0aa] rounded-full px-2.5 py-1">
+                      <Clock size={12} /> Pending ({payment.method === "upi" ? "UPI" : "Cash"})
                     </span>
                   </div>
+                  
                   {payment.method === "upi" && (
                     <input
                       type="text"
                       placeholder="UPI Transaction ID (optional)"
                       value={upiRefs[payment._id] || ""}
                       onChange={(e) => setUpiRefs((u) => ({ ...u, [payment._id]: e.target.value }))}
-                      style={{ marginBottom: 8, fontSize: 13 }}
+                      className="mb-3 bg-white border border-cream-200 text-stone-800 rounded-lg px-3 py-2 text-[13px] w-full max-w-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-800/10 transition-all"
                     />
                   )}
+                  
                   {confirmClear === payment._id ? (
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div className="flex flex-wrap gap-2 animate-fade-in">
                       <button
-                        className="btn-primary"
-                        style={{ fontSize: 12, padding: "6px 12px" }}
+                        className="btn-primary py-2 text-[13px] bg-[#1a5c3a] hover:bg-[#134229] ring-[#1a5c3a]"
                         disabled={saving[payment._id]}
                         onClick={() => handleClearPayment(payment._id)}
                       >
-                        Confirm — Mark as Paid
+                        <CheckCircle2 size={16} /> Confirm Payment
                       </button>
-                      <button className="btn-secondary" style={{ fontSize: 12, padding: "6px 12px" }} onClick={() => setConfirmClear(null)}>
+                      <button 
+                        className="btn-secondary py-2 text-[13px]" 
+                        onClick={() => setConfirmClear(null)}
+                      >
                         Cancel
                       </button>
                     </div>
                   ) : (
                     <button
-                      className="btn-primary"
-                      style={{ fontSize: 12, padding: "6px 12px" }}
+                      className="btn-primary py-2 text-[13px]"
                       onClick={() => setConfirmClear(payment._id)}
                     >
                       Mark as Paid
@@ -192,12 +204,14 @@ export default function PaymentsPage() {
               )}
 
               {payment && payment.status === "cleared" && (
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 12, color: "#1a5c3a", background: "#e8f5ee", border: "1px solid #b8dfc8", borderRadius: 12, padding: "3px 10px", fontWeight: 500 }}>
-                    Paid · {payment.method === "upi" ? "UPI" : "Cash"}
+                <div className="pt-4 border-t border-cream-100 flex flex-wrap items-center gap-3">
+                  <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#1a5c3a] bg-[#e8f5ee] border border-[#b8dfc8] rounded-full px-2.5 py-1">
+                    <CheckCircle2 size={12} /> Paid ({payment.method === "upi" ? "UPI" : "Cash"})
                   </span>
                   {payment.upiRef && (
-                    <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Ref: {payment.upiRef}</span>
+                    <span className="text-[12px] font-mono text-stone-500 bg-cream-100 px-2 py-1 rounded-md">
+                      Ref: {payment.upiRef}
+                    </span>
                   )}
                 </div>
               )}

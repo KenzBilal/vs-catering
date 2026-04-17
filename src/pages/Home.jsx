@@ -2,6 +2,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import CateringCard from "../components/shared/CateringCard";
 import { useState } from "react";
+import { Search } from "lucide-react";
 
 const FILTERS = ["All", "Today", "Tomorrow", "Upcoming", "Ended"];
 
@@ -22,32 +23,25 @@ export default function Home() {
   };
 
   return (
-    <div className="page-container" style={{ maxWidth: 680 }}>
-      <div style={{ marginBottom: 20 }}>
-        <h2 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
-          Caterings
-        </h2>
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-          Showing last 30 days and upcoming.
+    <div className="page-container" style={{ maxWidth: 700 }}>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-stone-900 tracking-tight">Events</h2>
+        <p className="text-[14px] text-stone-500 mt-1 font-medium">
+          Showing upcoming and recently ended events.
         </p>
       </div>
 
       {/* Filter tabs */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+      <div className="flex flex-wrap gap-2 mb-8">
         {FILTERS.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            style={{
-              padding: "6px 14px",
-              borderRadius: 20,
-              fontSize: 13,
-              fontWeight: 500,
-              border: `1px solid ${filter === f ? "var(--accent)" : "var(--cream-border)"}`,
-              background: filter === f ? "var(--accent)" : "var(--cream-card)",
-              color: filter === f ? "var(--cream-50)" : "var(--text-secondary)",
-              cursor: "pointer",
-            }}
+            className={`px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-200 active:scale-95 ${
+              filter === f
+                ? "bg-stone-800 text-cream-50 shadow-md"
+                : "bg-white text-stone-600 border border-cream-200 hover:bg-cream-50"
+            }`}
           >
             {f}
           </button>
@@ -55,34 +49,29 @@ export default function Home() {
       </div>
 
       {caterings === undefined && (
-        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading...</p>
+        <div className="animate-pulse flex flex-col gap-4">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="h-32 bg-cream-100 rounded-2xl w-full"></div>
+          ))}
+        </div>
       )}
 
       {caterings !== undefined && filtered.length === 0 && (
-        <div className="card" style={{ textAlign: "center", padding: 40 }}>
-          <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
-            No caterings found.
-          </p>
+        <div className="card text-center py-16">
+          <Search size={48} className="mx-auto text-cream-300 mb-4" />
+          <p className="text-stone-500 font-medium text-[15px]">No events found for this filter.</p>
         </div>
       )}
 
       {filter === "All" ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {groups.today.length > 0 && (
-            <Section title="Today" items={groups.today} />
-          )}
-          {groups.tomorrow.length > 0 && (
-            <Section title="Tomorrow" items={groups.tomorrow} />
-          )}
-          {groups.upcoming.length > 0 && (
-            <Section title="Upcoming" items={groups.upcoming} />
-          )}
-          {groups.ended.length > 0 && (
-            <Section title="Past 30 Days" items={groups.ended} />
-          )}
+        <div className="flex flex-col gap-8 animate-fade-in">
+          {groups.today.length > 0 && <Section title="Today" items={groups.today} />}
+          {groups.tomorrow.length > 0 && <Section title="Tomorrow" items={groups.tomorrow} />}
+          {groups.upcoming.length > 0 && <Section title="Upcoming" items={groups.upcoming} />}
+          {groups.ended.length > 0 && <Section title="Past 30 Days" items={groups.ended} />}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="flex flex-col gap-4 animate-fade-in">
           {filtered.map((c) => (
             <CateringCard key={c._id} catering={c} />
           ))}
@@ -95,19 +84,10 @@ export default function Home() {
 function Section({ title, items }) {
   return (
     <div>
-      <p
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--text-muted)",
-          marginBottom: 10,
-        }}
-      >
+      <p className="text-[11px] font-bold tracking-widest uppercase text-stone-400 mb-3 ml-1">
         {title}
       </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="flex flex-col gap-3">
         {items.map((c) => (
           <CateringCard key={c._id} catering={c} />
         ))}

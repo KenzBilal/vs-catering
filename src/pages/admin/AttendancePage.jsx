@@ -3,12 +3,8 @@ import { api } from "../../../convex/_generated/api";
 import { useParams, useNavigate } from "react-router-dom";
 import { getRoleLabel, formatDate } from "../../lib/helpers";
 import { useState } from "react";
-
-const STATUS_OPTIONS = [
-  { value: "attended", label: "Attended", color: "#1a5c3a", bg: "#e8f5ee" },
-  { value: "absent", label: "Absent", color: "#5c524a", bg: "#f0ece8" },
-  { value: "rejected", label: "Rejected", color: "#b91c1c", bg: "#fef2f2" },
-];
+import { useAuth } from "../../lib/AuthContext";
+import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Users, MapPin, CalendarDays, Filter } from "lucide-react";
 
 export default function AttendancePage() {
   const { user, token } = useAuth();
@@ -47,129 +43,142 @@ export default function AttendancePage() {
 
   return (
     <div className="page-container" style={{ maxWidth: 760 }}>
-      <button onClick={() => navigate(-1)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 13, cursor: "pointer", padding: 0, marginBottom: 16 }}>
-        ← Back
+      <button 
+        onClick={() => navigate(-1)} 
+        className="flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors mb-6"
+      >
+        <ArrowLeft size={16} /> Back
       </button>
 
-      <div style={{ marginBottom: 20 }}>
-        <h2 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
-          Attendance
-        </h2>
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-          {catering?.place} · {catering ? (catering.isTwoDay ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}` : formatDate(catering.dates[0])) : ""}
-        </p>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-stone-900 tracking-tight">Attendance</h2>
+        <div className="flex flex-wrap items-center gap-4 mt-2 text-[14px] text-stone-500 font-medium">
+          <span className="flex items-center gap-1.5"><MapPin size={16} /> {catering?.place}</span>
+          <span className="flex items-center gap-1.5">
+            <CalendarDays size={16} /> 
+            {catering ? (catering.isTwoDay ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}` : formatDate(catering.dates[0])) : ""}
+          </span>
+        </div>
       </div>
 
       {/* Filters */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-        <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} style={{ width: "auto", padding: "6px 10px", fontSize: 13 }}>
+      <div className="flex flex-wrap items-center gap-3 mb-6 bg-cream-50 p-3 rounded-xl border border-cream-200 shadow-sm">
+        <Filter size={16} className="text-stone-400 ml-1" />
+        <select 
+          value={roleFilter} 
+          onChange={(e) => setRoleFilter(e.target.value)} 
+          className="bg-white border border-cream-200 text-stone-700 text-[13px] font-medium rounded-lg px-3 py-2 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+        >
           <option value="all">All Roles</option>
           {roles.map((r) => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
         </select>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ width: "auto", padding: "6px 10px", fontSize: 13 }}>
+        <select 
+          value={statusFilter} 
+          onChange={(e) => setStatusFilter(e.target.value)} 
+          className="bg-white border border-cream-200 text-stone-700 text-[13px] font-medium rounded-lg px-3 py-2 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+        >
           <option value="all">All Status</option>
           <option value="registered">Not Marked</option>
           <option value="attended">Attended</option>
           <option value="absent">Absent</option>
           <option value="rejected">Rejected</option>
         </select>
-        <div style={{ marginLeft: "auto", fontSize: 13, color: "var(--text-muted)", alignSelf: "center" }}>
+        <div className="ml-auto text-[13px] font-semibold text-stone-500 bg-cream-200/50 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+          <Users size={14} />
           {filtered.length} student{filtered.length !== 1 ? "s" : ""}
         </div>
       </div>
 
-      {registrations === undefined && <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading...</p>}
-      {registrations?.length === 0 && <p style={{ color: "var(--text-muted)", fontSize: 14 }}>No registrations yet.</p>}
+      {registrations === undefined && <p className="text-stone-500 text-[14px] animate-pulse">Loading students...</p>}
+      {registrations?.length === 0 && <p className="text-stone-500 text-[14px]">No registrations yet.</p>}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="flex flex-col gap-4">
         {filtered.map((reg) => (
-          <div key={reg._id} className="card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+          <div key={reg._id} className="card bg-white hover:border-cream-300 transition-colors animate-fade-in p-5">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
               <div>
-                <p style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>
+                <p className="font-semibold text-[15px] text-stone-900 flex items-center gap-2">
                   {reg.user?.name}
                   {!reg.isConfirmed && (
-                    <span style={{ marginLeft: 8, fontSize: 11, color: "var(--text-muted)", fontWeight: 400 }}>
+                    <span className="bg-orange-100 text-orange-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider">
                       Waitlist #{reg.queuePosition}
                     </span>
                   )}
                 </p>
-                <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{reg.user?.phone}</p>
+                <p className="text-[13px] text-stone-500 mt-0.5">{reg.user?.phone}</p>
               </div>
-              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <div className="flex items-center gap-2">
                 <select
                   value={reg.role}
                   onChange={(e) => handleRoleChange(reg._id, e.target.value)}
-                  style={{ width: "auto", padding: "5px 8px", fontSize: 12 }}
+                  className="bg-cream-50 border border-cream-200 text-stone-700 text-[12px] font-medium rounded-md px-2 py-1.5 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
                 >
                   {["service_boy", "service_girl", "captain_male"].map((r) => (
                     <option key={r} value={r}>{getRoleLabel(r)}</option>
                   ))}
                 </select>
-                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>→ {reg.dropPoint}</span>
+                <span className="text-[12px] font-medium text-stone-400">→</span>
+                <span className="text-[12px] font-medium text-stone-600 bg-cream-100 px-2 py-1.5 rounded-md border border-cream-200">
+                  {reg.dropPoint}
+                </span>
               </div>
             </div>
 
             {/* Status buttons */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {STATUS_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  disabled={saving[reg._id]}
-                  onClick={() => {
-                    if (opt.value === "rejected") return; // handled below
-                    handleMark(reg._id, opt.value);
-                  }}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontWeight: 500,
-                    border: `1px solid ${reg.status === opt.value ? opt.color : "var(--cream-border)"}`,
-                    background: reg.status === opt.value ? opt.bg : "var(--cream-card)",
-                    color: reg.status === opt.value ? opt.color : "var(--text-muted)",
-                    cursor: opt.value === "rejected" ? "default" : "pointer",
-                    display: opt.value === "rejected" ? "none" : "block",
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Rejection row */}
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-              <input
-                type="text"
-                placeholder="Rejection reason (e.g. wrong pants)"
-                value={rejectionInput[reg._id] || ""}
-                onChange={(e) => setRejectionInput((prev) => ({ ...prev, [reg._id]: e.target.value }))}
-                style={{ flex: 1, fontSize: 12, padding: "6px 10px" }}
-              />
+            <div className="flex flex-wrap gap-2">
               <button
                 disabled={saving[reg._id]}
-                onClick={() => handleMark(reg._id, "rejected", rejectionInput[reg._id])}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  border: `1px solid ${reg.status === "rejected" ? "#b91c1c" : "var(--cream-border)"}`,
-                  background: reg.status === "rejected" ? "#fef2f2" : "var(--cream-card)",
-                  color: reg.status === "rejected" ? "#b91c1c" : "var(--text-muted)",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                }}
+                onClick={() => handleMark(reg._id, "attended")}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] ${
+                  reg.status === "attended" 
+                    ? "bg-[#e8f5ee] text-[#1a5c3a] border border-[#b8dfc8] shadow-sm" 
+                    : "bg-white text-stone-500 border border-cream-200 hover:bg-cream-50"
+                }`}
               >
-                Mark Rejected
+                <CheckCircle2 size={16} /> Attended
+              </button>
+              <button
+                disabled={saving[reg._id]}
+                onClick={() => handleMark(reg._id, "absent")}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] ${
+                  reg.status === "absent" 
+                    ? "bg-[#f0ece8] text-[#5c524a] border border-[#d8cfc8] shadow-sm" 
+                    : "bg-white text-stone-500 border border-cream-200 hover:bg-cream-50"
+                }`}
+              >
+                <XCircle size={16} /> Absent
               </button>
             </div>
 
-            {reg.status === "rejected" && reg.rejectionReason && (
-              <p style={{ fontSize: 12, color: "#b91c1c", marginTop: 6 }}>
-                Reason: {reg.rejectionReason}
-              </p>
-            )}
+            {/* Rejection */}
+            <div className="mt-4 pt-4 border-t border-cream-100">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  placeholder="Rejection reason (e.g., incomplete uniform)"
+                  value={rejectionInput[reg._id] || ""}
+                  onChange={(e) => setRejectionInput((prev) => ({ ...prev, [reg._id]: e.target.value }))}
+                  className="flex-1 bg-white border border-cream-200 text-stone-800 rounded-lg px-3 py-2 text-[13px] outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition-all"
+                />
+                <button
+                  disabled={saving[reg._id]}
+                  onClick={() => handleMark(reg._id, "rejected", rejectionInput[reg._id])}
+                  className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] whitespace-nowrap ${
+                    reg.status === "rejected" 
+                      ? "bg-red-50 text-red-700 border border-red-200 shadow-sm" 
+                      : "bg-white text-red-600 border border-red-100 hover:bg-red-50"
+                  }`}
+                >
+                  <AlertCircle size={16} /> Mark Rejected
+                </button>
+              </div>
+
+              {reg.status === "rejected" && reg.rejectionReason && (
+                <p className="flex items-center gap-1.5 text-[12px] font-medium text-red-600 mt-2 bg-red-50/50 p-2 rounded-md">
+                  <AlertCircle size={14} /> Reason: {reg.rejectionReason}
+                </p>
+              )}
+            </div>
           </div>
         ))}
       </div>

@@ -3,6 +3,8 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { UserPlus, Phone, User, UtensilsCrossed, MapPin } from "lucide-react";
+import SegmentedControl from "../components/ui/SegmentedControl";
 
 export default function Signup() {
   const { login } = useAuth();
@@ -29,7 +31,8 @@ export default function Signup() {
     setLoading(true);
     try {
       const id = await createUser(form);
-      login({ _id: id, ...form, role: "student" });
+      login({ _id: id, ...form, role: "student", sessionToken: "TEMP_FOR_INIT" }); 
+      // The actual secure token will be generated upon full login, but createUser just initializes them
       navigate("/");
     } catch (e) {
       setError(e.message || "Something went wrong.");
@@ -39,124 +42,113 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10">
-      <div style={{ width: "100%", maxWidth: 420 }}>
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>
-            VS-Catering
-          </h1>
-          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-            Create your account to register for caterings.
-          </p>
+    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-cream-bg">
+      <div className="w-full max-w-md animate-slide-up">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-12 h-12 bg-stone-900 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-stone-900/20">
+            <UtensilsCrossed className="text-cream-50" size={24} />
+          </div>
+          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Create Account</h1>
+          <p className="text-[14.5px] text-stone-500 mt-1 font-medium">Join VS-Catering</p>
         </div>
 
-        <div className="card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="card p-6 sm:p-8 flex flex-col gap-5">
           <div>
             <label className="label">Full Name</label>
-            <input
-              type="text"
-              placeholder="Your name"
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-            />
+            <div className="relative">
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+              <input
+                type="text"
+                placeholder="Your official name"
+                className="pl-11"
+                value={form.name}
+                onChange={(e) => set("name", e.target.value)}
+              />
+            </div>
           </div>
 
           <div>
             <label className="label">Phone Number</label>
-            <input
-              type="tel"
-              placeholder="10-digit number"
-              value={form.phone}
-              onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+            <div className="relative">
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+              <input
+                type="tel"
+                placeholder="10-digit number"
+                className="pl-11"
+                value={form.phone}
+                onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="label mb-3">Gender</label>
+            <SegmentedControl
+              options={[
+                { label: "Male", value: "male" },
+                { label: "Female", value: "female" }
+              ]}
+              value={form.gender}
+              onChange={(val) => set("gender", val)}
             />
           </div>
 
           <div>
-            <label className="label">Gender</label>
-            <div style={{ display: "flex", gap: 10 }}>
-              {["male", "female"].map((g) => (
-                <button
-                  key={g}
-                  onClick={() => set("gender", g)}
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    borderRadius: 6,
-                    border: `1px solid ${form.gender === g ? "var(--accent)" : "var(--cream-border)"}`,
-                    background: form.gender === g ? "var(--accent)" : "var(--cream-card)",
-                    color: form.gender === g ? "var(--cream-50)" : "var(--text-primary)",
-                    fontSize: 14,
-                    fontWeight: 500,
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {g}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="label">Where do you stay?</label>
-            <div style={{ display: "flex", gap: 10 }}>
-              {[["hostel", "Hostel"], ["day_scholar", "Day Scholar"]].map(([val, label]) => (
-                <button
-                  key={val}
-                  onClick={() => set("stayType", val)}
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    borderRadius: 6,
-                    border: `1px solid ${form.stayType === val ? "var(--accent)" : "var(--cream-border)"}`,
-                    background: form.stayType === val ? "var(--accent)" : "var(--cream-card)",
-                    color: form.stayType === val ? "var(--cream-50)" : "var(--text-primary)",
-                    fontSize: 14,
-                    fontWeight: 500,
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <label className="label mb-3">Accommodation</label>
+            <SegmentedControl
+              options={[
+                { label: "Hostel", value: "hostel" },
+                { label: "Day Scholar", value: "day_scholar" }
+              ]}
+              value={form.stayType}
+              onChange={(val) => set("stayType", val)}
+            />
           </div>
 
           <div>
             <label className="label">Default Drop Point</label>
-            <select
-              value={form.defaultDropPoint}
-              onChange={(e) => set("defaultDropPoint", e.target.value)}
-            >
-              {(dropPoints || ["Main Gate", "Dakoha", "Law Gate"]).map((dp) => (
-                <option key={dp.name || dp} value={dp.name || dp}>
-                  {dp.name || dp}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-              Pickup is always from Main Gate. This is your preferred drop point.
+            <div className="relative">
+              <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+              <select
+                value={form.defaultDropPoint}
+                className="pl-11"
+                onChange={(e) => set("defaultDropPoint", e.target.value)}
+              >
+                {(dropPoints || ["Main Gate", "Dakoha", "Law Gate"]).map((dp) => (
+                  <option key={dp.name || dp} value={dp.name || dp}>
+                    {dp.name || dp}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <p className="text-[12px] mt-1.5 font-medium text-stone-400 ml-1">
+              Pickup is always from Main Gate. This is for drop-off.
             </p>
           </div>
 
           {error && (
-            <p className="text-sm" style={{ color: "#b91c1c" }}>
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium animate-fade-in">
               {error}
-            </p>
+            </div>
           )}
 
           <button
-            className="btn-primary"
+            className="btn-primary w-full py-3.5 mt-2 text-[15px]"
             onClick={handleSubmit}
             disabled={loading}
-            style={{ marginTop: 4 }}
           >
-            {loading ? "Creating account..." : "Create Account"}
+            {loading ? "Creating account..." : (
+              <>
+                <UserPlus size={18} /> Create Account
+              </>
+            )}
           </button>
         </div>
 
-        <p className="text-sm text-center mt-4" style={{ color: "var(--text-muted)" }}>
+        <p className="text-[14px] text-center mt-6 font-medium text-stone-500">
           Already have an account?{" "}
-          <Link to="/login" style={{ color: "var(--text-primary)", fontWeight: 500 }}>
-            Log in
+          <Link to="/login" className="text-stone-900 font-bold hover:underline underline-offset-4 decoration-2 decoration-cream-300">
+            Sign in
           </Link>
         </p>
       </div>

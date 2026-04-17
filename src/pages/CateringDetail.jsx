@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
@@ -11,6 +11,7 @@ import {
   generateWhatsAppMessage,
 } from "../lib/helpers";
 import { useState } from "react";
+import { ArrowLeft, MapPin, CalendarDays, Clock, Camera, AlertCircle, Link as LinkIcon, Edit, UserCheck, CreditCard, Share2, Users, CheckCircle2 } from "lucide-react";
 
 export default function CateringDetail() {
   const { id } = useParams();
@@ -23,31 +24,20 @@ export default function CateringDetail() {
   const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
 
   if (catering === undefined) {
-    return (
-      <div className="page-container">
-        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading...</p>
-      </div>
-    );
+    return <div className="page-container"><p className="text-stone-500 animate-pulse">Loading event details...</p></div>;
   }
 
   if (!catering) {
-    return (
-      <div className="page-container">
-        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Catering not found.</p>
-      </div>
-    );
+    return <div className="page-container"><p className="text-stone-500">Event not found.</p></div>;
   }
 
-  // Check if current user is already registered
   const myReg = registrations?.find((r) => r.userId === user?._id);
 
-  // Drop point counts
   const dropCounts = {};
   (registrations || []).forEach((r) => {
     dropCounts[r.dropPoint] = (dropCounts[r.dropPoint] || 0) + 1;
   });
 
-  // Role fill counts
   const roleCounts = {};
   (registrations || []).forEach((r) => {
     const key = `${r.role}-${r.days[0]}`;
@@ -64,58 +54,58 @@ export default function CateringDetail() {
   };
 
   return (
-    <div className="page-container" style={{ maxWidth: 680 }}>
-      {/* Back */}
+    <div className="page-container" style={{ maxWidth: 720 }}>
       <button
         onClick={() => navigate(-1)}
-        style={{
-          background: "none",
-          border: "none",
-          color: "var(--text-muted)",
-          fontSize: 13,
-          cursor: "pointer",
-          padding: 0,
-          marginBottom: 16,
-        }}
+        className="flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors mb-6"
       >
-        ← Back
+        <ArrowLeft size={16} /> Back
       </button>
 
       {/* Header */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <h2 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-2">
+          <h2 className="text-2xl font-bold text-stone-900 tracking-tight leading-tight">
             {catering.place}
           </h2>
-          <span className={getStatusBadgeClass(catering.status)}>
+          <span className={`${getStatusBadgeClass(catering.status)} self-start`}>
             {getStatusLabel(catering.status)}
           </span>
         </div>
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-          {catering.isTwoDay
-            ? `${formatDate(catering.dates[0])} and ${formatDate(catering.dates[1])}`
-            : formatDate(catering.dates[0])}
-          {" · "}
-          {catering.specificTime} ({catering.timeOfDay})
-        </p>
+        <div className="flex flex-wrap items-center gap-4 mt-2 text-[14px] text-stone-500 font-medium">
+          <span className="flex items-center gap-1.5">
+            <CalendarDays size={16} />
+            {catering.isTwoDay
+              ? `${formatDate(catering.dates[0])} and ${formatDate(catering.dates[1])}`
+              : formatDate(catering.dates[0])}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock size={16} />
+            {catering.specificTime} ({catering.timeOfDay})
+          </span>
+        </div>
       </div>
 
-      {/* Info cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
-        <InfoItem label="Pickup" value="Main Gate" />
-        <InfoItem label="Photo Required" value={catering.photoRequired ? "Yes" : "No"} />
+      {/* Info grids */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+        <InfoItem icon={<MapPin size={16}/>} label="Pickup" value="Main Gate" />
+        <InfoItem icon={<Camera size={16}/>} label="Photo Required" value={catering.photoRequired ? "Yes" : "No"} />
         {catering.isTwoDay && (
           <InfoItem
+            icon={<AlertCircle size={16}/>}
             label="Joining Rule"
-            value={catering.joinRule === "both_days" ? "Must attend both days" : "Can join either day"}
+            value={catering.joinRule === "both_days" ? "Both Days" : "Either Day"}
           />
         )}
       </div>
 
       {/* Slots */}
-      <div className="card" style={{ marginBottom: 12 }}>
-        <p className="section-title">Roles and Pay</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="card mb-6 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Users className="text-stone-400" size={18} />
+          <h3 className="section-title !mb-0">Roles and Pay</h3>
+        </div>
+        <div className="flex flex-col gap-3">
           {catering.slots.map((s, i) => {
             const key = `${s.role}-${s.day}`;
             const filled = roleCounts[key] || 0;
@@ -123,33 +113,22 @@ export default function CateringDetail() {
             const waiting = Math.max(0, filled - s.limit);
 
             return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "10px 12px",
-                  background: "var(--cream-bg)",
-                  border: "1px solid var(--cream-border)",
-                  borderRadius: 8,
-                }}
-              >
+              <div key={i} className="flex justify-between items-center px-4 py-3 bg-cream-50 border border-cream-200 rounded-xl">
                 <div>
-                  <p style={{ fontWeight: 500, fontSize: 14, color: "var(--text-primary)" }}>
+                  <p className="font-semibold text-[15px] text-stone-900 flex items-center gap-2">
                     {getRoleLabel(s.role)}
                     {catering.isTwoDay && (
-                      <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: 12, marginLeft: 6 }}>
+                      <span className="text-[11px] bg-cream-200 text-stone-600 px-2 py-0.5 rounded-full font-bold">
                         Day {s.day + 1}
                       </span>
                     )}
                   </p>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-                    {confirmed}/{s.limit} confirmed
-                    {waiting > 0 && ` · ${waiting} waiting`}
+                  <p className="text-[13px] text-stone-500 font-medium mt-1">
+                    <span className={confirmed >= s.limit ? "text-[#1a5c3a]" : ""}>{confirmed}/{s.limit} confirmed</span>
+                    {waiting > 0 && <span className="text-orange-600"> · {waiting} waitlist</span>}
                   </p>
                 </div>
-                <p style={{ fontWeight: 600, fontSize: 15, color: "var(--text-primary)" }}>
+                <p className="font-bold text-[16px] text-stone-900 bg-white px-3 py-1 rounded-lg border border-cream-200 shadow-sm">
                   {formatCurrency(s.pay)}
                 </p>
               </div>
@@ -159,32 +138,23 @@ export default function CateringDetail() {
       </div>
 
       {/* Dress Code */}
-      <div className="card" style={{ marginBottom: 12 }}>
-        <p className="section-title">Dress Code</p>
-        <p style={{ fontSize: 14, color: "var(--text-secondary)", whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+      <div className="card mb-6 p-6">
+        <h3 className="section-title">Dress Code</h3>
+        <p className="text-[14.5px] text-stone-600 whitespace-pre-wrap leading-relaxed">
           {catering.dressCodeNotes}
         </p>
       </div>
 
-      {/* Drop point counts — admin only */}
+      {/* Admin sections */}
       {isAdmin && registrations && registrations.length > 0 && (
-        <div className="card" style={{ marginBottom: 12 }}>
-          <p className="section-title">Drop Point Summary</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div className="card mb-6 p-6">
+          <h3 className="section-title">Drop Point Summary</h3>
+          <div className="flex flex-col gap-2 mt-4">
             {Object.entries(dropCounts).map(([point, count]) => (
-              <div
-                key={point}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 14,
-                  padding: "6px 0",
-                  borderBottom: "1px solid var(--cream-border)",
-                }}
-              >
-                <span style={{ color: "var(--text-secondary)" }}>{point}</span>
-                <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
-                  {count} {count === 1 ? "student" : "students"}
+              <div key={point} className="flex justify-between items-center text-[14.5px] py-2 border-b border-cream-100 last:border-0">
+                <span className="text-stone-600 font-medium">{point}</span>
+                <span className="font-bold text-stone-900 bg-cream-100 px-2 py-0.5 rounded-md">
+                  {count}
                 </span>
               </div>
             ))}
@@ -192,90 +162,53 @@ export default function CateringDetail() {
         </div>
       )}
 
-      {/* WhatsApp share — admin only */}
       {isAdmin && (
-        <div className="card" style={{ marginBottom: 12 }}>
-          <p className="section-title">Share on WhatsApp</p>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 12 }}>
-            Copy the message below and send it to the WhatsApp group.
-          </p>
-          <div
-            style={{
-              background: "var(--cream-bg)",
-              border: "1px solid var(--cream-border)",
-              borderRadius: 6,
-              padding: 12,
-              fontSize: 13,
-              color: "var(--text-secondary)",
-              whiteSpace: "pre-wrap",
-              lineHeight: 1.7,
-              fontFamily: "DM Mono, monospace",
-              marginBottom: 10,
-              maxHeight: 200,
-              overflowY: "auto",
-            }}
-          >
+        <div className="card mb-6 p-6 border-stone-300">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="section-title !mb-0 flex items-center gap-2"><Share2 size={18} className="text-stone-400"/> Share on WhatsApp</h3>
+            <button className="btn-secondary py-1.5 px-3 text-[12px]" onClick={handleCopyMessage}>
+              {copied ? <span className="text-[#1a5c3a] font-bold">Copied!</span> : "Copy"}
+            </button>
+          </div>
+          <div className="bg-cream-50 border border-cream-200 rounded-xl p-4 text-[13px] text-stone-600 whitespace-pre-wrap font-mono leading-relaxed max-h-[200px] overflow-y-auto">
             {generateWhatsAppMessage(catering, `${window.location.origin}/catering/${catering._id}`)}
           </div>
-          <button className="btn-secondary" onClick={handleCopyMessage}>
-            {copied ? "Copied!" : "Copy Message"}
-          </button>
         </div>
       )}
 
-      {/* Admin actions */}
+      {/* Actions */}
       {isAdmin && (
-        <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-          <button
-            className="btn-secondary"
-            onClick={() => navigate(`/admin/catering/${id}/attendance`)}
-          >
-            Manage Attendance
+        <div className="flex flex-wrap gap-3 mb-6">
+          <button className="btn-secondary flex-1" onClick={() => navigate(`/admin/catering/${id}/attendance`)}>
+            <UserCheck size={16} /> Manage Attendance
           </button>
-          <button
-            className="btn-secondary"
-            onClick={() => navigate(`/admin/catering/${id}/payments`)}
-          >
-            Manage Payments
+          <button className="btn-secondary flex-1" onClick={() => navigate(`/admin/catering/${id}/payments`)}>
+            <CreditCard size={16} /> Manage Payments
           </button>
           {user?.role === "admin" && (
-            <button
-              className="btn-secondary"
-              onClick={() => navigate(`/admin/catering/${id}/edit`)}
-            >
-              Edit Catering
+            <button className="btn-secondary" onClick={() => navigate(`/admin/catering/${id}/edit`)}>
+              <Edit size={16} /> Edit
             </button>
           )}
         </div>
       )}
 
-      {/* Register button — students */}
+      {/* Register button for students */}
       {!isAdmin && catering.status !== "ended" && (
-        <div>
+        <div className="mt-8 mb-4">
           {myReg ? (
-            <div
-              className="card"
-              style={{
-                background: "#f0f7f3",
-                border: "1px solid #b8dfc8",
-                textAlign: "center",
-              }}
-            >
-              <p style={{ fontWeight: 500, fontSize: 14, color: "#1a5c3a" }}>
-                You are registered
-              </p>
-              <p style={{ fontSize: 13, color: "#2d7a52", marginTop: 4 }}>
-                Role: {getRoleLabel(myReg.role)} ·{" "}
-                {myReg.isConfirmed ? "Confirmed" : "On waiting list"} · Drop: {myReg.dropPoint}
+            <div className="bg-[#e8f5ee] border border-[#b8dfc8] rounded-xl p-5 text-center shadow-sm">
+              <div className="flex justify-center mb-2 text-[#1a5c3a]"><CheckCircle2 size={24} /></div>
+              <p className="font-bold text-[16px] text-[#1a5c3a] mb-1">You are registered</p>
+              <p className="text-[14px] text-[#2d7a52] font-medium">
+                {getRoleLabel(myReg.role)} <span className="mx-1.5">•</span> 
+                {myReg.isConfirmed ? "Confirmed" : "Waitlisted"} <span className="mx-1.5">•</span> 
+                Drop: {myReg.dropPoint}
               </p>
             </div>
           ) : (
-            <button
-              className="btn-primary"
-              style={{ width: "100%", padding: "14px" }}
-              onClick={() => navigate(`/catering/${id}/register`)}
-            >
-              Register for this Catering
+            <button className="btn-primary w-full py-4 text-[16px]" onClick={() => navigate(`/catering/${id}/register`)}>
+              Register for Event
             </button>
           )}
         </div>
@@ -284,20 +217,13 @@ export default function CateringDetail() {
   );
 }
 
-function InfoItem({ label, value }) {
+function InfoItem({ label, value, icon }) {
   return (
-    <div
-      style={{
-        background: "var(--cream-bg)",
-        border: "1px solid var(--cream-border)",
-        borderRadius: 8,
-        padding: "10px 12px",
-      }}
-    >
-      <p style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>
-        {label}
+    <div className="bg-white border border-cream-200 rounded-xl p-3 shadow-sm flex flex-col justify-center">
+      <p className="flex items-center gap-1.5 text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-1.5">
+        {icon} {label}
       </p>
-      <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>{value}</p>
+      <p className="text-[14.5px] font-semibold text-stone-800">{value}</p>
     </div>
   );
 }
