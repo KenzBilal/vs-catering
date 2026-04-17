@@ -5,16 +5,25 @@ import { useAuth } from "../../lib/AuthContext";
 import { formatCurrency, getRoleLabel, formatDate } from "../../lib/helpers";
 import { useState } from "react";
 import { ArrowLeft, MapPin, CalendarDays, CheckCircle2, Clock, IndianRupee, HandCoins } from "lucide-react";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
 
 export default function PaymentsPage() {
   const { id } = useParams();
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const catering = useQuery(api.caterings.getCatering, { cateringId: id });
-  const registrations = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id });
-  const payments = useQuery(api.payments.getPaymentsByCatering, { cateringId: id });
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id });
+  const paymentsRaw = useQuery(api.payments.getPaymentsByCatering, { cateringId: id });
+  const { data: catering, timedOut: catTimeout } = useQueryWithTimeout(cateringRaw);
+  const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
+  const { data: payments, timedOut: payTimeout } = useQueryWithTimeout(paymentsRaw);
   const createPayment = useMutation(api.payments.createPayment);
   const clearPayment = useMutation(api.payments.clearPayment);
+
+  if (catTimeout || regTimeout || payTimeout) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const [upiRefs, setUpiRefs] = useState({});
   const [methods, setMethods] = useState({});

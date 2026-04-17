@@ -4,15 +4,23 @@ import { useAuth } from "../lib/AuthContext";
 import { Link } from "react-router-dom";
 import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRoleLabel, formatTime12h } from "../lib/helpers";
 import { useState } from "react";
-import { CalendarDays, Clock, Users, Search, ArrowRight } from "lucide-react";
+import { CalendarDays, Clock, Users } from "lucide-react";
+import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
+import ErrorState from "../components/shared/ErrorState";
 
 const FILTERS = ["All", "Today", "Tomorrow", "Upcoming", "Ended"];
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const caterings = useQuery(api.caterings.listCaterings);
-  const registrations = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id });
+  const cateringsRaw = useQuery(api.caterings.listCaterings);
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id });
+  const { data: caterings, timedOut: cateringTimeout } = useQueryWithTimeout(cateringsRaw);
+  const { data: registrations } = useQueryWithTimeout(registrationsRaw);
   const [filter, setFilter] = useState("All");
+
+  if (cateringTimeout) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const registeredIds = new Set((registrations || []).map((r) => r.cateringId));
 

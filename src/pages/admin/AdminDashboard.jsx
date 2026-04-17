@@ -9,17 +9,27 @@ import {
   Plus, UserCheck, CreditCard, AlertCircle, BarChart3,
   TrendingUp, CalendarDays, Users, IndianRupee, Clock, ArrowRight
 } from "lucide-react";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const caterings = useQuery(api.caterings.listCaterings);
-  const pendingPayments = useQuery(api.payments.getPendingPayments);
+  const cateringsRaw = useQuery(api.caterings.listCaterings);
+  const pendingPaymentsRaw = useQuery(api.payments.getPendingPayments);
 
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
-  const analytics = useQuery(api.payments.getMonthlyAnalytics, { month, year });
+  const analyticsRaw = useQuery(api.payments.getMonthlyAnalytics, { month, year });
+
+  const { data: caterings, timedOut: catTimeout } = useQueryWithTimeout(cateringsRaw);
+  const { data: pendingPayments, timedOut: payTimeout } = useQueryWithTimeout(pendingPaymentsRaw);
+  const { data: analytics, timedOut: anaTimeout } = useQueryWithTimeout(analyticsRaw);
+
+  if (catTimeout || payTimeout || anaTimeout) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const activeCaterings = (caterings || []).filter(
     (c) => c.status === "today" || c.status === "tomorrow" || c.status === "upcoming"

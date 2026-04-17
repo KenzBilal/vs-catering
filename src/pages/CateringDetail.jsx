@@ -15,15 +15,23 @@ import {
 import { useState } from "react";
 import { ArrowLeft, MapPin, CalendarDays, Clock, Camera, AlertCircle, Link as LinkIcon, Edit, UserCheck, CreditCard, Share2, Users, CheckCircle2, User, Phone, Hash, Home, XCircle } from "lucide-react";
 import ConvexImage from "../components/shared/ConvexImage";
+import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
+import ErrorState from "../components/shared/ErrorState";
 
 export default function CateringDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const catering = useQuery(api.caterings.getCatering, { cateringId: id });
-  const registrations = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id });
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id });
+  const { data: catering, timedOut: catTimeout } = useQueryWithTimeout(cateringRaw);
+  const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
   const [copied, setCopied] = useState(false);
   const [viewUser, setViewUser] = useState(null); // { name, photo, phone, stayType, registrationNumber }
+
+  if (catTimeout || regTimeout) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
 

@@ -3,15 +3,22 @@ import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
 import { useState } from "react";
 import { MapPin, Plus, Trash2 } from "lucide-react";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
 
 export default function AdminSettings() {
   const { user } = useAuth();
-  const dropPoints = useQuery(api.dropPoints.getDropPoints);
+  const dropPointsRaw = useQuery(api.dropPoints.getDropPoints);
+  const { data: dropPoints, timedOut } = useQueryWithTimeout(dropPointsRaw);
   const addDropPoint = useMutation(api.dropPoints.addDropPoint);
   const deactivateDropPoint = useMutation(api.dropPoints.deactivateDropPoint);
 
   const [newDrop, setNewDrop] = useState("");
   const [addingDrop, setAddingDrop] = useState(false);
+
+  if (timedOut) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   if (user?.role !== "admin") {
     return (

@@ -7,12 +7,15 @@ import { getRoleLabel, formatTime12h } from "../../lib/helpers";
 import { ArrowLeft, Save, Sun, Moon } from "lucide-react";
 import Toggle from "../../components/ui/Toggle";
 import SegmentedControl from "../../components/ui/SegmentedControl";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
 
 export default function EditCatering() {
   const { id } = useParams();
   const { token } = useAuth();
   const navigate = useNavigate();
-  const catering = useQuery(api.caterings.getCatering, { cateringId: id });
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id });
+  const { data: catering, timedOut } = useQueryWithTimeout(cateringRaw);
   const updateCatering = useMutation(api.caterings.updateCatering);
 
   const [place, setPlace] = useState("");
@@ -94,6 +97,10 @@ export default function EditCatering() {
       setLoading(false);
     }
   };
+
+  if (timedOut) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   if (catering === undefined) {
     return <div className="animate-pulse"><p className="text-stone-400">Loading event...</p></div>;

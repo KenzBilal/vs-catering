@@ -5,6 +5,8 @@ import { formatDate, formatCurrency, getRoleLabel, getStatusBadgeClass, getStatu
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { CalendarDays, CheckCircle2, Clock, AlertCircle, XCircle, ArrowRight, AlertTriangle } from "lucide-react";
+import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
+import ErrorState from "../components/shared/ErrorState";
 
 const ATTENDANCE_STYLE = {
   attended:   { text: "Attended", color: "text-[#1a5c3a]", bg: "bg-[#e8f5ee]" },
@@ -15,9 +17,15 @@ const ATTENDANCE_STYLE = {
 
 export default function MyEvents() {
   const { user, token } = useAuth();
-  const registrations = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id });
-  const payments = useQuery(api.payments.getPaymentsByUser, { userId: user._id });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id });
+  const paymentsRaw = useQuery(api.payments.getPaymentsByUser, { userId: user._id });
+  const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
+  const { data: payments, timedOut: payTimeout } = useQueryWithTimeout(paymentsRaw);
   const cancelRegistration = useMutation(api.registrations.cancelRegistration);
+
+  if (regTimeout || payTimeout) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const [confirmCancel, setConfirmCancel] = useState(null);
   const [cancelling, setCancelling] = useState(false);

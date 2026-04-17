@@ -3,6 +3,8 @@ import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
 import { useState } from "react";
 import { Search, Shield, User, UserCog } from "lucide-react";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
 
 const ROLE_FILTERS = ["All", "Admin", "Sub-Admin", "Student"];
 
@@ -20,8 +22,13 @@ const ROLE_BADGE = {
 
 export default function AdminUsers() {
   const { user: currentUser, token } = useAuth();
-  const allUsers = useQuery(api.users.getAllStudents, token ? { token } : "skip");
+  const allUsersRaw = useQuery(api.users.getAllStudents, token ? { token } : "skip");
+  const { data: allUsers, timedOut } = useQueryWithTimeout(allUsersRaw);
   const setUserRole = useMutation(api.users.setUserRole);
+
+  if (timedOut) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");

@@ -6,15 +6,23 @@ import { useState } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Users, MapPin, CalendarDays, Filter, Clock, Camera, ExternalLink, Search } from "lucide-react";
 import ConvexImage from "../../components/shared/ConvexImage";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
 
 export default function AttendancePage() {
   const { user, token } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
-  const catering = useQuery(api.caterings.getCatering, { cateringId: id });
-  const registrations = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id });
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id });
+  const { data: catering, timedOut: catTimeout } = useQueryWithTimeout(cateringRaw);
+  const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
   const markAttendance = useMutation(api.registrations.markAttendance);
   const changeRole = useMutation(api.registrations.changeRole);
+
+  if (catTimeout || regTimeout) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");

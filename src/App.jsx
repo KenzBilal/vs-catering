@@ -1,6 +1,8 @@
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
+import ErrorBoundary from "./components/shared/ErrorBoundary";
+import OfflineBanner from "./components/shared/OfflineBanner";
 
 // Shells
 import StudentShell from "./components/student/StudentShell";
@@ -92,7 +94,10 @@ function AppRoutes() {
   const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
 
   return (
-    <Routes>
+    <>
+      {/* Global offline detector — renders everywhere */}
+      <OfflineBanner />
+      <Routes>
       {/* ── Auth ─────────────────────────────────────── */}
       <Route path="/login"  element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Login />} />
       <Route path="/signup" element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Signup />} />
@@ -127,19 +132,22 @@ function AppRoutes() {
 
       {/* #30: 404 page */}
       <Route path="*" element={user ? <NotFound /> : <Navigate to="/login" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }
 
 export default function App() {
   // #11: Removed global right-click disable — it breaks legitimate browser UX
   return (
-    <ConvexProvider client={convex}>
-      <AuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </AuthProvider>
-    </ConvexProvider>
+    <ErrorBoundary>
+      <ConvexProvider client={convex}>
+        <AuthProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </AuthProvider>
+      </ConvexProvider>
+    </ErrorBoundary>
   );
 }

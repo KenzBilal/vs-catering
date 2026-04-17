@@ -3,11 +3,19 @@ import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { formatDate, formatCurrency, getRoleLabel } from "../lib/helpers";
 import { CalendarDays, CheckCircle2, Clock, XCircle, Ban, TrendingUp, IndianRupee, UserCheck } from "lucide-react";
+import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
+import ErrorState from "../components/shared/ErrorState";
 
 export default function History() {
   const { user } = useAuth();
-  const registrations = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id });
-  const payments = useQuery(api.payments.getPaymentsByUser, { userId: user._id });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id });
+  const paymentsRaw = useQuery(api.payments.getPaymentsByUser, { userId: user._id });
+  const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
+  const { data: payments, timedOut: payTimeout } = useQueryWithTimeout(paymentsRaw);
+
+  if (regTimeout || payTimeout) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const regs = registrations || [];
   const pays = payments || [];

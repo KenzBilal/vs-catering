@@ -5,14 +5,21 @@ import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRol
 import { useState } from "react";
 import { Plus, Search, UserCheck, CreditCard, CalendarDays, Clock, Users, Edit, XCircle, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../lib/AuthContext";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
 
 const STATUS_FILTERS = ["All", "Upcoming", "Today", "Tomorrow", "Ended"];
 
 export default function AdminEvents() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const caterings = useQuery(api.caterings.listCaterings);
+  const cateringsRaw = useQuery(api.caterings.listCaterings);
+  const { data: caterings, timedOut } = useQueryWithTimeout(cateringsRaw);
   const cancelCatering = useMutation(api.caterings.cancelCatering);
+
+  if (timedOut) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");

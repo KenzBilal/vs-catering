@@ -7,6 +7,8 @@ import SegmentedControl from "../components/ui/SegmentedControl";
 import CustomSelect from "../components/ui/CustomSelect";
 import ConvexImage from "../components/shared/ConvexImage";
 import { isValidRegNumber } from "../lib/helpers";
+import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
+import ErrorState from "../components/shared/ErrorState";
 
 const ROLE_LABEL = { student: "Student", sub_admin: "Sub-Admin", admin: "Admin" };
 const ROLE_BADGE = {
@@ -17,9 +19,14 @@ const ROLE_BADGE = {
 
 export default function Settings() {
   const { user, token, login } = useAuth();
-  const dropPoints = useQuery(api.dropPoints.getDropPoints);
+  const dropPointsRaw = useQuery(api.dropPoints.getDropPoints);
+  const { data: dropPoints, timedOut } = useQueryWithTimeout(dropPointsRaw);
   const updatePrefs = useMutation(api.users.updatePreferences);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+
+  if (timedOut) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const [dropPoint, setDropPoint] = useState(user?.defaultDropPoint || "Main Gate");
   const [stayType, setStayType]   = useState(user?.stayType || "hostel");

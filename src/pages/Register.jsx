@@ -7,6 +7,8 @@ import { getRoleLabel, formatDate, formatCurrency, DRESS_CODE_DEFAULTS, formatTi
 import CustomSelect from "../components/ui/CustomSelect";
 import ConvexImage from "../components/shared/ConvexImage"; // #10: was missing
 import { ArrowLeft, CheckCircle2, UserCheck, MapPin, AlertCircle, Shirt, Camera, XCircle } from "lucide-react";
+import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
+import ErrorState from "../components/shared/ErrorState";
 
 const MAX_PHOTO_SIZE_MB = 5;
 
@@ -16,11 +18,17 @@ export default function Register() {
   const navigate = useNavigate();
 
   // #9: ALL hooks must be declared before any conditional returns
-  const catering = useQuery(api.caterings.getCatering, { cateringId: id });
-  const dropPoints = useQuery(api.dropPoints.getDropPoints);
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id });
+  const dropPointsRaw = useQuery(api.dropPoints.getDropPoints);
+  const { data: catering, timedOut: catTimeout } = useQueryWithTimeout(cateringRaw);
+  const { data: dropPoints, timedOut: dpTimeout } = useQueryWithTimeout(dropPointsRaw);
   const registerMutation = useMutation(api.registrations.register);
   const updatePrefs = useMutation(api.users.updatePreferences);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+
+  if (catTimeout || dpTimeout) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const [role, setRole] = useState("");
   const [dropPoint, setDropPoint] = useState(user?.defaultDropPoint || "Main Gate");

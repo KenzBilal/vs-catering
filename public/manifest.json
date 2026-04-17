@@ -1,0 +1,17 @@
+{
+  "short_name": "Catering",
+  "name": "Catering Management Platform",
+  "description": "Professional event registration and management platform for Catering staff.",
+  "icons": [
+    {
+      "src": "/icon.webp",
+      "type": "image/webp",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1c1917",
+  "background_color": "#ffffff"
+}
