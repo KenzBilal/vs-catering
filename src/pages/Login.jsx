@@ -36,7 +36,17 @@ export default function Login() {
     if (!isValidPhone(phone)) return setError("Enter a valid 10-digit number.");
     if (!name.trim()) return setError("Enter your name.");
     
-    if (!auth) return setError("Authentication service is unavailable. Please check your connection.");
+    if (!auth) return setError("Authentication service is unavailable. Please check your config.");
+    
+    // Initialize reCAPTCHA on-demand if it doesn't exist
+    if (!window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", { size: "invisible" });
+      } catch (err) {
+        return setError("Failed to initialize security check. Please refresh.");
+      }
+    }
+
     setLoading(true);
 
     try {

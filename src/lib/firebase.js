@@ -11,13 +11,24 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase only once
-let app;
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
+let auth = null;
+
+try {
+  // Only attempt initialization if we have an API key to prevent top-level crashes
+  if (firebaseConfig.apiKey) {
+    let app;
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApp();
+    }
+    auth = getAuth(app);
+    auth.useDeviceLanguage();
+  } else {
+    console.warn("Firebase: VITE_FIREBASE_API_KEY is missing. Authentication will be disabled.");
+  }
+} catch (e) {
+  console.error("Firebase Initialization Error:", e);
 }
 
-export const auth = getAuth(app);
-auth.useDeviceLanguage();
+export { auth };
