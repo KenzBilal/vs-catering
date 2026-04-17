@@ -33,7 +33,11 @@ const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
 
 function ProtectedRoute({ children, adminOnly }) {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-cream-bg">
+      <p className="text-stone-500 font-medium animate-pulse">Catering is loading...</p>
+    </div>
+  );
   if (!user) return <Navigate to="/login" replace />;
   if (adminOnly && user.role === "student") return <Navigate to="/" replace />;
   return children;
@@ -57,7 +61,11 @@ function AdminPage({ page }) {
 
 function AppRoutes() {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-cream-bg">
+      <p className="text-stone-500 font-medium animate-pulse">Catering is loading...</p>
+    </div>
+  );
 
   const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
 

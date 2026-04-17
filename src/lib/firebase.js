@@ -13,4 +13,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-auth.useDeviceLanguage(); // Set language to browser default
+try {
+  auth.useDeviceLanguage();
+} catch (e) {
+  console.warn("Firebase: could not set device language", e);
+}
