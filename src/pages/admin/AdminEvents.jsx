@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate } from "react-router-dom";
-import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRoleLabel } from "../../lib/helpers";
+import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRoleLabel, formatTime12h } from "../../lib/helpers";
 import { useState } from "react";
 import { Plus, Search, UserCheck, CreditCard, CalendarDays, Clock, Users, Edit, XCircle, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../lib/AuthContext";
@@ -134,7 +134,7 @@ export default function AdminEvents() {
                         : formatDate(c.dates[0])}
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Clock size={14} /> {c.specificTime}
+                      <Clock size={14} /> {formatTime12h(c.specificTime)}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Users size={14} /> {totalSlots} slots

@@ -3,7 +3,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { getRoleLabel } from "../../lib/helpers";
+import { getRoleLabel, formatTime12h } from "../../lib/helpers";
 import { ArrowLeft, Clock, MapPin, Calendar, Users, Shirt, Camera, Moon, Sun, CalendarRange, CheckCircle2 } from "lucide-react";
 import Toggle from "../../components/ui/Toggle";
 import SegmentedControl from "../../components/ui/SegmentedControl";
@@ -143,7 +143,14 @@ export default function CreateCatering() {
               </div>
               <div>
                 <label className="label">Event Time</label>
-                <input type="time" value={specificTime} onChange={(e) => setSpecificTime(e.target.value)} />
+                <div className="flex flex-col gap-1.5">
+                  <input type="time" value={specificTime} onChange={(e) => setSpecificTime(e.target.value)} />
+                  {specificTime && (
+                    <p className="text-[11px] font-bold text-[#1a5c3a] ml-1 flex items-center gap-1">
+                      <Clock size={10} /> Preview: {formatTime12h(specificTime)}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

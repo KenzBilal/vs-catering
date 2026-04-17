@@ -2,7 +2,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { Link } from "react-router-dom";
-import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRoleLabel } from "../lib/helpers";
+import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRoleLabel, formatTime12h } from "../lib/helpers";
 import { useState } from "react";
 import { CalendarDays, Clock, Users, Search, ArrowRight } from "lucide-react";
 
@@ -134,7 +134,7 @@ function EventCard({ c, isRegistered }) {
                   : formatDate(c.dates[0])}
               </span>
               <span className="flex items-center gap-1.5">
-                <Clock size={13} />{c.specificTime}
+                <Clock size={13} />{formatTime12h(c.specificTime)}
               </span>
             </div>
           </div>

@@ -2,7 +2,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext";
-import { formatCurrency, formatDate, getRoleLabel } from "../../lib/helpers";
+import { formatCurrency, formatDate, getRoleLabel, formatTime12h } from "../../lib/helpers";
 import { useState } from "react";
 import {
   Plus, UserCheck, CreditCard, AlertCircle, BarChart3,
@@ -123,7 +123,7 @@ export default function AdminDashboard() {
                       {c.isTwoDay
                         ? `${formatDate(c.dates[0])} – ${formatDate(c.dates[1])}`
                         : formatDate(c.dates[0])}
-                      <span className="mx-1.5">·</span>{c.specificTime}
+                      <span className="mx-1.5">·</span>{formatTime12h(c.specificTime)}
                     </p>
                   </div>
                   <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>

@@ -29,6 +29,21 @@ export function formatDate(dateStr) {
   });
 }
 
+export function formatTime12h(timeStr) {
+  if (!timeStr) return "";
+  try {
+    const [hours, minutes] = timeStr.split(":");
+    let h = parseInt(hours);
+    const m = minutes;
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12;
+    h = h ? h : 12; // the hour '0' should be '12'
+    return `${h.toString().padStart(2, "0")}:${m} ${ampm}`;
+  } catch (e) {
+    return timeStr;
+  }
+}
+
 export function formatCurrency(amount) {
   return `₹${amount}`;
 }
@@ -48,7 +63,7 @@ export function generateWhatsAppMessage(catering, registrationUrl) {
 
 Place: ${catering.place}
 Date: ${dateStr}
-Time: ${catering.specificTime} (${getTimeOfDayLabel(catering.timeOfDay)})
+Time: ${formatTime12h(catering.specificTime)} (${getTimeOfDayLabel(catering.timeOfDay)})
 Pickup: Main Gate
 
 Roles and Pay:

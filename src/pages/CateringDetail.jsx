@@ -10,6 +10,7 @@ import {
   getStatusLabel,
   generateWhatsAppMessage,
   getTimeOfDayLabel,
+  formatTime12h,
 } from "../lib/helpers";
 import { useState } from "react";
 import { ArrowLeft, MapPin, CalendarDays, Clock, Camera, AlertCircle, Link as LinkIcon, Edit, UserCheck, CreditCard, Share2, Users, CheckCircle2, User, Phone, Hash, Home, XCircle } from "lucide-react";
@@ -84,7 +85,7 @@ export default function CateringDetail() {
           </span>
           <span className="flex items-center gap-1.5">
             <Clock size={16} />
-            {catering.specificTime} ({getTimeOfDayLabel(catering.timeOfDay)})
+            {formatTime12h(catering.specificTime)} ({getTimeOfDayLabel(catering.timeOfDay)})
           </span>
         </div>
       </div>
