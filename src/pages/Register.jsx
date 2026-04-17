@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
-import { getRoleLabel, formatDate, formatCurrency, DRESS_CODE_DEFAULTS } from "../lib/helpers";
+import { getRoleLabel, formatDate, formatCurrency, DRESS_CODE_DEFAULTS, formatTime12h } from "../lib/helpers";
+import CustomSelect from "../components/ui/CustomSelect";
 import { ArrowLeft, CheckCircle2, UserCheck, MapPin, Link as LinkIcon, AlertCircle, Shirt, Camera, XCircle } from "lucide-react";
 
 export default function Register() {
@@ -214,18 +215,12 @@ export default function Register() {
 
         <div>
           <label className="label">Drop Point</label>
-          <div className="relative">
-            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-            <select
-              value={dropPoint}
-              className="pl-11"
-              onChange={(e) => setDropPoint(e.target.value)}
-            >
-              {(dropPoints || []).map((dp) => (
-                <option key={dp._id} value={dp.name}>{dp.name}</option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            options={(dropPoints || []).map(dp => ({ label: dp.name, value: dp.name }))}
+            value={dropPoint}
+            onChange={setDropPoint}
+            placeholder="Select your drop point..."
+          />
           <p className="text-[12px] font-medium text-stone-400 mt-1.5 ml-1">
             Pickup is from Main Gate for everyone.
           </p>

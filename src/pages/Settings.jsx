@@ -4,6 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { Save, CheckCircle2, User, Phone, MapPin, Camera, XCircle, Trash2, Hash } from "lucide-react";
 import SegmentedControl from "../components/ui/SegmentedControl";
+import CustomSelect from "../components/ui/CustomSelect";
 import ConvexImage from "../components/shared/ConvexImage";
 import { isValidRegNumber } from "../lib/helpers";
 
@@ -137,18 +138,12 @@ export default function Settings() {
 
           <div>
             <label className="label">Default Drop Point</label>
-            <div className="relative">
-              <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={15} />
-              <select
-                value={dropPoint}
-                onChange={(e) => setDropPoint(e.target.value)}
-                className="pl-9"
-              >
-                {(dropPoints || []).map((dp) => (
-                  <option key={dp._id} value={dp.name}>{dp.name}</option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect
+              options={(dropPoints || []).map(dp => ({ label: dp.name, value: dp.name }))}
+              value={dropPoint}
+              onChange={setDropPoint}
+              placeholder="Select your default drop point..."
+            />
           </div>
 
           <div>

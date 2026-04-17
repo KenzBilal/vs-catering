@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { formatCurrency, formatDate, getRoleLabel, formatTime12h } from "../../lib/helpers";
+import CustomSelect from "../../components/ui/CustomSelect";
 import { useState } from "react";
 import {
   Plus, UserCheck, CreditCard, AlertCircle, BarChart3,
@@ -52,26 +53,20 @@ export default function AdminDashboard() {
         <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">
           Monthly Overview
         </h2>
-        <div className="flex bg-white border border-cream-200 rounded-2xl p-1 shadow-sm">
-          <select
+        <div className="flex bg-white border border-cream-200 rounded-2xl p-1 shadow-sm gap-1">
+          <CustomSelect
+            options={monthNames.map((m, i) => ({ label: m, value: i + 1 }))}
             value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
-            className="bg-transparent border-0 text-stone-700 text-[12px] font-bold px-3 py-1.5 outline-none cursor-pointer hover:bg-cream-50 rounded-xl transition-colors min-w-[70px] appearance-none text-center"
-          >
-            {monthNames.map((m, i) => (
-              <option key={i} value={i + 1}>{m}</option>
-            ))}
-          </select>
-          <div className="w-px h-4 bg-cream-200 self-center mx-0.5" />
-          <select
+            onChange={setMonth}
+            className="w-[90px]"
+          />
+          <div className="w-px h-6 bg-cream-200 self-center" />
+          <CustomSelect
+            options={[2024, 2025, 2026].map(y => ({ label: y.toString(), value: y }))}
             value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            className="bg-transparent border-0 text-stone-700 text-[12px] font-bold px-3 py-1.5 outline-none cursor-pointer hover:bg-cream-50 rounded-xl transition-colors min-w-[70px] appearance-none text-center"
-          >
-            {[2024, 2025, 2026].map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+            onChange={setYear}
+            className="w-[90px]"
+          />
         </div>
       </div>
 
