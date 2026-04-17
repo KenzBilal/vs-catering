@@ -334,20 +334,20 @@ function DressCodeWheel({ catering, selectedRole }) {
       
       <div 
         className="absolute inset-0 transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
-        style={{ transform: `translateY(${activeIndex === -1 ? 0 : -activeIndex * 80 + 30}px)` }}
+        style={{ transform: `translateY(${activeIndex === -1 ? 0 : -activeIndex * 100 + 20}px)` }}
       >
         {roles.map((r, i) => {
           const isSelected = r === selectedRole;
           const offset = i - activeIndex;
-          const rotation = offset * 25; // Degrees
-          const opacity = isSelected ? 1 : Math.max(0, 0.3 - Math.abs(offset) * 0.1);
-          const blur = isSelected ? 0 : Math.abs(offset) * 1;
-          const scale = isSelected ? 1 : 0.9 - Math.abs(offset) * 0.05;
+          const rotation = offset * 20; // Degrees
+          const opacity = isSelected ? 1 : Math.max(0, 0.2 - Math.abs(offset) * 0.05);
+          const blur = isSelected ? 0 : 2;
+          const scale = isSelected ? 1 : 0.85;
 
           return (
             <div
               key={r}
-              className="h-[80px] flex flex-col justify-center px-6 transition-all duration-700"
+              className="h-[100px] flex flex-col justify-center px-6 transition-all duration-700"
               style={{
                 transform: `rotateX(${rotation}deg) scale(${scale})`,
                 opacity: opacity,
@@ -355,10 +355,10 @@ function DressCodeWheel({ catering, selectedRole }) {
                 transformOrigin: "center center",
               }}
             >
-              <p className={`text-[11px] font-black uppercase tracking-tighter mb-1 ${isSelected ? "text-stone-900" : "text-stone-400"}`}>
+              <p className={`text-[11px] font-black uppercase tracking-tighter mb-1.5 ${isSelected ? "text-stone-900" : "text-stone-400"}`}>
                 {getRoleLabel(r)}
               </p>
-              <p className={`text-[13px] leading-tight font-medium ${isSelected ? "text-stone-700 font-bold" : "text-stone-500"}`}>
+              <p className={`text-[13.5px] leading-[1.6] font-medium ${isSelected ? "text-stone-700 font-bold" : "text-stone-500"}`}>
                 {catering.dressCodeNotes || DRESS_CODE_DEFAULTS[r]}
               </p>
             </div>
