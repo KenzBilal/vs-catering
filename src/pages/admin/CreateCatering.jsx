@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DRESS_CODE_DEFAULTS, getRoleLabel } from "../lib/helpers";
