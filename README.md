@@ -1,138 +1,43 @@
-# VS-Catering
+# Catering Management Platform
 
-A production-grade web application for managing catering registrations, attendance, and payments.
-
----
-
-## Tech Stack
-
-- **Frontend**: React + Vite
-- **Database**: Convex (Serverless Database)
-- **Styling**: Tailwind CSS
-- **Hosting**: Vercel
+A professional, production-grade web application designed to streamline the management of large-scale catering operations. This platform handles everything from student registrations and role-based assignments to live attendance tracking and financial payouts.
 
 ---
 
-## Architecture & Security
+## 🌟 Core Purpose
 
-This project employs a robust, server-side verified Role-Based Access Control (RBAC) system. 
-- **Session Tokens**: Rather than storing sensitive user roles locally, users authenticate and receive a secure 30-day session token (UUID).
-- **Backend Enforced**: All data-mutating functions verify the user's token against the `sessions` table. 
-  - `createCatering`, `setUserRole` → Strictly require `admin` privileges.
-  - `markAttendance`, `createPayment` → Require `sub_admin` or `admin` privileges.
-- **Automated Lifecycle**: A server-side Convex Cron Job automatically processes and updates the status of catering events (`upcoming`, `today`, `ended`) every day at midnight IST.
+This application serves as a central hub for catering coordinators (Admins) and student workers. It eliminates manual paperwork, automates student queues, and provides real-time financial transparency for both organizers and staff.
 
 ---
 
-## Setup Instructions
+## 🛠️ Usage & Key Workflows
 
-### Step 1 — Install dependencies
+### For Students
+- **Smart Registration**: Sign up with your details, including gender and hostel status. Once registered, you can browse available catering events.
+- **Role Selection**: Choose your preferred role (Service Boy, Service Girl, or Captain) based on the event's requirements.
+- **Waitlist Management**: If an event is full, the system automatically places you on a waitlist. If a spot opens up, the queue advances automatically.
+- **Personal Dashboard**: Track your upcoming assignments, view your work history, and check the status of your payments (Pending vs. Cleared).
 
-```bash
-cd vs-catering
-npm install
-```
-
-### Step 2 — Set up Convex
-
-1. Go to [convex.dev](https://convex.dev) and create a free account.
-2. Create a new project.
-3. Run the following command in your project folder:
-
-```bash
-npx convex dev
-```
-
-This will:
-- Ask you to log in to Convex
-- Connect your project
-- Auto-generate the `convex/_generated/` folder
-- Give you your `VITE_CONVEX_URL`
-
-### Step 3 — Set up environment variables
-
-Create a `.env.local` file in the root of the project:
-
-```
-VITE_CONVEX_URL=https://your-convex-deployment.convex.cloud
-```
-
-Convex will print this URL when you run `npx convex dev`.
-
-### Step 4 — Run the app locally
-
-In one terminal:
-```bash
-npx convex dev
-```
-
-In another terminal:
-```bash
-npm run dev
-```
-
-The app will be at `http://localhost:5173`.
+### For Admins & Coordinators
+- **Event Orchestration**: Create detailed catering events with specific dates, times, and venues. Supports single-day or multi-day events with customized staff requirements for each day.
+- **Live Attendance**: Use the "Attendance Mission Control" to mark students present as they arrive. Admins can search by name or phone and quickly verify student identities via profile photos.
+- **Payment Lifecycle**: Manage the financial aspect of the operation. Admins can clear payments individually or in bulk, with support for tracking both Cash and UPI transactions.
+- **Real-time Analytics**: The dashboard provides an instant overview of monthly performance, including total payout amounts, number of active events, and pending financial liabilities.
 
 ---
 
-## Deploying to Vercel (Production)
+## 🔐 Security & Data Integrity
 
-To push this site live on Vercel, you need to configure your database for production.
-
-### Step 1 — Deploy the Backend
-Run the deployment command:
-```bash
-npx convex deploy
-```
-*Convex will deploy your database, tables, cron jobs, and give you a **Production URL** (e.g., `https://utmost-gerbil-978.convex.cloud`).*
-
-### Step 2 — Import & Configure Vercel
-1. Push this project to your GitHub repository.
-2. Go to [Vercel Dashboard](https://vercel.com/dashboard) and import your repository.
-3. In the setup screen, go to **Environment Variables** and add:
-   - Name: `VITE_CONVEX_URL`
-   - Value: `https://utmost-gerbil-978.convex.cloud` *(replace with the URL from Step 1)*
-4. Click **Deploy**. Vercel will auto-detect Vite and build your app.
+The platform is built with a "Security First" mindset:
+- **Server-Side Verification**: Every action (from marking attendance to editing an event) is verified on the backend. Even if someone tries to bypass the UI, the database will reject unauthorized requests.
+- **Role-Based Access (RBAC)**: Distinct permissions for Students, Sub-Admins, and Admins ensure that sensitive data and financial controls are only accessible to authorized personnel.
+- **Rate Limiting**: Built-in protection against brute-force login attempts to keep user accounts secure.
 
 ---
 
-## Setting up the first Admin
+## 🚀 Key Features
 
-Because security is strictly enforced on the server side, you cannot make yourself an admin from the frontend app initially.
-
-1. Sign up on the website as a normal student.
-2. Go to the [Convex Dashboard](https://dashboard.convex.dev) → Data → `users` table.
-3. Find your user record and change the `role` field from `"student"` to `"admin"`.
-4. Log out of the app and log back in to get your new session token.
-5. You will now see the Admin dashboard and have permission to promote other users.
-
----
-
-## Pages
-
-| Page | Who can access |
-|---|---|
-| `/` | All logged-in users |
-| `/catering/:id` | All logged-in users |
-| `/catering/:id/register` | Students |
-| `/my-caterings` | Students |
-| `/profile` | All logged-in users |
-| `/admin` | Admin, Sub-Admin |
-| `/admin/create-catering` | Admin only |
-| `/admin/catering/:id/attendance` | Admin, Sub-Admin |
-| `/admin/catering/:id/payments` | Admin, Sub-Admin |
-| `/admin/settings` | Admin only |
-
----
-
-## Features
-
-- **Hardened Security**: Custom token-based authentication with backend role validation.
-- **Automated Lifecycle**: Cron jobs auto-update event statuses at midnight.
-- **Student Flow**: Signup/login, registration with role selection, drop point, and optional photo.
-- **Queue System**: Registrations beyond slot limit go on a waiting list.
-- **Event Management**: Two-day catering support with same or different slots per day.
-- **Attendance**: Sub-admins mark attendance, change roles, record rejections with reason.
-- **Payments**: Track payments per student per catering (pending, cleared, cash/UPI).
-- **Fast Analytics**: Highly indexed database queries to calculate total caterings, payouts, and pending amounts instantly.
-- **Role Management**: Promote students to sub-admin or admin securely from settings.
+- **Automated Event Lifecycle**: Events automatically move from `upcoming` to `today` and then to `ended` based on the date, with no manual intervention required.
+- **Photo Verification**: Integrated profile photo management ensuring that the person working matches the registered student.
+- **LPU Registration Integration**: Optional 8-digit registration number tracking for university-specific compliance.
+- **Responsive Design**: A sleek, "Cream & Stone" themed interface that works perfectly on both mobile (for live attendance) and desktop (for admin management).
