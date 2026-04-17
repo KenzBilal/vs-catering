@@ -40,7 +40,10 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const formattedPhone = `+91${phone}`;
+      // Sanitize: Remove all non-numeric characters and handle existing +91
+      const cleanPhone = phone.replace(/\D/g, "").slice(-10);
+      const formattedPhone = `+91${cleanPhone}`;
+      
       const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
       setConfirmationResult(confirmation);
       setStep("otp");

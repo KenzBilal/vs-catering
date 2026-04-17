@@ -51,7 +51,10 @@ export default function Signup() {
     if (!auth) return setError("Authentication service is unavailable. Please check your connection.");
     setLoading(true);
     try {
-      const formattedPhone = `+91${form.phone}`;
+      // Sanitize: Remove all non-numeric characters and handle existing +91
+      const cleanPhone = form.phone.replace(/\D/g, "").slice(-10);
+      const formattedPhone = `+91${cleanPhone}`;
+      
       const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
       setConfirmationResult(confirmation);
       setStep("otp");
