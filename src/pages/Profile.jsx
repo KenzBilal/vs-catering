@@ -2,9 +2,19 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { LogOut, Save, CheckCircle2 } from "lucide-react";
+import SegmentedControl from "../components/ui/SegmentedControl";
+
+const ROLE_LABEL = {
+  student: "Student",
+  sub_admin: "Sub-Admin",
+  admin: "Admin",
+};
 
 export default function Profile() {
   const { user, login, logout } = useAuth();
+  const navigate = useNavigate();
   const dropPoints = useQuery(api.dropPoints.getDropPoints);
   const updatePrefs = useMutation(api.users.updatePreferences);
 
@@ -25,58 +35,54 @@ export default function Profile() {
     }
   };
 
-  const roleLabel = {
-    student: "Student",
-    sub_admin: "Sub-Admin",
-    admin: "Admin",
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   return (
-    <div className="page-container" style={{ maxWidth: 500 }}>
-      <h2 className="text-xl font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
-        Profile
-      </h2>
-      <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
-        Your account details and preferences.
-      </p>
+    <div className="page-container" style={{ maxWidth: 520 }}>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-stone-900 tracking-tight">Profile</h2>
+        <p className="text-[14px] font-medium text-stone-500 mt-1">
+          Your account details and preferences.
+        </p>
+      </div>
 
-      {/* Account info */}
-      <div className="card" style={{ marginBottom: 16 }}>
-        <p className="section-title">Account</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Account card */}
+      <div className="card bg-white p-6 mb-4">
+        <h3 className="section-title">Account</h3>
+        <div className="flex flex-col gap-3 mt-4">
           <Row label="Name" value={user?.name} />
           <Row label="Phone" value={user?.phone} />
           <Row label="Gender" value={user?.gender === "male" ? "Male" : "Female"} />
-          <Row label="Role" value={roleLabel[user?.role] || "Student"} />
+          <div className="flex justify-between items-center text-[14px] pt-2 border-t border-cream-100">
+            <span className="font-medium text-stone-500">Role</span>
+            <span className={`text-[12px] font-bold px-3 py-1 rounded-full ${
+              user?.role === "admin" ? "bg-stone-900 text-cream-50"
+              : user?.role === "sub_admin" ? "bg-cream-200 text-stone-800"
+              : "bg-cream-100 text-stone-600"
+            }`}>
+              {ROLE_LABEL[user?.role] || "Student"}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Editable preferences */}
-      <div className="card" style={{ marginBottom: 16 }}>
-        <p className="section-title">Preferences</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* Preferences card */}
+      <div className="card bg-white p-6 mb-6">
+        <h3 className="section-title">Preferences</h3>
+        <div className="flex flex-col gap-5 mt-4">
           <div>
-            <label className="label">Where do you stay?</label>
-            <div style={{ display: "flex", gap: 10 }}>
-              {[["hostel", "Hostel"], ["day_scholar", "Day Scholar"]].map(([val, label]) => (
-                <button
-                  key={val}
-                  onClick={() => setStayType(val)}
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    borderRadius: 6,
-                    border: `1px solid ${stayType === val ? "var(--accent)" : "var(--cream-border)"}`,
-                    background: stayType === val ? "var(--accent)" : "var(--cream-card)",
-                    color: stayType === val ? "var(--cream-50)" : "var(--text-primary)",
-                    fontSize: 14,
-                    fontWeight: 500,
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <label className="label mb-3">Accommodation</label>
+            <SegmentedControl
+              options={[
+                { label: "Hostel", value: "hostel" },
+                { label: "Day Scholar", value: "day_scholar" },
+              ]}
+              value={stayType}
+              onChange={setStayType}
+            />
           </div>
 
           <div>
@@ -84,6 +90,7 @@ export default function Profile() {
             <select
               value={dropPoint}
               onChange={(e) => setDropPoint(e.target.value)}
+              className="bg-white"
             >
               {(dropPoints || []).map((dp) => (
                 <option key={dp._id} value={dp.name}>{dp.name}</option>
@@ -92,21 +99,24 @@ export default function Profile() {
           </div>
 
           <button
-            className="btn-primary"
+            className="btn-primary w-full py-3 text-[14px]"
             onClick={handleSave}
             disabled={loading}
           >
-            {loading ? "Saving..." : saved ? "Saved" : "Save Preferences"}
+            {saved ? (
+              <><CheckCircle2 size={17} /> Saved</>
+            ) : loading ? "Saving..." : (
+              <><Save size={17} /> Save Preferences</>
+            )}
           </button>
         </div>
       </div>
 
       <button
-        onClick={logout}
-        className="btn-secondary"
-        style={{ width: "100%" }}
+        onClick={handleLogout}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-cream-200 bg-white text-[14px] font-semibold text-stone-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all active:scale-[0.98]"
       >
-        Log Out
+        <LogOut size={16} /> Sign Out
       </button>
     </div>
   );
@@ -114,9 +124,9 @@ export default function Profile() {
 
 function Row({ label, value }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
-      <span style={{ color: "var(--text-muted)" }}>{label}</span>
-      <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>{value}</span>
+    <div className="flex justify-between items-center text-[14px]">
+      <span className="font-medium text-stone-500">{label}</span>
+      <span className="font-semibold text-stone-900">{value}</span>
     </div>
   );
 }

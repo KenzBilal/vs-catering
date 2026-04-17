@@ -3,6 +3,14 @@ import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { formatDate, formatCurrency, getRoleLabel, getStatusBadgeClass, getStatusLabel } from "../lib/helpers";
 import { Link } from "react-router-dom";
+import { CalendarDays, CheckCircle2, Clock, AlertCircle, XCircle, ArrowRight } from "lucide-react";
+
+const ATTENDANCE_LABEL = {
+  attended: { text: "Attended", color: "text-[#1a5c3a]", bg: "bg-[#e8f5ee]" },
+  absent:   { text: "Absent",   color: "text-stone-600",   bg: "bg-cream-100" },
+  rejected: { text: "Rejected", color: "text-red-700",     bg: "bg-red-50" },
+  registered:{ text: "Pending", color: "text-stone-400",   bg: "bg-cream-50" },
+};
 
 export default function MyCaterings() {
   const { user } = useAuth();
@@ -13,84 +21,75 @@ export default function MyCaterings() {
   const totalPending = pendingPayments.reduce((sum, p) => sum + p.amount, 0);
 
   return (
-    <div className="page-container" style={{ maxWidth: 680 }}>
-      <h2 className="text-xl font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
-        My Caterings
-      </h2>
-      <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
-        Your registrations and payment status.
-      </p>
+    <div className="page-container" style={{ maxWidth: 700 }}>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-stone-900 tracking-tight">My Events</h2>
+        <p className="text-[14px] font-medium text-stone-500 mt-1">
+          Your registrations and payment status.
+        </p>
+      </div>
 
-      {/* Pending payments banner */}
+      {/* Pending payment alert */}
       {pendingPayments.length > 0 && (
-        <div
-          style={{
-            background: "#fdf0e6",
-            border: "1px solid #f5d0aa",
-            borderRadius: 10,
-            padding: "14px 16px",
-            marginBottom: 20,
-          }}
-        >
-          <p style={{ fontWeight: 600, fontSize: 14, color: "#8b3a00" }}>
-            Payment Pending — {formatCurrency(totalPending)}
-          </p>
-          <p style={{ fontSize: 13, color: "#a05020", marginTop: 4 }}>
-            You have unpaid amounts from {pendingPayments.length} catering{pendingPayments.length > 1 ? "s" : ""}.
-          </p>
-          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
-            {pendingPayments.map((p) => (
-              <div
-                key={p._id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  color: "#8b3a00",
-                }}
-              >
-                <span>{p.catering?.place} · {getRoleLabel(p.role)}</span>
-                <span style={{ fontWeight: 600 }}>{formatCurrency(p.amount)}</span>
+        <div className="bg-[#fdf8f3] border border-[#f5d0aa] rounded-2xl p-5 mb-6 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="text-[#a05020] shrink-0 mt-0.5" size={18} />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-[15px] text-[#8b3a00]">
+                Payment Due — {formatCurrency(totalPending)}
+              </p>
+              <p className="text-[13px] text-[#a05020] font-medium mt-1">
+                You have unpaid amounts from {pendingPayments.length} event{pendingPayments.length > 1 ? "s" : ""}.
+              </p>
+              <div className="mt-3 flex flex-col gap-1.5">
+                {pendingPayments.map((p) => (
+                  <div key={p._id} className="flex justify-between text-[13px]">
+                    <span className="font-medium text-stone-600">{p.catering?.place} · {getRoleLabel(p.role)}</span>
+                    <span className="font-bold text-[#8b3a00]">{formatCurrency(p.amount)}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
       )}
 
+      {/* Loading */}
       {registrations === undefined && (
-        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading...</p>
+        <div className="animate-pulse flex flex-col gap-3">
+          {[1, 2].map((n) => <div key={n} className="h-36 bg-cream-100 rounded-2xl" />)}
+        </div>
       )}
 
+      {/* Empty */}
       {registrations !== undefined && registrations.length === 0 && (
-        <div className="card" style={{ textAlign: "center", padding: 40 }}>
-          <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
-            You have not registered for any caterings yet.
-          </p>
-          <Link to="/" style={{ display: "inline-block", marginTop: 12 }}>
-            <button className="btn-primary">Browse Caterings</button>
+        <div className="card text-center py-16">
+          <CalendarDays size={40} className="mx-auto text-cream-300 mb-3" />
+          <p className="font-semibold text-stone-600 text-[15px]">No registrations yet.</p>
+          <p className="text-stone-400 text-[13.5px] mt-1 mb-6">Find an upcoming event and register.</p>
+          <Link to="/">
+            <button className="btn-primary py-2.5 px-5 text-[14px]">
+              Browse Events <ArrowRight size={15} />
+            </button>
           </Link>
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div className="flex flex-col gap-4">
         {(registrations || []).map((reg) => {
-          const relatedPayments = (payments || []).filter(
-            (p) => p.cateringId === reg.cateringId
-          );
+          const relatedPayments = (payments || []).filter((p) => p.cateringId === reg.cateringId);
+          const attendance = ATTENDANCE_LABEL[reg.status] || ATTENDANCE_LABEL.registered;
 
           return (
-            <div key={reg._id} className="card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                <div>
-                  <Link
-                    to={`/catering/${reg.cateringId}`}
-                    style={{ textDecoration: "none" }}
-                  >
-                    <p style={{ fontWeight: 600, fontSize: 15, color: "var(--text-primary)" }}>
-                      {reg.catering?.place}
-                    </p>
+            <div key={reg._id} className="card bg-white p-5">
+              {/* Header */}
+              <div className="flex justify-between items-start gap-4 mb-4">
+                <div className="min-w-0">
+                  <Link to={`/catering/${reg.cateringId}`} className="hover:underline underline-offset-2 decoration-cream-400">
+                    <h3 className="font-bold text-[16px] text-stone-900 truncate">{reg.catering?.place}</h3>
                   </Link>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                  <p className="text-[13px] font-medium text-stone-500 mt-0.5 flex items-center gap-1.5">
+                    <CalendarDays size={13} />
                     {reg.catering
                       ? reg.catering.isTwoDay
                         ? `${formatDate(reg.catering.dates[0])} – ${formatDate(reg.catering.dates[1])}`
@@ -99,74 +98,51 @@ export default function MyCaterings() {
                   </p>
                 </div>
                 {reg.catering && (
-                  <span className={getStatusBadgeClass(reg.catering.status)}>
+                  <span className={`${getStatusBadgeClass(reg.catering.status)} shrink-0`}>
                     {getStatusLabel(reg.catering.status)}
                   </span>
                 )}
               </div>
 
-              <hr className="divider" style={{ margin: "8px 0" }} />
-
-              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 13 }}>
-                <Stat label="Role" value={getRoleLabel(reg.role)} />
-                <Stat
+              {/* Stats row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                <StatBox label="Role" value={getRoleLabel(reg.role)} />
+                <StatBox
                   label="Spot"
-                  value={reg.isConfirmed ? "Confirmed" : `Waiting (#${reg.queuePosition})`}
-                  highlight={reg.isConfirmed}
+                  value={reg.isConfirmed ? "Confirmed" : `Waitlist #${reg.queuePosition}`}
+                  green={reg.isConfirmed}
                 />
-                <Stat label="Drop Point" value={reg.dropPoint} />
-                <Stat
-                  label="Attendance"
-                  value={
-                    reg.status === "attended"
-                      ? "Attended"
-                      : reg.status === "rejected"
-                      ? "Rejected"
-                      : reg.status === "absent"
-                      ? "Absent"
-                      : "Not marked yet"
-                  }
-                />
+                <StatBox label="Drop Point" value={reg.dropPoint} />
+                <div className="bg-cream-50 border border-cream-100 rounded-xl px-3 py-2.5">
+                  <p className="text-[10.5px] font-bold text-stone-400 uppercase tracking-widest mb-1">Attendance</p>
+                  <span className={`text-[12.5px] font-bold px-2 py-0.5 rounded-md ${attendance.bg} ${attendance.color}`}>
+                    {attendance.text}
+                  </span>
+                </div>
               </div>
 
+              {/* Rejection reason */}
               {reg.status === "rejected" && reg.rejectionReason && (
-                <div
-                  style={{
-                    marginTop: 10,
-                    background: "#fef2f2",
-                    border: "1px solid #fecaca",
-                    borderRadius: 6,
-                    padding: "8px 10px",
-                    fontSize: 12,
-                    color: "#b91c1c",
-                  }}
-                >
-                  Reason: {reg.rejectionReason}
+                <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5 mb-4 text-[13px]">
+                  <XCircle size={15} className="text-red-500 shrink-0 mt-0.5" />
+                  <p className="font-medium text-red-700">Reason: {reg.rejectionReason}</p>
                 </div>
               )}
 
+              {/* Payments */}
               {relatedPayments.length > 0 && (
-                <div style={{ marginTop: 10 }}>
+                <div className="pt-3 border-t border-cream-100 flex flex-col gap-2">
                   {relatedPayments.map((p) => (
-                    <div
-                      key={p._id}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: 13,
-                        padding: "6px 0",
-                        borderTop: "1px solid var(--cream-border)",
-                      }}
-                    >
-                      <span style={{ color: "var(--text-secondary)" }}>
+                    <div key={p._id} className="flex justify-between items-center text-[13.5px]">
+                      <span className="font-medium text-stone-600">
                         Payment · {getRoleLabel(p.role)}
                       </span>
-                      <span
-                        style={{
-                          fontWeight: 600,
-                          color: p.status === "cleared" ? "#1a5c3a" : "#8b3a00",
-                        }}
-                      >
+                      <span className={`flex items-center gap-1.5 font-bold ${
+                        p.status === "cleared" ? "text-[#1a5c3a]" : "text-[#8b3a00]"
+                      }`}>
+                        {p.status === "cleared"
+                          ? <CheckCircle2 size={14} />
+                          : <Clock size={14} />}
                         {formatCurrency(p.amount)} · {p.status === "cleared" ? "Paid" : "Pending"}
                       </span>
                     </div>
@@ -181,21 +157,11 @@ export default function MyCaterings() {
   );
 }
 
-function Stat({ label, value, highlight }) {
+function StatBox({ label, value, green }) {
   return (
-    <div>
-      <p style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2 }}>
-        {label}
-      </p>
-      <p
-        style={{
-          fontSize: 13,
-          fontWeight: 500,
-          color: highlight ? "#1a5c3a" : "var(--text-primary)",
-        }}
-      >
-        {value}
-      </p>
+    <div className="bg-cream-50 border border-cream-100 rounded-xl px-3 py-2.5">
+      <p className="text-[10.5px] font-bold text-stone-400 uppercase tracking-widest mb-1">{label}</p>
+      <p className={`text-[13px] font-bold ${green ? "text-[#1a5c3a]" : "text-stone-800"}`}>{value}</p>
     </div>
   );
 }

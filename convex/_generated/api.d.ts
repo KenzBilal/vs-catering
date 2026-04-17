@@ -14,6 +14,7 @@ import type * as crons from "../crons.js";
 import type * as dropPoints from "../dropPoints.js";
 import type * as payments from "../payments.js";
 import type * as registrations from "../registrations.js";
+import type * as setup from "../setup.js";
 import type * as users from "../users.js";
 
 import type {
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   dropPoints: typeof dropPoints;
   payments: typeof payments;
   registrations: typeof registrations;
+  setup: typeof setup;
   users: typeof users;
 }>;
 

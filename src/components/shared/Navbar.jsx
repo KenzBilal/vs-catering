@@ -1,6 +1,6 @@
 import { useAuth } from "../../lib/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { LogOut, LayoutDashboard, User, UtensilsCrossed, CalendarDays } from "lucide-react";
+import { LogOut, CalendarDays, User, UtensilsCrossed } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -12,55 +12,26 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 bg-cream-card/90 backdrop-blur-md border-b border-cream-border transition-all duration-300">
+    <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-cream-200">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 font-bold text-[17px] tracking-tight text-stone-900 hover:opacity-80 transition-opacity">
-          <UtensilsCrossed size={18} className="text-stone-700" />
+        <Link to="/" className="flex items-center gap-2 font-bold text-[16px] tracking-tight text-stone-900 hover:opacity-80 transition-opacity">
+          <div className="w-6 h-6 bg-stone-900 rounded-md flex items-center justify-center">
+            <UtensilsCrossed size={13} className="text-cream-50" />
+          </div>
           VS-Catering
         </Link>
 
         {user && (
-          <div className="flex items-center gap-5 sm:gap-6">
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className={`text-[13px] font-medium transition-colors flex items-center gap-1.5 ${
-                  location.pathname.startsWith("/admin") ? "text-stone-900" : "text-stone-500 hover:text-stone-800"
-                }`}
-              >
-                <LayoutDashboard size={15} className="hidden sm:block" />
-                Admin
-              </Link>
-            )}
-            <Link
-              to="/my-caterings"
-              className={`text-[13px] font-medium transition-colors flex items-center gap-1.5 ${
-                location.pathname === "/my-caterings" ? "text-stone-900" : "text-stone-500 hover:text-stone-800"
-              }`}
-            >
-              <CalendarDays size={15} className="hidden sm:block" />
-              <span className="hidden sm:inline">My Caterings</span>
-              <span className="sm:hidden">Events</span>
-            </Link>
-            
-            <div className="h-4 w-px bg-cream-300 mx-0.5 hidden sm:block"></div>
-            
-            <Link
-              to="/profile"
-              className={`text-[13px] font-medium transition-colors flex items-center gap-1.5 ${
-                location.pathname === "/profile" ? "text-stone-900" : "text-stone-500 hover:text-stone-800"
-              }`}
-            >
-              <User size={15} className="hidden sm:block" />
-              {user.name.split(" ")[0]}
-            </Link>
-            
+          <div className="flex items-center gap-1">
+            <NavLink to="/" label="Events" isActive={isActive("/")} />
+            <NavLink to="/my-caterings" label="My Events" isActive={isActive("/my-caterings")} />
+            <NavLink to="/profile" label={user.name.split(" ")[0]} isActive={isActive("/profile")} icon={<User size={14} />} />
             <button
               onClick={handleLogout}
-              className="text-[13px] font-medium text-stone-500 hover:text-red-600 transition-colors flex items-center gap-1.5 p-1 rounded-md hover:bg-red-50"
+              className="ml-1 p-2 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-all"
               aria-label="Sign out"
             >
               <LogOut size={16} />
@@ -69,5 +40,21 @@ export default function Navbar() {
         )}
       </div>
     </nav>
+  );
+}
+
+function NavLink({ to, label, isActive, icon }) {
+  return (
+    <Link
+      to={to}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13.5px] font-semibold transition-all duration-150 ${
+        isActive
+          ? "bg-stone-900 text-cream-50"
+          : "text-stone-500 hover:text-stone-900 hover:bg-cream-100"
+      }`}
+    >
+      {icon}
+      {label}
+    </Link>
   );
 }
