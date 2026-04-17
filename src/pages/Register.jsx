@@ -328,7 +328,7 @@ function DressCodeWheel({ catering, selectedRole }) {
   return (
     <div className="flex flex-col gap-4 mb-6">
       <div className="relative h-[140px] perspective-[1000px] overflow-hidden rounded-2xl border border-cream-200 bg-[#fdfaf5] shadow-inner shadow-stone-900/5">
-        <div className="absolute inset-0 pointer-events-none z-10 bg-gradient-to-b from-[#fdfaf5] via-transparent to-[#fdfaf5]" />
+        <div className="absolute inset-0 pointer-events-none z-10 bg-gradient-to-b from-[#fdfaf5] via-[#fdfaf5]/0 10% via-[#fdfaf5]/0 90% to-[#fdfaf5]" />
         <div className="absolute left-4 top-4 flex items-center gap-1.5 text-[10px] font-bold text-stone-400 uppercase tracking-widest z-20 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-lg border border-cream-100">
           <Shirt size={12} /> Dress Requirements
         </div>
@@ -374,17 +374,6 @@ function DressCodeWheel({ catering, selectedRole }) {
           )}
         </div>
       </div>
-
-      {catering.dressCodeNotes && (
-        <div className="bg-stone-100/50 border border-stone-200 rounded-xl p-3.5 animate-fade-in">
-          <p className="flex items-center gap-1.5 text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">
-            <AlertCircle size={12} /> Event Notes
-          </p>
-          <p className="text-[12.5px] font-medium text-stone-600 leading-relaxed">
-            {catering.dressCodeNotes}
-          </p>
-        </div>
-      )}
     </div>
   );
 }
