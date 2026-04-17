@@ -29,7 +29,13 @@ export default function CustomSelect({ options, value, onChange, placeholder = "
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 py-1.5 bg-white border border-cream-200 rounded-xl shadow-xl animate-fade-in max-h-[240px] overflow-y-auto">
+        <div 
+          className="absolute z-50 w-full mt-2 py-1.5 bg-white border border-cream-200 rounded-xl shadow-xl animate-fade-in max-h-[240px] overflow-y-auto"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitScrollbar: { display: 'none' } }}
+        >
+          <style dangerouslySetInnerHTML={{ __html: `
+            .absolute::-webkit-scrollbar { display: none; }
+          ` }} />
           {options.map((opt) => (
             <button
               key={opt.value}
