@@ -12,7 +12,7 @@ Service Girl: Black formal pants or skirt, formal shoes.
 Captain: Black blazer, tie, white shirt, black formal pants, formal shoes, clean shave. Short or long hair is acceptable.`;
 
 export default function CreateCatering() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const createCatering = useMutation(api.caterings.createCatering);
 
@@ -93,6 +93,7 @@ export default function CreateCatering() {
         dressCodeNotes,
         slots: finalSlots,
         createdBy: user._id,
+        token,
       });
       navigate(`/catering/${id}`);
     } catch (e) {

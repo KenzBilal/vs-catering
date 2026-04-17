@@ -7,7 +7,7 @@ import { useState } from "react";
 
 export default function PaymentsPage() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const catering = useQuery(api.caterings.getCatering, { cateringId: id });
   const registrations = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id });
@@ -44,6 +44,7 @@ export default function PaymentsPage() {
         role: reg.role,
         amount: pay,
         method,
+        token,
       });
     } finally {
       setSaving((s) => ({ ...s, [reg._id]: false }));
@@ -57,6 +58,7 @@ export default function PaymentsPage() {
         paymentId,
         clearedBy: user._id,
         upiRef: upiRefs[paymentId] || undefined,
+        token,
       });
       setConfirmClear(null);
     } finally {

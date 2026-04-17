@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireSubAdmin } from "./auth";
 
 export const register = mutation({
   args: {
@@ -91,8 +92,10 @@ export const markAttendance = mutation({
       v.literal("absent")
     ),
     rejectionReason: v.optional(v.string()),
+    token: v.string(),
   },
-  handler: async (ctx, { registrationId, status, rejectionReason }) => {
+  handler: async (ctx, { registrationId, status, rejectionReason, token }) => {
+    await requireSubAdmin(ctx, token);
     await ctx.db.patch(registrationId, {
       status,
       ...(rejectionReason ? { rejectionReason } : {}),
@@ -104,8 +107,10 @@ export const changeRole = mutation({
   args: {
     registrationId: v.id("registrations"),
     role: v.string(),
+    token: v.string(),
   },
-  handler: async (ctx, { registrationId, role }) => {
+  handler: async (ctx, { registrationId, role, token }) => {
+    await requireSubAdmin(ctx, token);
     await ctx.db.patch(registrationId, { role });
   },
 });

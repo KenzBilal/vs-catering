@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -13,28 +13,27 @@ export default function Login() {
   const [tried, setTried] = useState(false);
   const [error, setError] = useState("");
 
-  const result = useQuery(
-    api.users.loginUser,
-    tried ? { phone, name } : "skip"
-  );
+  const loginUser = useMutation(api.users.loginUser);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
     if (!phone.trim() || phone.length < 10) return setError("Enter a valid phone number.");
     if (!name.trim()) return setError("Enter your name.");
     setTried(true);
-  };
-
-  // When query resolves after trying
-  if (tried && result !== undefined) {
-    if (result === null) {
+    try {
+      const result = await loginUser({ phone, name });
+      if (result === null) {
+        setTried(false);
+        setError("No account found with this name and phone number.");
+      } else {
+        login(result);
+        navigate("/");
+      }
+    } catch (e) {
       setTried(false);
-      setError("No account found with this name and phone number.");
-    } else {
-      login(result);
-      navigate("/");
+      setError("An error occurred during login.");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">

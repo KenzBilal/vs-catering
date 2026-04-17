@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireSubAdmin, requireAdmin } from "./auth";
 
 export const createPayment = mutation({
   args: {
@@ -10,10 +11,13 @@ export const createPayment = mutation({
     role: v.string(),
     amount: v.number(),
     method: v.union(v.literal("cash"), v.literal("upi")),
+    token: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireSubAdmin(ctx, args.token);
+    const { token, ...dataToInsert } = args;
     return await ctx.db.insert("payments", {
-      ...args,
+      ...dataToInsert,
       status: "pending",
       createdAt: Date.now(),
     });
@@ -25,8 +29,10 @@ export const clearPayment = mutation({
     paymentId: v.id("payments"),
     clearedBy: v.id("users"),
     upiRef: v.optional(v.string()),
+    token: v.string(),
   },
-  handler: async (ctx, { paymentId, clearedBy, upiRef }) => {
+  handler: async (ctx, { paymentId, clearedBy, upiRef, token }) => {
+    await requireAdmin(ctx, token);
     await ctx.db.patch(paymentId, {
       status: "cleared",
       clearedBy,
@@ -97,15 +103,15 @@ export const getMonthlyAnalytics = query({
     const start = new Date(year, month - 1, 1).getTime();
     const end = new Date(year, month, 1).getTime();
 
-    const payments = await ctx.db.query("payments").collect();
-    const monthPayments = payments.filter(
-      (p) => p.createdAt >= start && p.createdAt < end
-    );
+    const monthPayments = await ctx.db
+      .query("payments")
+      .withIndex("by_created", (q) => q.gte("createdAt", start).lt("createdAt", end))
+      .collect();
 
-    const caterings = await ctx.db.query("caterings").collect();
-    const monthCaterings = caterings.filter(
-      (c) => c.createdAt >= start && c.createdAt < end
-    );
+    const monthCaterings = await ctx.db
+      .query("caterings")
+      .withIndex("by_created", (q) => q.gte("createdAt", start).lt("createdAt", end))
+      .collect();
 
     const totalPayout = monthPayments
       .filter((p) => p.status === "cleared")

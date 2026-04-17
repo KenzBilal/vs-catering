@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
+import { requireAdmin } from "./auth";
 
 function computeStatus(dates) {
   const today = new Date();
@@ -39,11 +40,14 @@ export const createCatering = mutation({
       pay: v.number(),
     })),
     createdBy: v.id("users"),
+    token: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.token);
+    const { token, ...dataToInsert } = args;
     const status = computeStatus(args.dates);
     return await ctx.db.insert("caterings", {
-      ...args,
+      ...dataToInsert,
       status,
       createdAt: Date.now(),
     });
@@ -65,8 +69,10 @@ export const updateCatering = mutation({
       limit: v.number(),
       pay: v.number(),
     }))),
+    token: v.string(),
   },
-  handler: async (ctx, { cateringId, ...updates }) => {
+  handler: async (ctx, { cateringId, token, ...updates }) => {
+    await requireAdmin(ctx, token);
     await ctx.db.patch(cateringId, updates);
   },
 });
@@ -95,7 +101,7 @@ export const getCatering = query({
   },
 });
 
-export const refreshStatuses = mutation({
+export const refreshStatuses = internalMutation({
   args: {},
   handler: async (ctx) => {
     const all = await ctx.db.query("caterings").collect();

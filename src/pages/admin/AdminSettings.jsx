@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function AdminSettings() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const dropPoints = useQuery(api.dropPoints.getDropPoints);
   const allUsers = useQuery(api.users.getAllStudents);
@@ -36,7 +36,7 @@ export default function AdminSettings() {
 
   const handleRoleChange = async (userId, role) => {
     setSavingRole((s) => ({ ...s, [userId]: true }));
-    await setUserRole({ userId, role });
+    await setUserRole({ userId, role, token });
     setSavingRole((s) => ({ ...s, [userId]: false }));
   };
 

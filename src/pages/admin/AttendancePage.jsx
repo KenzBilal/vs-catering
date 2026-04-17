@@ -11,6 +11,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function AttendancePage() {
+  const { user, token } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const catering = useQuery(api.caterings.getCatering, { cateringId: id });
@@ -26,14 +27,14 @@ export default function AttendancePage() {
   const handleMark = async (regId, status, reason) => {
     setSaving((s) => ({ ...s, [regId]: true }));
     try {
-      await markAttendance({ registrationId: regId, status, ...(reason ? { rejectionReason: reason } : {}) });
+      await markAttendance({ registrationId: regId, status, token, ...(reason ? { rejectionReason: reason } : {}) });
     } finally {
       setSaving((s) => ({ ...s, [regId]: false }));
     }
   };
 
   const handleRoleChange = async (regId, role) => {
-    await changeRole({ registrationId: regId, role });
+    await changeRole({ registrationId: regId, role, token });
   };
 
   const filtered = (registrations || []).filter((r) => {

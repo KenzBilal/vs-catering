@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./auth";
 
 export const createUser = mutation({
   args: {
@@ -24,7 +25,7 @@ export const createUser = mutation({
   },
 });
 
-export const loginUser = query({
+export const loginUser = mutation({
   args: { phone: v.string(), name: v.string() },
   handler: async (ctx, { phone, name }) => {
     const user = await ctx.db
@@ -33,7 +34,30 @@ export const loginUser = query({
       .first();
     if (!user) return null;
     if (user.name.toLowerCase() !== name.toLowerCase()) return null;
-    return user;
+    
+    const token = crypto.randomUUID();
+    const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30; // 30 days
+    
+    await ctx.db.insert("sessions", {
+      userId: user._id,
+      token,
+      expiresAt,
+    });
+    
+    return { ...user, token };
+  },
+});
+
+export const logoutUser = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const session = await ctx.db
+      .query("sessions")
+      .withIndex("by_token", (q) => q.eq("token", token))
+      .first();
+    if (session) {
+      await ctx.db.delete(session._id);
+    }
   },
 });
 
@@ -57,10 +81,12 @@ export const updatePreferences = mutation({
 
 export const setUserRole = mutation({
   args: {
+    token: v.string(),
     userId: v.id("users"),
     role: v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student")),
   },
-  handler: async (ctx, { userId, role }) => {
+  handler: async (ctx, { token, userId, role }) => {
+    await requireAdmin(ctx, token);
     await ctx.db.patch(userId, { role });
   },
 });

@@ -13,6 +13,12 @@ export default defineSchema({
   })
     .index("by_phone", ["phone"]),
 
+  sessions: defineTable({
+    userId: v.id("users"),
+    token: v.string(),
+    expiresAt: v.number(),
+  }).index("by_token", ["token"]),
+
   dropPoints: defineTable({
     name: v.string(),
     isActive: v.boolean(),
@@ -43,7 +49,8 @@ export default defineSchema({
     ),
     createdBy: v.id("users"),
     createdAt: v.number(),
-  }),
+  })
+    .index("by_created", ["createdAt"]),
 
   registrations: defineTable({
     userId: v.id("users"),
@@ -83,5 +90,6 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_catering", ["cateringId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_created", ["createdAt"]),
 });
