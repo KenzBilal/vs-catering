@@ -59,17 +59,17 @@ export default function Signup() {
       const errorCode = e.code || "";
       let msg = e.message || "Failed to create account.";
       
-      if (errorCode === "auth/email-already-in-use") msg = "This email is already registered.";
+      if (errorCode === "auth/email-already-in-use") msg = "This email is already registered in Firebase. Delete the old account from Firebase Console → Authentication → Users first, then retry.";
       if (errorCode === "auth/invalid-email") msg = "Invalid email address.";
-      if (errorCode === "auth/weak-password") msg = "Password is too weak.";
-      if (errorCode === "auth/operation-not-allowed") msg = "Email/Password sign-in is not enabled in Firebase. Please enable it in the console.";
+      if (errorCode === "auth/weak-password") msg = "Password is too weak. Use at least 6 characters.";
+      if (errorCode === "auth/operation-not-allowed") msg = "Email/Password sign-in is not enabled. Go to Firebase Console → Authentication → Sign-in method → Enable Email/Password.";
       
       const rawMsg = e.data || e.message || "";
       if (typeof rawMsg === "string" && rawMsg.includes("ConvexError:")) {
         msg = rawMsg.split("ConvexError:")[1].trim();
       }
       
-      setError(`${msg} ${errorCode ? `(${errorCode})` : ""}`);
+      setError(msg);
     } finally {
       setLoading(false);
     }
