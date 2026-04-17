@@ -1,11 +1,22 @@
 import { v, ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAdmin } from "./auth";
+import { requireAdmin, getUserFromToken } from "./auth";
 
 import { sanitizeString, validatePhone, validateRegistrationNumber, validateEmail } from "./utils";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const RATE_LIMIT_MAX = 5;
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function makeToken() {
+  // 128-bit hex token — cryptographically secure via Web Crypto API
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// ─── createUser ──────────────────────────────────────────────────────────────
 
 export const createUser = mutation({
   args: {
@@ -19,27 +30,23 @@ export const createUser = mutation({
   },
   handler: async (ctx, args) => {
     const email = args.email.toLowerCase().trim();
-    if (!validateEmail(email)) {
-      throw new ConvexError("Enter a valid email address.");
-    }
+    if (!validateEmail(email)) throw new ConvexError("Enter a valid email address.");
 
     const phone = args.phone.replace(/\D/g, "").slice(-10);
-    if (!validatePhone(phone)) {
-      throw new ConvexError("Enter a valid 10-digit mobile number.");
-    }
+    if (!validatePhone(phone)) throw new ConvexError("Enter a valid 10-digit mobile number.");
 
     if (args.registrationNumber && !validateRegistrationNumber(args.registrationNumber)) {
-      throw new ConvexError("Enter a valid 8-digit registration number. Trivial numbers (e.g., 11111111) are not allowed.");
+      throw new ConvexError("Enter a valid 8-digit registration number.");
     }
 
     const name = sanitizeString(args.name).slice(0, 100);
     if (name.length < 2) throw new ConvexError("Name is too short.");
 
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .first();
-    if (existing) throw new ConvexError("This email is already registered.");
+    const existingEmail = await ctx.db.query("users").withIndex("by_email", (q) => q.eq("email", email)).first();
+    if (existingEmail) throw new ConvexError("This email is already registered.");
+
+    const existingPhone = await ctx.db.query("users").withIndex("by_phone", (q) => q.eq("phone", phone)).first();
+    if (existingPhone) throw new ConvexError("This phone number is already registered.");
 
     const userId = await ctx.db.insert("users", {
       name,
@@ -54,40 +61,24 @@ export const createUser = mutation({
     });
 
     const user = await ctx.db.get(userId);
-    // Use a robust random token generation
-    const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    const token = makeToken();
     const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30; // 30 days
     await ctx.db.insert("sessions", { userId, token, expiresAt });
-
     return { ...user, token };
   },
 });
 
-// Resolve a phone number to the account email (for Firebase login by phone)
-export const getEmailByPhone = query({
-  args: { phone: v.string() },
-  handler: async (ctx, { phone }) => {
-    const clean = phone.replace(/\D/g, "").slice(-10);
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("phone"), clean))
-      .first();
-    return user ? user.email : null;
-  },
-});
+// ─── loginUser ───────────────────────────────────────────────────────────────
 
 export const loginUser = mutation({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
     const cleanEmail = email.toLowerCase().trim();
+    if (!validateEmail(cleanEmail)) throw new ConvexError("Enter a valid email address.");
 
-    // Enforce valid format before even touching DB
-    if (!validateEmail(cleanEmail)) {
-      throw new ConvexError("Enter a valid email address.");
-    }
+    const now = Date.now();
 
     // Rate limiting
-    const now = Date.now();
     const attemptRecord = await ctx.db
       .query("loginAttempts")
       .withIndex("by_email", (q) => q.eq("email", cleanEmail))
@@ -99,7 +90,6 @@ export const loginUser = mutation({
         const waitMins = Math.ceil((RATE_LIMIT_WINDOW_MS - (now - attemptRecord.windowStart)) / 60000);
         throw new ConvexError(`Too many login attempts. Try again in ${waitMins} minute${waitMins !== 1 ? "s" : ""}.`);
       }
-      // Reset window if expired
       if (!withinWindow) {
         await ctx.db.patch(attemptRecord._id, { attempts: 0, windowStart: now });
       }
@@ -124,18 +114,28 @@ export const loginUser = mutation({
       return null;
     }
 
-    // Successful login — reset rate limit counter
+    // Successful login — reset rate limiter, clean up stale sessions
     if (attemptRecord) {
       await ctx.db.patch(attemptRecord._id, { attempts: 0, windowStart: now });
     }
 
-    const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
-    const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30; // 30 days
-    await ctx.db.insert("sessions", { userId: user._id, token, expiresAt });
+    // #25: Delete old sessions for this user to prevent session pile-up
+    const oldSessions = await ctx.db
+      .query("sessions")
+      .filter((q) => q.eq(q.field("userId"), user._id))
+      .collect();
+    for (const s of oldSessions) {
+      await ctx.db.delete(s._id);
+    }
 
+    const token = makeToken();
+    const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30;
+    await ctx.db.insert("sessions", { userId: user._id, token, expiresAt });
     return { ...user, token };
   },
 });
+
+// ─── logoutUser ──────────────────────────────────────────────────────────────
 
 export const logoutUser = mutation({
   args: { token: v.string() },
@@ -144,11 +144,11 @@ export const logoutUser = mutation({
       .query("sessions")
       .withIndex("by_token", (q) => q.eq("token", token))
       .first();
-    if (session) {
-      await ctx.db.delete(session._id);
-    }
+    if (session) await ctx.db.delete(session._id);
   },
 });
+
+// ─── getUser ─────────────────────────────────────────────────────────────────
 
 export const getUser = query({
   args: { userId: v.id("users") },
@@ -157,19 +157,26 @@ export const getUser = query({
   },
 });
 
+// ─── updatePreferences — derives userId from token (fixes #2) ────────────────
+
 export const updatePreferences = mutation({
   args: {
-    userId: v.id("users"),
+    token: v.string(),
     defaultDropPoint: v.string(),
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     photoStorageId: v.optional(v.id("_storage")),
     registrationNumber: v.optional(v.string()),
   },
-  handler: async (ctx, { userId, defaultDropPoint, stayType, photoStorageId, registrationNumber }) => {
+  handler: async (ctx, { token, defaultDropPoint, stayType, photoStorageId, registrationNumber }) => {
+    // Derive userId server-side — never trust client
+    const caller = await getUserFromToken(ctx, token);
+    if (!caller) throw new ConvexError("Not authenticated.");
+
     if (registrationNumber && !validateRegistrationNumber(registrationNumber)) {
-      throw new ConvexError("Enter a valid 8-digit registration number. Trivial numbers (e.g., 11111111) are not allowed.");
+      throw new ConvexError("Enter a valid 8-digit registration number.");
     }
-    await ctx.db.patch(userId, {
+
+    await ctx.db.patch(caller._id, {
       defaultDropPoint: sanitizeString(defaultDropPoint).slice(0, 100),
       stayType,
       ...(photoStorageId ? { photoStorageId } : {}),
@@ -177,6 +184,8 @@ export const updatePreferences = mutation({
     });
   },
 });
+
+// ─── setUserRole ─────────────────────────────────────────────────────────────
 
 export const setUserRole = mutation({
   args: {
@@ -190,29 +199,36 @@ export const setUserRole = mutation({
   },
 });
 
+// ─── getAllStudents — authenticated + students only (fixes #1 #22) ─────────────
+
 export const getAllStudents = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("users").collect();
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const caller = await getUserFromToken(ctx, token);
+    if (!caller || (caller.role !== "admin" && caller.role !== "sub_admin")) {
+      throw new ConvexError("Unauthorized.");
+    }
+    return await ctx.db.query("users").collect(); // admins need all roles visible
   },
 });
 
-// Resolve identifier (phone or email) → email for Firebase sign-in
+// ─── resolveLoginEmail — resolves phone or email identifier for Firebase login ─
+// Uses indexed lookup for performance (#13) and returns only the email string,
+// not the full user object, to minimise data exposure (#7)
+
 export const resolveLoginEmail = query({
   args: { identifier: v.string() },
   handler: async (ctx, { identifier }) => {
     const cleaned = identifier.trim();
-    // Phone: purely numeric after stripping non-digits
-    const isPhone = /^\d{10}$/.test(cleaned.replace(/\D/g, ""));
+    const cleanedDigits = cleaned.replace(/\D/g, "");
+    const isPhone = /^\d{10}$/.test(cleanedDigits);
     if (isPhone) {
-      const phone = cleaned.replace(/\D/g, "").slice(-10);
       const user = await ctx.db
         .query("users")
-        .filter((q) => q.eq(q.field("phone"), phone))
+        .withIndex("by_phone", (q) => q.eq("phone", cleanedDigits))
         .first();
       return user ? user.email : null;
     }
-    // Otherwise treat as email
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", cleaned.toLowerCase()))

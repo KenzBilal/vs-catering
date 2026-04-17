@@ -6,9 +6,11 @@ import { sanitizeString } from "./utils";
 
 const VALID_ROLES = ["service_boy", "service_girl", "captain_male", "captain_female"];
 
+// ─── register — userId derived from token (fixes #4) ──────────────────────────
+
 export const register = mutation({
   args: {
-    userId: v.id("users"),
+    token: v.string(),
     cateringId: v.id("caterings"),
     days: v.array(v.number()),
     role: v.string(),
@@ -17,74 +19,66 @@ export const register = mutation({
     photoStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
-    // Validate role is a known enum value
-    if (!VALID_ROLES.includes(args.role)) {
-      throw new ConvexError("Invalid role selected.");
-    }
+    // Derive caller from session token — never trust client-supplied userId
+    const caller = await getUserFromToken(ctx, args.token);
+    if (!caller) throw new ConvexError("Not authenticated.");
 
-    // Get catering and verify it's open for registration
+    if (!VALID_ROLES.includes(args.role)) throw new ConvexError("Invalid role selected.");
+
     const catering = await ctx.db.get(args.cateringId);
     if (!catering) throw new ConvexError("Event not found.");
     if (catering.status === "ended") throw new ConvexError("This event has ended. Registration is closed.");
     if (catering.status === "cancelled") throw new ConvexError("This event has been cancelled.");
 
-    // Check for duplicate registration
+    // Duplicate check
     const existing = await ctx.db
       .query("registrations")
       .withIndex("by_user_catering", (q) =>
-        q.eq("userId", args.userId).eq("cateringId", args.cateringId)
+        q.eq("userId", caller._id).eq("cateringId", args.cateringId)
       )
       .first();
     if (existing) throw new ConvexError("You are already registered for this event.");
 
-    // Sanitize photo URL (basic check)
+    // Sanitize photo URL
     let photoUrl = args.photoUrl;
     if (photoUrl) {
       photoUrl = photoUrl.trim().slice(0, 1000);
-      // Only allow http/https URLs
       if (!/^https?:\/\/.+/.test(photoUrl)) throw new ConvexError("Photo URL must be a valid http/https link.");
     }
 
-    // Count existing registrations for queue position
-    const allRegs = await ctx.db
+    // #15: Queue position is per-role per-day (not global across all days)
+    const primaryDay = args.days[0];
+    const allRegsForSlot = await ctx.db
       .query("registrations")
       .withIndex("by_catering", (q) => q.eq("cateringId", args.cateringId))
       .collect();
+    const sameRoleDayRegs = allRegsForSlot.filter((r) => r.role === args.role && r.days.includes(primaryDay));
+    const queuePosition = sameRoleDayRegs.length + 1;
 
-    const sameRoleRegs = allRegs.filter((r) => r.role === args.role);
-    const queuePosition = sameRoleRegs.length + 1;
-
-    const slot = catering.slots.find(
-      (s) => s.role === args.role && s.day === args.days[0]
-    );
+    const slot = catering.slots.find((s) => s.role === args.role && s.day === primaryDay);
     const isConfirmed = slot ? queuePosition <= slot.limit : false;
 
-    const user = await ctx.db.get(args.userId);
-    if (!user) throw new ConvexError("User find failed.");
-
-    // Enforce gender-based role restrictions
-    if (user.gender === "male") {
+    // Gender-based role restrictions
+    if (caller.gender === "male") {
       if (args.role !== "service_boy" && args.role !== "captain_male") {
         throw new ConvexError("Males can only register as Service Boy or Captain.");
       }
-    } else if (user.gender === "female") {
+    } else if (caller.gender === "female") {
       if (args.role !== "service_girl" && args.role !== "captain_female") {
-        throw new ConvexError("Females can only register as Service Girl.");
+        throw new ConvexError("Females can only register as Service Girl or Captain.");
       }
     }
 
-    // Logic for persistent photo
+    // Persistent photo: save new upload to profile or reuse existing
     let finalPhotoStorageId = args.photoStorageId;
-    if (finalPhotoStorageId && !user.photoStorageId) {
-      // Save newly uploaded photo to user profile for future use
-      await ctx.db.patch(args.userId, { photoStorageId: finalPhotoStorageId });
-    } else if (!finalPhotoStorageId && user.photoStorageId) {
-      // Use existing photo from profile
-      finalPhotoStorageId = user.photoStorageId;
+    if (finalPhotoStorageId && !caller.photoStorageId) {
+      await ctx.db.patch(caller._id, { photoStorageId: finalPhotoStorageId });
+    } else if (!finalPhotoStorageId && caller.photoStorageId) {
+      finalPhotoStorageId = caller.photoStorageId;
     }
 
     return await ctx.db.insert("registrations", {
-      userId: args.userId,
+      userId: caller._id,
       cateringId: args.cateringId,
       days: args.days,
       role: args.role,
@@ -99,6 +93,8 @@ export const register = mutation({
   },
 });
 
+// ─── getRegistrationsByCatering ───────────────────────────────────────────────
+
 export const getRegistrationsByCatering = query({
   args: { cateringId: v.id("caterings") },
   handler: async (ctx, { cateringId }) => {
@@ -106,7 +102,6 @@ export const getRegistrationsByCatering = query({
       .query("registrations")
       .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
       .collect();
-
     const withUsers = await Promise.all(
       regs.map(async (r) => {
         const user = await ctx.db.get(r.userId);
@@ -117,6 +112,8 @@ export const getRegistrationsByCatering = query({
   },
 });
 
+// ─── getRegistrationsByUser ───────────────────────────────────────────────────
+
 export const getRegistrationsByUser = query({
   args: { userId: v.id("users") },
   handler: async (ctx, { userId }) => {
@@ -124,7 +121,6 @@ export const getRegistrationsByUser = query({
       .query("registrations")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
-
     const withCaterings = await Promise.all(
       regs.map(async (r) => {
         const catering = await ctx.db.get(r.cateringId);
@@ -134,6 +130,8 @@ export const getRegistrationsByUser = query({
     return withCaterings;
   },
 });
+
+// ─── markAttendance — fixes #16: set isConfirmed=false on rejection ───────────
 
 export const markAttendance = mutation({
   args: {
@@ -150,12 +148,16 @@ export const markAttendance = mutation({
     await requireSubAdmin(ctx, token);
     await ctx.db.patch(registrationId, {
       status,
+      // #16: Clear isConfirmed when rejected or absent
+      ...(status === "rejected" || status === "absent" ? { isConfirmed: false } : {}),
       ...(rejectionReason
         ? { rejectionReason: sanitizeString(rejectionReason).slice(0, 300) }
         : {}),
     });
   },
 });
+
+// ─── changeRole ───────────────────────────────────────────────────────────────
 
 export const changeRole = mutation({
   args: {
@@ -176,7 +178,7 @@ export const changeRole = mutation({
       }
     } else if (user.gender === "female") {
       if (role !== "service_girl" && role !== "captain_female") {
-        throw new ConvexError("Female students can only be assigned to Service Girl roles.");
+        throw new ConvexError("Female students can only be assigned to Service Girl or Captain roles.");
       }
     }
 
@@ -184,13 +186,14 @@ export const changeRole = mutation({
   },
 });
 
+// ─── cancelRegistration — with waitlist promotion (fixes #19) ─────────────────
+
 export const cancelRegistration = mutation({
   args: {
     registrationId: v.id("registrations"),
     token: v.string(),
   },
   handler: async (ctx, { registrationId, token }) => {
-    // Verify caller owns this registration
     const caller = await getUserFromToken(ctx, token);
     if (!caller) throw new ConvexError("Not authenticated.");
 
@@ -198,11 +201,30 @@ export const cancelRegistration = mutation({
     if (!reg) throw new ConvexError("Registration not found.");
     if (reg.userId !== caller._id) throw new ConvexError("You can only cancel your own registration.");
 
-    // Block cancellation if event has already ended or attendance was marked
     const catering = await ctx.db.get(reg.cateringId);
     if (catering?.status === "ended") throw new ConvexError("This event has already ended.");
     if (reg.status === "attended") throw new ConvexError("Cannot cancel — you have already been marked as attended.");
 
+    const wasConfirmed = reg.isConfirmed;
     await ctx.db.delete(registrationId);
+
+    // #19: Waitlist promotion — if this was a confirmed slot, promote the next in queue
+    if (wasConfirmed) {
+      const slot = catering?.slots.find((s) => s.role === reg.role && s.day === reg.days[0]);
+      if (slot) {
+        // Find all unconfirmed registrations for same role/day, order by queuePosition
+        const allRegs = await ctx.db
+          .query("registrations")
+          .withIndex("by_catering", (q) => q.eq("cateringId", reg.cateringId))
+          .collect();
+        const waitlisted = allRegs
+          .filter((r) => r.role === reg.role && r.days.includes(reg.days[0]) && !r.isConfirmed)
+          .sort((a, b) => a.queuePosition - b.queuePosition);
+
+        if (waitlisted.length > 0) {
+          await ctx.db.patch(waitlisted[0]._id, { isConfirmed: true });
+        }
+      }
+    }
   },
 });

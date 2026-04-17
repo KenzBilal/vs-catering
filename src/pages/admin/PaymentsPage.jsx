@@ -37,7 +37,6 @@ export default function PaymentsPage() {
     setSaving((s) => ({ ...s, [reg._id]: true }));
     try {
       await createPayment({
-        userId: reg.userId,
         cateringId: id,
         registrationId: reg._id,
         day: reg.days[0],

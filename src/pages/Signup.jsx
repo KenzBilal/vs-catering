@@ -7,7 +7,7 @@ import { UserPlus, Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
 import SegmentedControl from "../components/ui/SegmentedControl";
 import { isValidEmail, isValidPhone } from "../lib/helpers";
 import { auth } from "../lib/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
 
 export default function Signup() {
   const { login } = useAuth();
@@ -43,14 +43,21 @@ export default function Signup() {
     setLoading(true);
     try {
       // 1. Create account in Firebase
-      await createUserWithEmailAndPassword(auth, form.email.toLowerCase().trim(), form.password);
-      
-      // 2. Create user in Convex
+      const firebaseUserCred = await createUserWithEmailAndPassword(auth, form.email.toLowerCase().trim(), form.password);
+
+      // 2. Create user in Convex — if this fails, roll back Firebase account
       const { password, ...userData } = form;
-      const result = await createUserMutation({
-        ...userData,
-        email: form.email.toLowerCase().trim(),
-      });
+      let result;
+      try {
+        result = await createUserMutation({
+          ...userData,
+          email: form.email.toLowerCase().trim(),
+        });
+      } catch (convexErr) {
+        // #29: Rollback — delete Firebase account so the email is freed
+        try { await deleteUser(firebaseUserCred.user); } catch (_) {}
+        throw convexErr;
+      }
       
       login(result);
       navigate("/", { replace: true });

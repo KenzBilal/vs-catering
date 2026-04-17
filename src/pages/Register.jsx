@@ -5,44 +5,45 @@ import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { getRoleLabel, formatDate, formatCurrency, DRESS_CODE_DEFAULTS, formatTime12h } from "../lib/helpers";
 import CustomSelect from "../components/ui/CustomSelect";
-import { ArrowLeft, CheckCircle2, UserCheck, MapPin, Link as LinkIcon, AlertCircle, Shirt, Camera, XCircle } from "lucide-react";
+import ConvexImage from "../components/shared/ConvexImage"; // #10: was missing
+import { ArrowLeft, CheckCircle2, UserCheck, MapPin, AlertCircle, Shirt, Camera, XCircle } from "lucide-react";
+
+const MAX_PHOTO_SIZE_MB = 5;
 
 export default function Register() {
   const { id } = useParams();
-  const { user, login } = useAuth();
+  const { user, token, login } = useAuth();
   const navigate = useNavigate();
 
+  // #9: ALL hooks must be declared before any conditional returns
   const catering = useQuery(api.caterings.getCatering, { cateringId: id });
   const dropPoints = useQuery(api.dropPoints.getDropPoints);
   const registerMutation = useMutation(api.registrations.register);
+  const updatePrefs = useMutation(api.users.updatePreferences);
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 
   const [role, setRole] = useState("");
   const [dropPoint, setDropPoint] = useState(user?.defaultDropPoint || "Main Gate");
   const [selectedDays, setSelectedDays] = useState([0]);
-  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
+  // Early returns after all hooks
   if (catering === undefined) {
     return <div className="page-container"><p className="text-stone-500 animate-pulse">Loading...</p></div>;
   }
-
   if (!catering) {
     return <div className="page-container"><p className="text-stone-500">Catering not found.</p></div>;
   }
 
   const availableRoles = [...new Set(catering.slots.filter((s) => s.day === 0 && s.limit > 0).map((s) => s.role))];
-  
-  // Filter roles by user gender
-  const filteredRoles = availableRoles.filter(r => {
-    if (user.gender === "male") {
-      return r === "service_boy" || r === "captain_male";
-    } else {
-      return r === "service_girl" || r === "captain_female"; // Support captain_female if ever added
-    }
+
+  const filteredRoles = availableRoles.filter((r) => {
+    if (user.gender === "male") return r === "service_boy" || r === "captain_male";
+    return r === "service_girl" || r === "captain_female";
   });
 
   const daysToRegister = catering.isTwoDay && catering.joinRule === "both_days" ? [0, 1] : selectedDays;
@@ -52,18 +53,26 @@ export default function Register() {
     setSelectedDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
   };
 
-  const updatePrefs = useMutation(api.users.updatePreferences);
+  // #27: Validate file size before upload
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+      setError(`Photo must be under ${MAX_PHOTO_SIZE_MB}MB.`);
+      return;
+    }
+    setError("");
+    setSelectedFile(file);
+  };
 
   const handleSubmit = async () => {
     setError("");
     if (!role) return setError("Please select a role.");
     if (daysToRegister.length === 0) return setError("Please select at least one day.");
-    setLoading(true);
     if (catering.photoRequired && !selectedFile && !user?.photoStorageId) {
-      setError("Please upload a photo to register.");
-      setLoading(false);
-      return;
+      return setError("Please upload a photo to register.");
     }
+    setLoading(true);
 
     try {
       let photoStorageId = undefined;
@@ -80,8 +89,9 @@ export default function Register() {
         setUploading(false);
       }
 
+      // #4: Pass token, not userId (userId derived server-side)
       await registerMutation({
-        userId: user._id,
+        token,
         cateringId: id,
         days: daysToRegister,
         role,
@@ -89,22 +99,19 @@ export default function Register() {
         ...(photoStorageId ? { photoStorageId } : {}),
       });
 
-      // SMART UPDATE: Save this drop point as the new default for the account
-      // Also update local user state for immediate effect
+      // Smart update: save chosen drop point as new default
       try {
-        await updatePrefs({ 
-          userId: user._id, 
+        // #2: Pass token, not raw userId
+        await updatePrefs({
+          token,
           defaultDropPoint: dropPoint,
           stayType: user.stayType,
-          registrationNumber: user.registrationNumber
+          registrationNumber: user.registrationNumber,
         });
         login({ ...user, defaultDropPoint: dropPoint, photoStorageId: photoStorageId || user.photoStorageId });
       } catch (prefErr) {
-        console.warn("Failed to update default drop point preference", prefErr);
-        // We don't block registration if preference update fails
-        if (photoStorageId) {
-          login({ ...user, photoStorageId });
-        }
+        console.warn("Failed to update default drop point", prefErr);
+        if (photoStorageId) login({ ...user, photoStorageId });
       }
 
       setDone(true);
@@ -112,12 +119,7 @@ export default function Register() {
       const rawMsg = e.data || e.message || "";
       const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
       const cleanMsg = msg.replace(/^\[CONVEX [A-Z]\([^)]+\)\]\s*/, "");
-      
-      if (cleanMsg.includes("ConvexError:")) {
-        setError(cleanMsg.split("ConvexError:")[1].trim());
-      } else {
-        setError(cleanMsg);
-      }
+      setError(cleanMsg.includes("ConvexError:") ? cleanMsg.split("ConvexError:")[1].trim() : cleanMsg);
     } finally {
       setLoading(false);
       setUploading(false);
@@ -136,12 +138,8 @@ export default function Register() {
             You are registered for {catering.place}. Your spot will be confirmed by admins soon.
           </p>
           <div className="flex flex-col gap-3 w-full">
-            <button className="btn-primary w-full py-3.5" onClick={() => navigate("/")}>
-              Back to Dashboard
-            </button>
-            <button className="btn-secondary w-full py-3.5" onClick={() => navigate(`/catering/${id}`)}>
-              View Event Details
-            </button>
+            <button className="btn-primary w-full py-3.5" onClick={() => navigate("/")}>Back to Dashboard</button>
+            <button className="btn-secondary w-full py-3.5" onClick={() => navigate(`/catering/${id}`)}>View Event Details</button>
           </div>
         </div>
       </div>
@@ -161,7 +159,7 @@ export default function Register() {
         <h2 className="text-2xl font-bold text-stone-900 tracking-tight mb-2">Register</h2>
         <p className="text-[14.5px] font-medium text-stone-500 flex items-center gap-1.5">
           <MapPin size={16} className="text-stone-400" />
-          {catering.place} <span className="mx-1">•</span> 
+          {catering.place} <span className="mx-1">•</span>
           {catering.isTwoDay ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}` : formatDate(catering.dates[0])}
         </p>
       </div>
@@ -178,8 +176,8 @@ export default function Register() {
                   key={r}
                   onClick={() => setRole(r)}
                   className={`flex justify-between items-center px-4 py-3 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
-                    isSelected 
-                      ? "bg-stone-800 border-stone-800 shadow-md text-cream-50" 
+                    isSelected
+                      ? "bg-stone-800 border-stone-800 shadow-md text-cream-50"
                       : "bg-white border-cream-200 hover:border-stone-300 text-stone-800"
                   }`}
                 >
@@ -198,10 +196,7 @@ export default function Register() {
           </div>
         </div>
 
-        <DressCodeWheel 
-          catering={catering} 
-          selectedRole={role} 
-        />
+        <DressCodeWheel catering={catering} selectedRole={role} />
 
         {catering.isTwoDay && catering.joinRule === "any_day" && (
           <div>
@@ -214,14 +209,14 @@ export default function Register() {
                     key={i}
                     onClick={() => handleDayToggle(i)}
                     className={`flex-1 py-3 rounded-xl border text-[14px] font-semibold transition-all duration-200 active:scale-[0.98] ${
-                      isSelected 
-                        ? "bg-stone-800 border-stone-800 text-cream-50" 
+                      isSelected
+                        ? "bg-stone-800 border-stone-800 text-cream-50"
                         : "bg-white border-cream-200 hover:bg-cream-50 text-stone-700"
                     }`}
                   >
                     Day {i + 1}
                   </button>
-                )
+                );
               })}
             </div>
           </div>
@@ -239,7 +234,7 @@ export default function Register() {
         <div>
           <label className="label">Drop Point</label>
           <CustomSelect
-            options={(dropPoints || []).map(dp => ({ label: dp.name, value: dp.name }))}
+            options={(dropPoints || []).map((dp) => ({ label: dp.name, value: dp.name }))}
             value={dropPoint}
             onChange={setDropPoint}
             placeholder="Select your drop point..."
@@ -261,31 +256,22 @@ export default function Register() {
                     <p className="text-[12.5px] text-stone-500 font-medium">From your account profile</p>
                   </div>
                   <label className="p-2.5 bg-cream-50 hover:bg-cream-100 text-stone-600 rounded-xl cursor-pointer transition-colors border border-cream-200">
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => setSelectedFile(e.target.files[0])} />
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                     <Camera size={18} />
                   </label>
                 </div>
               ) : !selectedFile ? (
                 <div className="relative border-2 border-dashed border-cream-200 rounded-2xl p-8 flex flex-col items-center justify-center hover:border-stone-300 transition-colors cursor-pointer group">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                    onChange={(e) => setSelectedFile(e.target.files[0])}
-                  />
+                  <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} />
                   <div className="w-12 h-12 bg-cream-50 rounded-full flex items-center justify-center mb-3 group-hover:bg-cream-100 transition-colors">
                     <Camera size={24} className="text-stone-400" />
                   </div>
                   <p className="text-[13.5px] font-semibold text-stone-600">Click to upload photo</p>
-                  <p className="text-[11px] text-stone-400 mt-1 font-medium">PNG, JPG up to 5MB</p>
+                  <p className="text-[11px] text-stone-400 mt-1 font-medium">PNG, JPG up to {MAX_PHOTO_SIZE_MB}MB</p>
                 </div>
               ) : (
                 <div className="relative rounded-2xl overflow-hidden border border-cream-200 bg-white p-2">
-                  <img
-                    src={URL.createObjectURL(selectedFile)}
-                    className="w-full h-48 object-cover rounded-xl"
-                    alt="Preview"
-                  />
+                  <img src={URL.createObjectURL(selectedFile)} className="w-full h-48 object-cover rounded-xl" alt="Preview" />
                   <button
                     onClick={() => setSelectedFile(null)}
                     className="absolute top-4 right-4 bg-white/90 backdrop-blur shadow-sm p-2 rounded-full text-red-600 hover:bg-white transition-colors"
@@ -298,10 +284,7 @@ export default function Register() {
                       <p className="text-[11px] text-stone-400 font-medium">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
                     </div>
                     {user?.photoStorageId && (
-                      <button 
-                        onClick={() => setSelectedFile(null)}
-                        className="text-[11px] font-bold text-stone-400 hover:text-stone-600 uppercase tracking-wider"
-                      >
+                      <button onClick={() => setSelectedFile(null)} className="text-[11px] font-bold text-stone-400 hover:text-stone-600 uppercase tracking-wider">
                         Use Saved
                       </button>
                     )}
@@ -329,9 +312,7 @@ export default function Register() {
           disabled={loading || uploading}
         >
           {uploading ? "Uploading photo..." : loading ? "Registering..." : (
-            <>
-              <UserCheck size={18} /> Confirm Registration
-            </>
+            <><UserCheck size={18} /> Confirm Registration</>
           )}
         </button>
       </div>
@@ -350,8 +331,7 @@ function DressCodeWheel({ catering, selectedRole }) {
         <div className="absolute left-4 top-4 flex items-center gap-1.5 text-[10px] font-bold text-stone-400 uppercase tracking-widest z-20 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-lg border border-cream-100">
           <Shirt size={12} /> Dress Requirements
         </div>
-        
-        <div 
+        <div
           className="absolute inset-0 transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
           style={{ transform: `translateY(${activeIndex === -1 ? 0 : -activeIndex * 100 + 35}px)` }}
         >
@@ -362,17 +342,11 @@ function DressCodeWheel({ catering, selectedRole }) {
             const opacity = isSelected ? 1 : 0.15;
             const blur = isSelected ? 0 : 3;
             const scale = isSelected ? 1 : 0.8;
-
             return (
               <div
                 key={r}
                 className="h-[100px] flex flex-col justify-center px-6 transition-all duration-700"
-                style={{
-                  transform: `rotateX(${rotation}deg) scale(${scale})`,
-                  opacity: opacity,
-                  filter: `blur(${blur}px)`,
-                  transformOrigin: "center center",
-                }}
+                style={{ transform: `rotateX(${rotation}deg) scale(${scale})`, opacity, filter: `blur(${blur}px)`, transformOrigin: "center center" }}
               >
                 <p className={`text-[11px] font-black uppercase tracking-tighter mb-1.5 ${isSelected ? "text-stone-900" : "text-stone-400"}`}>
                   {getRoleLabel(r)}
@@ -385,9 +359,7 @@ function DressCodeWheel({ catering, selectedRole }) {
           })}
           {activeIndex === -1 && (
             <div className="h-full flex items-center justify-center px-10 text-center">
-              <p className="text-[13px] font-medium text-stone-400 italic">
-                Select a role above to see requirements
-              </p>
+              <p className="text-[13px] font-medium text-stone-400 italic">Select a role above to see requirements</p>
             </div>
           )}
         </div>

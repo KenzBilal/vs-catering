@@ -20,7 +20,7 @@ const ROLE_BADGE = {
 
 export default function AdminUsers() {
   const { user: currentUser, token } = useAuth();
-  const allUsers = useQuery(api.users.getAllStudents);
+  const allUsers = useQuery(api.users.getAllStudents, token ? { token } : "skip");
   const setUserRole = useMutation(api.users.setUserRole);
 
   const [search, setSearch] = useState("");

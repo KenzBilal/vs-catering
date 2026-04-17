@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
@@ -35,7 +34,7 @@ if (!convexUrl) {
 }
 const convex = new ConvexReactClient(convexUrl || "https://dummy.convex.cloud");
 
-function ProtectedRoute({ children, adminOnly }) {
+function ProtectedRoute({ children, adminOnly, superAdminOnly }) {
   const { user, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-cream-bg">
@@ -44,7 +43,26 @@ function ProtectedRoute({ children, adminOnly }) {
   );
   if (!user) return <Navigate to="/login" replace />;
   if (adminOnly && user.role === "student") return <Navigate to="/" replace />;
+  // #21: Some pages are admin-only, not accessible to sub_admin
+  if (superAdminOnly && user.role !== "admin") return <Navigate to="/admin" replace />;
   return children;
+}
+
+function NotFound() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-cream-bg px-4">
+      <div className="text-center">
+        <p className="text-7xl font-black text-stone-200 mb-4">404</p>
+        <h1 className="text-xl font-bold text-stone-900 mb-2">Page Not Found</h1>
+        <p className="text-stone-500 font-medium mb-6">The page you're looking for doesn't exist.</p>
+        <a href={user ? (isAdmin ? "/admin" : "/") : "/login"} className="btn-primary inline-flex">
+          Go Home
+        </a>
+      </div>
+    </div>
+  );
 }
 
 function StudentPage({ page }) {
@@ -100,26 +118,21 @@ function AppRoutes() {
       <Route path="/admin/catering/:id/edit"        element={<AdminPage page={<EditCatering />} />} />
       <Route path="/admin/catering/:id/attendance"  element={<AdminPage page={<AttendancePage />} />} />
       <Route path="/admin/catering/:id/payments"    element={<AdminPage page={<PaymentsPage />} />} />
-      <Route path="/admin/users"                    element={<AdminPage page={<AdminUsers />} />} />
-      <Route path="/admin/settings"                 element={<AdminPage page={<AdminSettings />} />} />
+      {/* #21: Users and Settings are admin-only, not sub_admin */}
+      <Route path="/admin/users"    element={<ProtectedRoute superAdminOnly><AdminShell><AdminUsers /></AdminShell></ProtectedRoute>} />
+      <Route path="/admin/settings" element={<ProtectedRoute superAdminOnly><AdminShell><AdminSettings /></AdminShell></ProtectedRoute>} />
 
       {/* Legacy admin redirect */}
       <Route path="/admin/create-catering" element={<Navigate to="/admin/events/create" replace />} />
 
-      <Route path="*" element={<Navigate to={user ? (isAdmin ? "/admin" : "/") : "/login"} replace />} />
+      {/* #30: 404 page */}
+      <Route path="*" element={user ? <NotFound /> : <Navigate to="/login" replace />} />
     </Routes>
   );
 }
 
 export default function App() {
-  useEffect(() => {
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-    };
-    document.addEventListener("contextmenu", handleContextMenu);
-    return () => document.removeEventListener("contextmenu", handleContextMenu);
-  }, []);
-
+  // #11: Removed global right-click disable — it breaks legitimate browser UX
   return (
     <ConvexProvider client={convex}>
       <AuthProvider>

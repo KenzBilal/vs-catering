@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
-import { Save, CheckCircle2, User, Phone, MapPin, Camera, XCircle, Trash2, Hash } from "lucide-react";
+import { Save, CheckCircle2, User, MapPin, Camera, Hash } from "lucide-react";
 import SegmentedControl from "../components/ui/SegmentedControl";
 import CustomSelect from "../components/ui/CustomSelect";
 import ConvexImage from "../components/shared/ConvexImage";
@@ -16,7 +16,7 @@ const ROLE_BADGE = {
 };
 
 export default function Settings() {
-  const { user, login } = useAuth();
+  const { user, token, login } = useAuth();
   const dropPoints = useQuery(api.dropPoints.getDropPoints);
   const updatePrefs = useMutation(api.users.updatePreferences);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
@@ -27,11 +27,13 @@ export default function Settings() {
   const [loading, setLoading]     = useState(false);
   const [uploading, setUploading] = useState(false);
   const [regNumber, setRegNumber] = useState(user?.registrationNumber || "");
+  const [error, setError]         = useState(""); // #8: was missing, caused crash on save failure
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
+    setError("");
     try {
       const postUrl = await generateUploadUrl();
       const result = await fetch(postUrl, {
@@ -40,39 +42,43 @@ export default function Settings() {
         body: file,
       });
       const { storageId } = await result.json();
-      await updatePrefs({ userId: user._id, defaultDropPoint: dropPoint, stayType, photoStorageId: storageId, registrationNumber: regNumber });
+      // #2: Pass token, not raw userId
+      await updatePrefs({ token, defaultDropPoint: dropPoint, stayType, photoStorageId: storageId, registrationNumber: regNumber });
       login({ ...user, photoStorageId: storageId, registrationNumber: regNumber });
+    } catch (e) {
+      const rawMsg = e.data || e.message || "";
+      setError(typeof rawMsg === "string" ? rawMsg.replace(/.*ConvexError:\s*/, "") : "Photo upload failed.");
     } finally {
       setUploading(false);
     }
   };
 
   const handleSave = async () => {
+    setError("");
     if (regNumber.trim() && !isValidRegNumber(regNumber.trim())) {
       setError("Enter a valid 8-digit registration number.");
       return;
     }
     setLoading(true);
     try {
-      await updatePrefs({ userId: user._id, defaultDropPoint: dropPoint, stayType, registrationNumber: regNumber });
+      // #2: Pass token, not raw userId
+      await updatePrefs({ token, defaultDropPoint: dropPoint, stayType, registrationNumber: regNumber });
       login({ ...user, defaultDropPoint: dropPoint, stayType, registrationNumber: regNumber });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
       const rawMsg = e.data || e.message || "";
       const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
-
-      if (msg.includes("ConvexError:")) {
-        setError(msg.split("ConvexError:")[1].trim());
-      } else if (msg.includes("Error:")) {
-        setError(msg.split("Error:")[1].trim());
-      } else {
-        setError(msg);
-      }
+      if (msg.includes("ConvexError:")) setError(msg.split("ConvexError:")[1].trim());
+      else if (msg.includes("Error:")) setError(msg.split("Error:")[1].trim());
+      else setError(msg);
     } finally {
       setLoading(false);
     }
   };
+
+  // #28: Don't show dummy phone for admin account
+  const displayPhone = user?.role === "admin" ? "—" : user?.phone;
 
   return (
     <div>
@@ -81,7 +87,7 @@ export default function Settings() {
           <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Settings</h1>
           <p className="text-[14px] font-medium text-stone-500 mt-1">Your account and preferences.</p>
         </div>
-        
+
         {/* Profile Photo */}
         <div className="flex items-center gap-4">
           <div className="relative w-16 h-16 shrink-0">
@@ -109,7 +115,9 @@ export default function Settings() {
         <h3 className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-4">Account</h3>
         <div className="flex flex-col gap-3">
           <Row label="Name"   value={user?.name} />
-          <Row label="Phone"  value={user?.phone} />
+          {/* #28: Admin gets "—" for phone instead of "0000000000" */}
+          <Row label="Phone"  value={displayPhone} />
+          <Row label="Email"  value={user?.email} />
           <Row label="Gender" value={user?.gender === "male" ? "Male" : "Female"} />
           <div className="flex justify-between items-center text-[14px] pt-2 border-t border-cream-100">
             <span className="font-medium text-stone-500">Role</span>
@@ -139,7 +147,7 @@ export default function Settings() {
           <div>
             <label className="label">Default Drop Point</label>
             <CustomSelect
-              options={(dropPoints || []).map(dp => ({ label: dp.name, value: dp.name }))}
+              options={(dropPoints || []).map((dp) => ({ label: dp.name, value: dp.name }))}
               value={dropPoint}
               onChange={setDropPoint}
               placeholder="Select your default drop point..."
@@ -159,6 +167,13 @@ export default function Settings() {
               />
             </div>
           </div>
+
+          {/* #8: Display errors properly */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium">
+              {error}
+            </div>
+          )}
 
           <button
             className="btn-primary w-full py-3 text-[14px]"
@@ -181,7 +196,7 @@ function Row({ label, value }) {
   return (
     <div className="flex justify-between items-center text-[14px]">
       <span className="font-medium text-stone-500">{label}</span>
-      <span className="font-semibold text-stone-900">{value}</span>
+      <span className="font-semibold text-stone-900">{value || "—"}</span>
     </div>
   );
 }

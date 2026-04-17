@@ -6,7 +6,6 @@ import { sanitizeString } from "./utils";
 
 export const createPayment = mutation({
   args: {
-    userId: v.id("users"),
     cateringId: v.id("caterings"),
     registrationId: v.id("registrations"),
     day: v.number(),
@@ -20,6 +19,11 @@ export const createPayment = mutation({
 
     if (args.amount < 0) throw new ConvexError("Payment amount cannot be negative.");
 
+    // Derive userId from the registration record — never trust client
+    const reg = await ctx.db.get(args.registrationId);
+    if (!reg) throw new ConvexError("Registration not found.");
+    const userId = reg.userId;
+
     // Prevent duplicate payment for same registration
     const existing = await ctx.db
       .query("payments")
@@ -31,11 +35,13 @@ export const createPayment = mutation({
     const { token, ...dataToInsert } = args;
     return await ctx.db.insert("payments", {
       ...dataToInsert,
+      userId,
       status: "pending",
       createdAt: Date.now(),
     });
   },
 });
+
 
 export const clearPayment = mutation({
   args: {
