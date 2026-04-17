@@ -55,20 +55,21 @@ export default function Signup() {
       login(result);
       navigate("/", { replace: true });
     } catch (e) {
-      console.error("Signup Error:", e);
+      console.error("Signup Error Object:", e);
       const errorCode = e.code || "";
-      let msg = "Failed to create account.";
+      let msg = e.message || "Failed to create account.";
       
       if (errorCode === "auth/email-already-in-use") msg = "This email is already registered.";
       if (errorCode === "auth/invalid-email") msg = "Invalid email address.";
       if (errorCode === "auth/weak-password") msg = "Password is too weak.";
+      if (errorCode === "auth/operation-not-allowed") msg = "Email/Password sign-in is not enabled in Firebase. Please enable it in the console.";
       
       const rawMsg = e.data || e.message || "";
       if (typeof rawMsg === "string" && rawMsg.includes("ConvexError:")) {
         msg = rawMsg.split("ConvexError:")[1].trim();
       }
       
-      setError(msg);
+      setError(`${msg} ${errorCode ? `(${errorCode})` : ""}`);
     } finally {
       setLoading(false);
     }

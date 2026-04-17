@@ -54,7 +54,8 @@ export const createUser = mutation({
     });
 
     const user = await ctx.db.get(userId);
-    const token = crypto.randomUUID();
+    // Use a robust random token generation
+    const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
     const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30; // 30 days
     await ctx.db.insert("sessions", { userId, token, expiresAt });
 
@@ -115,7 +116,7 @@ export const loginUser = mutation({
       await ctx.db.patch(attemptRecord._id, { attempts: 0, windowStart: now });
     }
 
-    const token = crypto.randomUUID();
+    const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
     const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30; // 30 days
     await ctx.db.insert("sessions", { userId: user._id, token, expiresAt });
 
