@@ -8,7 +8,7 @@ import { ArrowLeft, CheckCircle2, UserCheck, MapPin, Link as LinkIcon, AlertCirc
 
 export default function Register() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
 
   const catering = useQuery(api.caterings.getCatering, { cateringId: id });
@@ -21,6 +21,9 @@ export default function Register() {
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
 
   if (catering === undefined) {
     return <div className="page-container"><p className="text-stone-500 animate-pulse">Loading...</p></div>;
