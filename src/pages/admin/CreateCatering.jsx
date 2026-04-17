@@ -76,11 +76,18 @@ export default function CreateCatering() {
     if (!dates[0]) return setError("Date is required.");
     if (isTwoDay && !dates[1]) return setError("Second date is required for a two-day event.");
 
-    const finalDates = isTwoDay ? dates : [dates[0]];
-    const finalSlots = buildFinalSlots();
+    const finalDates = (isTwoDay ? dates : [dates[0]]).map(d => 
+      d instanceof Date ? d.toISOString() : d
+    );
+    const rawSlots = buildFinalSlots();
+    const finalSlots = rawSlots.map(s => ({
+      ...s,
+      limit: Number(s.limit) || 0,
+      pay: Number(s.pay) || 0
+    }));
 
     // Ensure at least one slot has a limit > 0
-    const totalSlots = finalSlots.reduce((sum, s) => sum + (Number(s.limit) || 0), 0);
+    const totalSlots = finalSlots.reduce((sum, s) => sum + s.limit, 0);
     if (totalSlots === 0) return setError("At least one role must have more than 0 slots.");
 
     setLoading(true);
@@ -105,12 +112,13 @@ export default function CreateCatering() {
       const rawMsg = e.data || e.message || "";
       const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
       
-      if (msg.includes("ConvexError:")) {
-        setError(msg.split("ConvexError:")[1].trim());
-      } else if (msg.includes("Error:")) {
-        setError(msg.split("Error:")[1].trim());
+      // Clean up technical prefixes like [CONVEX M(caterings:createCatering)]
+      const cleanMsg = msg.replace(/^\[CONVEX [A-Z]\([^)]+\)\]\s*/, "");
+      
+      if (cleanMsg.includes("ConvexError:")) {
+        setError(cleanMsg.split("ConvexError:")[1].trim());
       } else {
-        setError(msg);
+        setError(cleanMsg);
       }
     } finally {
       setLoading(false);

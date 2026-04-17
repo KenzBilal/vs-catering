@@ -52,8 +52,14 @@ export default function EditCatering() {
     if (!place.trim()) return setError("Place is required.");
     if (!specificTime.trim()) return setError("Time is required.");
 
+    const finalSlots = slots.map(s => ({
+      ...s,
+      limit: Number(s.limit) || 0,
+      pay: Number(s.pay) || 0
+    }));
+
     // Ensure at least one slot has a limit > 0
-    const totalSlots = slots.reduce((sum, s) => sum + (Number(s.limit) || 0), 0);
+    const totalSlots = finalSlots.reduce((sum, s) => sum + s.limit, 0);
     if (totalSlots === 0) return setError("At least one role must have more than 0 slots.");
 
     setLoading(true);
@@ -65,7 +71,7 @@ export default function EditCatering() {
         specificTime,
         photoRequired,
         dressCodeNotes,
-        slots,
+        slots: finalSlots,
         token,
       });
       setSaved(true);
@@ -76,12 +82,13 @@ export default function EditCatering() {
       const rawMsg = e.data || e.message || "";
       const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
       
-      if (msg.includes("ConvexError:")) {
-        setError(msg.split("ConvexError:")[1].trim());
-      } else if (msg.includes("Error:")) {
-        setError(msg.split("Error:")[1].trim());
+      // Clean up technical prefixes like [CONVEX M(caterings:updateCatering)]
+      const cleanMsg = msg.replace(/^\[CONVEX [A-Z]\([^)]+\)\]\s*/, "");
+      
+      if (cleanMsg.includes("ConvexError:")) {
+        setError(cleanMsg.split("ConvexError:")[1].trim());
       } else {
-        setError(msg);
+        setError(cleanMsg);
       }
     } finally {
       setLoading(false);

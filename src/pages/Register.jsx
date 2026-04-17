@@ -94,7 +94,15 @@ export default function Register() {
 
       setDone(true);
     } catch (e) {
-      setError(e.message || "Something went wrong.");
+      const rawMsg = e.data || e.message || "";
+      const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
+      const cleanMsg = msg.replace(/^\[CONVEX [A-Z]\([^)]+\)\]\s*/, "");
+      
+      if (cleanMsg.includes("ConvexError:")) {
+        setError(cleanMsg.split("ConvexError:")[1].trim());
+      } else {
+        setError(cleanMsg);
+      }
     } finally {
       setLoading(false);
       setUploading(false);
