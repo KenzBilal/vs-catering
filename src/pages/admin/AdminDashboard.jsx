@@ -52,20 +52,21 @@ export default function AdminDashboard() {
         <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">
           Monthly Overview
         </h2>
-        <div className="flex gap-2">
+        <div className="flex bg-white border border-cream-200 rounded-2xl p-1 shadow-sm">
           <select
             value={month}
             onChange={(e) => setMonth(Number(e.target.value))}
-            className="bg-white border border-cream-200 text-stone-700 text-[12px] font-semibold rounded-lg px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+            className="bg-transparent border-0 text-stone-700 text-[12px] font-bold px-3 py-1.5 outline-none cursor-pointer hover:bg-cream-50 rounded-xl transition-colors min-w-[70px] appearance-none text-center"
           >
             {monthNames.map((m, i) => (
               <option key={i} value={i + 1}>{m}</option>
             ))}
           </select>
+          <div className="w-px h-4 bg-cream-200 self-center mx-0.5" />
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="bg-white border border-cream-200 text-stone-700 text-[12px] font-semibold rounded-lg px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+            className="bg-transparent border-0 text-stone-700 text-[12px] font-bold px-3 py-1.5 outline-none cursor-pointer hover:bg-cream-50 rounded-xl transition-colors min-w-[70px] appearance-none text-center"
           >
             {[2024, 2025, 2026].map((y) => (
               <option key={y} value={y}>{y}</option>
@@ -75,17 +76,15 @@ export default function AdminDashboard() {
       </div>
 
       {analytics ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-2 gap-3 mb-8">
           <StatCard icon={<CalendarDays size={14}/>} label="Events" value={analytics.totalCaterings} />
-          <StatCard icon={<Users size={14}/>} label="Students Paid" value={analytics.uniqueStudents} />
           <StatCard icon={<IndianRupee size={14}/>} label="Total Paid Out" value={formatCurrency(analytics.totalPayout)} />
-          <StatCard icon={<UserCheck size={14}/>} label="Cleared" value={analytics.paymentsCleared} />
           <StatCard icon={<Clock size={14}/>} label="Pending" value={analytics.paymentsPending} highlight />
           <StatCard icon={<TrendingUp size={14}/>} label="Amt Pending" value={formatCurrency(analytics.pendingPayout)} highlight />
         </div>
       ) : (
-        <div className="animate-pulse grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
-          {[1,2,3,4,5,6].map(n => <div key={n} className="h-20 bg-cream-100 rounded-xl" />)}
+        <div className="animate-pulse grid grid-cols-2 gap-3 mb-8">
+          {[1,2,3,4].map(n => <div key={n} className="h-24 bg-cream-100 rounded-2xl" />)}
         </div>
       )}
 

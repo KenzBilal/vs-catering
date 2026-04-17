@@ -153,7 +153,7 @@ export default function PaymentsPage() {
                   <select
                     value={methods[reg._id] || "cash"}
                     onChange={(e) => setMethods((m) => ({ ...m, [reg._id]: e.target.value }))}
-                    className="bg-white border border-cream-200 text-stone-700 text-[13px] font-medium rounded-lg px-3 py-2 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+                    className="w-auto px-4 py-2"
                   >
                     <option value="cash">Cash Payment</option>
                     <option value="upi">UPI Transfer</option>

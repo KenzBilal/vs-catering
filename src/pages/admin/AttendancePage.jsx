@@ -89,7 +89,7 @@ export default function AttendancePage() {
             <select 
               value={roleFilter} 
               onChange={(e) => setRoleFilter(e.target.value)} 
-              className="bg-white border border-cream-200 text-stone-700 text-[13px] font-medium rounded-lg px-3 py-2 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+              className="w-auto px-3 py-2 text-[13px] font-bold"
             >
               <option value="all">All Roles</option>
               {roles.map((r) => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
@@ -98,7 +98,7 @@ export default function AttendancePage() {
           <select 
             value={statusFilter} 
             onChange={(e) => setStatusFilter(e.target.value)} 
-            className="bg-white border border-cream-200 text-stone-700 text-[13px] font-medium rounded-lg px-3 py-2 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+            className="w-auto px-3 py-2 text-[13px] font-bold"
           >
             <option value="all">All Status</option>
             <option value="registered">Not Marked</option>
@@ -155,9 +155,12 @@ export default function AttendancePage() {
                 <select
                   value={reg.role}
                   onChange={(e) => handleRoleChange(reg._id, e.target.value)}
-                  className="bg-cream-50 border border-cream-200 text-stone-700 text-[12px] font-medium rounded-md px-2 py-1.5 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+                  className="w-auto px-3 py-1.5 text-[12px] font-bold"
                 >
-                  {["service_boy", "service_girl", "captain_male"].map((r) => (
+                  {["service_boy", "service_girl", "captain_male", "captain_female"].filter(r => {
+                    if (reg.user?.gender === "male") return r === "service_boy" || r === "captain_male";
+                    return r === "service_girl" || r === "captain_female";
+                  }).map((r) => (
                     <option key={r} value={r}>{getRoleLabel(r)}</option>
                   ))}
                 </select>

@@ -131,7 +131,7 @@ export default function Settings() {
               <select
                 value={dropPoint}
                 onChange={(e) => setDropPoint(e.target.value)}
-                className="pl-9 bg-white"
+                className="pl-9"
               >
                 {(dropPoints || []).map((dp) => (
                   <option key={dp._id} value={dp.name}>{dp.name}</option>
