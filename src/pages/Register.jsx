@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { getRoleLabel, formatDate, formatCurrency, DRESS_CODE_DEFAULTS } from "../lib/helpers";
-import { ArrowLeft, CheckCircle2, UserCheck, MapPin, Link as LinkIcon, AlertCircle, Shirt } from "lucide-react";
+import { ArrowLeft, CheckCircle2, UserCheck, MapPin, Link as LinkIcon, AlertCircle, Shirt, Camera, XCircle } from "lucide-react";
 
 export default function Register() {
   const { id } = useParams();
@@ -18,10 +18,9 @@ export default function Register() {
   const [role, setRole] = useState("");
   const [dropPoint, setDropPoint] = useState(user?.defaultDropPoint || "Main Gate");
   const [selectedDays, setSelectedDays] = useState([0]);
-  const [photoUrl, setPhotoUrl] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   if (catering === undefined) {
     return <div className="page-container"><p className="text-stone-500 animate-pulse">Loading...</p></div>;
@@ -44,23 +43,38 @@ export default function Register() {
     setError("");
     if (!role) return setError("Please select a role.");
     if (daysToRegister.length === 0) return setError("Please select at least one day.");
-    if (catering.photoRequired && !photoUrl.trim()) return setError("A photo link is required for this catering.");
+    if (catering.photoRequired && !selectedFile) return setError("Please upload a photo to register.");
 
     setLoading(true);
     try {
+      let photoStorageId = undefined;
+      if (selectedFile) {
+        setUploading(true);
+        const postUrl = await generateUploadUrl();
+        const result = await fetch(postUrl, {
+          method: "POST",
+          headers: { "Content-Type": selectedFile.type },
+          body: selectedFile,
+        });
+        const { storageId } = await result.json();
+        photoStorageId = storageId;
+        setUploading(false);
+      }
+
       await registerMutation({
         userId: user._id,
         cateringId: id,
         days: daysToRegister,
         role,
         dropPoint,
-        ...(catering.photoRequired ? { photoUrl } : {}),
+        ...(photoStorageId ? { photoStorageId } : {}),
       });
       setDone(true);
     } catch (e) {
       setError(e.message || "Something went wrong.");
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -191,16 +205,41 @@ export default function Register() {
 
         {catering.photoRequired && (
           <div>
-            <label className="label">Photo Link <span className="text-stone-400 lowercase">(Required)</span></label>
-            <div className="relative">
-              <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-              <input
-                type="url"
-                placeholder="Google Drive link etc."
-                className="pl-11"
-                value={photoUrl}
-                onChange={(e) => setPhotoUrl(e.target.value)}
-              />
+            <label className="label">Upload Photo <span className="text-stone-400 lowercase">(Required)</span></label>
+            <div className="mt-2">
+              {!selectedFile ? (
+                <div className="relative border-2 border-dashed border-cream-200 rounded-2xl p-8 flex flex-col items-center justify-center hover:border-stone-300 transition-colors cursor-pointer group">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                  />
+                  <div className="w-12 h-12 bg-cream-50 rounded-full flex items-center justify-center mb-3 group-hover:bg-cream-100 transition-colors">
+                    <Camera size={24} className="text-stone-400" />
+                  </div>
+                  <p className="text-[13.5px] font-semibold text-stone-600">Click to upload photo</p>
+                  <p className="text-[11px] text-stone-400 mt-1 font-medium">PNG, JPG up to 5MB</p>
+                </div>
+              ) : (
+                <div className="relative rounded-2xl overflow-hidden border border-cream-200 bg-white p-2">
+                  <img
+                    src={URL.createObjectURL(selectedFile)}
+                    className="w-full h-48 object-cover rounded-xl"
+                    alt="Preview"
+                  />
+                  <button
+                    onClick={() => setSelectedFile(null)}
+                    className="absolute top-4 right-4 bg-white/90 backdrop-blur shadow-sm p-2 rounded-full text-red-600 hover:bg-white transition-colors"
+                  >
+                    <XCircle size={18} />
+                  </button>
+                  <div className="p-2">
+                    <p className="text-[12px] font-semibold text-stone-500 truncate">{selectedFile.name}</p>
+                    <p className="text-[11px] text-stone-400 font-medium">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -214,9 +253,9 @@ export default function Register() {
         <button
           className="btn-primary w-full py-4 mt-2"
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || uploading}
         >
-          {loading ? "Registering..." : (
+          {uploading ? "Uploading photo..." : loading ? "Registering..." : (
             <>
               <UserCheck size={18} /> Confirm Registration
             </>

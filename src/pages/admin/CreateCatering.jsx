@@ -279,7 +279,7 @@ export default function CreateCatering() {
             <div className="bg-cream-50 border border-cream-200 p-4 rounded-xl">
               <Toggle
                 label="Student Photo Required"
-                description="Students must upload a profile picture to register."
+                description="Students must upload a photo to register for this event."
                 checked={photoRequired}
                 onChange={setPhotoRequired}
               />

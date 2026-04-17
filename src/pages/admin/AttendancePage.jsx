@@ -4,7 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getRoleLabel, formatDate } from "../../lib/helpers";
 import { useState } from "react";
 import { useAuth } from "../../lib/AuthContext";
-import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Users, MapPin, CalendarDays, Filter } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Users, MapPin, CalendarDays, Filter, Clock, Camera, ExternalLink } from "lucide-react";
+import ConvexImage from "../../components/shared/ConvexImage";
 
 export default function AttendancePage() {
   const { user, token } = useAuth();
@@ -19,6 +20,7 @@ export default function AttendancePage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [rejectionInput, setRejectionInput] = useState({});
   const [saving, setSaving] = useState({});
+  const [viewPhoto, setViewPhoto] = useState(null); // { storageId, photoUrl }
 
   const handleMark = async (regId, status, reason) => {
     setSaving((s) => ({ ...s, [regId]: true }));
@@ -89,10 +91,22 @@ export default function AttendancePage() {
         </div>
       </div>
 
-      {registrations === undefined && <p className="text-stone-500 text-[14px] animate-pulse">Loading students...</p>}
-      {registrations?.length === 0 && <p className="text-stone-500 text-[14px]">No registrations yet.</p>}
+      {catering?.status === "upcoming" && (
+        <div className="card text-center py-16 bg-white border-dashed">
+          <Clock size={48} className="mx-auto text-cream-300 mb-4" />
+          <p className="text-stone-500 font-bold text-[17px]">Attendance has not opened yet</p>
+          <p className="text-stone-400 text-[14px] mt-2 max-w-sm mx-auto font-medium">
+            You can mark attendance once the event status changes to Today or Tomorrow.
+          </p>
+        </div>
+      )}
 
-      <div className="flex flex-col gap-4">
+      {catering?.status !== "upcoming" && (
+        <>
+          {registrations === undefined && <p className="text-stone-500 text-[14px] animate-pulse">Loading students...</p>}
+          {registrations?.length === 0 && <p className="text-stone-500 text-[14px]">No registrations yet.</p>}
+
+          <div className="flex flex-col gap-4">
         {filtered.map((reg) => (
           <div key={reg._id} className="card bg-white hover:border-cream-300 transition-colors animate-fade-in p-5">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
@@ -106,6 +120,14 @@ export default function AttendancePage() {
                   )}
                 </p>
                 <p className="text-[13px] text-stone-500 mt-0.5">{reg.user?.phone}</p>
+                {(reg.photoStorageId || reg.photoUrl) && (
+                  <button 
+                    onClick={() => setViewPhoto({ storageId: reg.photoStorageId, url: reg.photoUrl })}
+                    className="flex items-center gap-1.5 mt-2 text-[12px] font-bold text-stone-600 bg-cream-100 hover:bg-cream-200 px-2.5 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Camera size={14} /> View Photo
+                  </button>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <select
@@ -181,7 +203,42 @@ export default function AttendancePage() {
             </div>
           </div>
         ))}
-      </div>
+          </div>
+        </>
+      )}
+
+      {/* Photo View Modal */}
+      {viewPhoto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setViewPhoto(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-scale-up" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-cream-100 flex justify-between items-center bg-white">
+              <h3 className="font-bold text-stone-900">Student Photo</h3>
+              <button onClick={() => setViewPhoto(null)} className="p-2 hover:bg-cream-100 rounded-full transition-colors">
+                <XCircle size={20} className="text-stone-400" />
+              </button>
+            </div>
+            <div className="bg-cream-50 p-4 flex items-center justify-center min-h-[300px]">
+              {viewPhoto.storageId ? (
+                <ConvexImage storageId={viewPhoto.storageId} className="max-w-full max-h-[70vh] rounded-xl shadow-lg" />
+              ) : (
+                <img src={viewPhoto.url} className="max-w-full max-h-[70vh] rounded-xl shadow-lg" alt="Legacy Photo" />
+              )}
+            </div>
+            {viewPhoto.url && !viewPhoto.storageId && (
+              <div className="p-4 bg-white text-center">
+                <a 
+                  href={viewPhoto.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-[13px] font-bold text-stone-600 hover:text-stone-900 transition-colors"
+                >
+                  <ExternalLink size={14} /> Open original link
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

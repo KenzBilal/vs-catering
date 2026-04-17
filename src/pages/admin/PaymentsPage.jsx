@@ -110,7 +110,17 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      {attendedRegs.length === 0 && (
+      {catering?.status === "upcoming" && (
+        <div className="card text-center py-16 bg-white border-dashed">
+          <Clock size={48} className="mx-auto text-cream-300 mb-4" />
+          <p className="text-stone-500 font-bold text-[17px]">Event has not started yet</p>
+          <p className="text-stone-400 text-[14px] mt-2 max-w-sm mx-auto font-medium">
+            Payment management will be available once the event starts and attendance is marked.
+          </p>
+        </div>
+      )}
+
+      {catering?.status !== "upcoming" && attendedRegs.length === 0 && (
         <div className="card text-center py-12">
           <HandCoins size={48} className="mx-auto text-cream-300 mb-4" />
           <p className="text-stone-500 font-medium text-[15px]">No attended students yet.</p>
@@ -118,7 +128,8 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      <div className="flex flex-col gap-4">
+      {catering?.status !== "upcoming" && attendedRegs.length > 0 && (
+        <div className="flex flex-col gap-4">
         {attendedRegs.map((reg) => {
           const payment = getPaymentForReg(reg._id);
           const pay = getPayForRole(reg.role, reg.days[0]);
@@ -217,7 +228,8 @@ export default function PaymentsPage() {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

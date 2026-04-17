@@ -66,7 +66,8 @@ export default defineSchema({
     days: v.array(v.number()),
     role: v.string(),
     dropPoint: v.string(),
-    photoUrl: v.optional(v.string()),
+    photoUrl: v.optional(v.string()), // Legacy
+    photoStorageId: v.optional(v.id("_storage")),
     queuePosition: v.number(),
     isConfirmed: v.boolean(),
     status: v.union(

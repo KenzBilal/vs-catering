@@ -16,7 +16,8 @@ export const register = mutation({
     days: v.array(v.number()),
     role: v.string(),
     dropPoint: v.string(),
-    photoUrl: v.optional(v.string()),
+    photoUrl: v.optional(v.string()), // Legacy
+    photoStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
     // Validate role is a known enum value
@@ -68,6 +69,7 @@ export const register = mutation({
       role: args.role,
       dropPoint: sanitize(args.dropPoint, 100),
       ...(photoUrl ? { photoUrl } : {}),
+      ...(args.photoStorageId ? { photoStorageId: args.photoStorageId } : {}),
       queuePosition,
       isConfirmed,
       status: "registered",
