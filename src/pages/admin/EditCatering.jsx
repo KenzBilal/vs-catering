@@ -73,7 +73,16 @@ export default function EditCatering() {
         navigate(`/admin/events`);
       }, 1000);
     } catch (e) {
-      setError(e.message || "Failed to save changes.");
+      const rawMsg = e.data || e.message || "";
+      const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
+      
+      if (msg.includes("ConvexError:")) {
+        setError(msg.split("ConvexError:")[1].trim());
+      } else if (msg.includes("Error:")) {
+        setError(msg.split("Error:")[1].trim());
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
