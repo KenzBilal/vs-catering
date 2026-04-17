@@ -146,3 +146,26 @@ export const changeRole = mutation({
     await ctx.db.patch(registrationId, { role });
   },
 });
+
+export const cancelRegistration = mutation({
+  args: {
+    registrationId: v.id("registrations"),
+    token: v.string(),
+  },
+  handler: async (ctx, { registrationId, token }) => {
+    // Verify caller owns this registration
+    const caller = await getUserFromToken(ctx, token);
+    if (!caller) throw new Error("Not authenticated.");
+
+    const reg = await ctx.db.get(registrationId);
+    if (!reg) throw new Error("Registration not found.");
+    if (reg.userId !== caller._id) throw new Error("You can only cancel your own registration.");
+
+    // Block cancellation if event has already ended or attendance was marked
+    const catering = await ctx.db.get(reg.cateringId);
+    if (catering?.status === "ended") throw new Error("This event has already ended.");
+    if (reg.status === "attended") throw new Error("Cannot cancel — you have already been marked as attended.");
+
+    await ctx.db.delete(registrationId);
+  },
+});

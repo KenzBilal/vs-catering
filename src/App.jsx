@@ -1,23 +1,32 @@
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
-import Navbar from "./components/shared/Navbar";
-import AdminShell from "./components/admin/AdminShell";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+
+// Shells
+import StudentShell from "./components/student/StudentShell";
+import AdminShell   from "./components/admin/AdminShell";
+
+// Student pages
+import Dashboard    from "./pages/Home";
+import MyEvents     from "./pages/MyEvents";
+import History      from "./pages/History";
+import Settings     from "./pages/Settings";
 import CateringDetail from "./pages/CateringDetail";
-import Register from "./pages/Register";
-import MyCaterings from "./pages/MyCaterings";
-import Profile from "./pages/Profile";
+import Register     from "./pages/Register";
+
+// Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminEvents from "./pages/admin/AdminEvents";
-import AdminUsers from "./pages/admin/AdminUsers";
+import AdminEvents    from "./pages/admin/AdminEvents";
+import AdminUsers     from "./pages/admin/AdminUsers";
 import CreateCatering from "./pages/admin/CreateCatering";
-import EditCatering from "./pages/admin/EditCatering";
+import EditCatering   from "./pages/admin/EditCatering";
 import AttendancePage from "./pages/admin/AttendancePage";
-import PaymentsPage from "./pages/admin/PaymentsPage";
-import AdminSettings from "./pages/admin/AdminSettings";
+import PaymentsPage   from "./pages/admin/PaymentsPage";
+import AdminSettings  from "./pages/admin/AdminSettings";
+
+// Auth pages
+import Login  from "./pages/Login";
+import Signup from "./pages/Signup";
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -29,162 +38,59 @@ function ProtectedRoute({ children, adminOnly }) {
   return children;
 }
 
+function StudentPage({ page }) {
+  return (
+    <ProtectedRoute>
+      <StudentShell>{page}</StudentShell>
+    </ProtectedRoute>
+  );
+}
+
+function AdminPage({ page }) {
+  return (
+    <ProtectedRoute adminOnly>
+      <AdminShell>{page}</AdminShell>
+    </ProtectedRoute>
+  );
+}
+
 function AppRoutes() {
   const { user, loading } = useAuth();
-
   if (loading) return null;
 
   const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
 
   return (
     <Routes>
-      {/* Auth pages — redirect if already logged in */}
-      <Route
-        path="/login"
-        element={
-          user
-            ? <Navigate to={isAdmin ? "/admin" : "/"} replace />
-            : <Login />
-        }
-      />
-      <Route
-        path="/signup"
-        element={
-          user
-            ? <Navigate to={isAdmin ? "/admin" : "/"} replace />
-            : <Signup />
-        }
-      />
+      {/* ── Auth ─────────────────────────────────────── */}
+      <Route path="/login"  element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Login />} />
+      <Route path="/signup" element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Signup />} />
 
-      {/* Student routes */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            {isAdmin
-              ? <Navigate to="/admin" replace />
-              : (
-                <div className="flex flex-col min-h-screen">
-                  <Navbar />
-                  <main className="flex-1"><Home /></main>
-                </div>
-              )
-            }
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/catering/:id"
-        element={
-          <ProtectedRoute>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1"><CateringDetail /></main>
-            </div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/catering/:id/register"
-        element={
-          <ProtectedRoute>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1"><Register /></main>
-            </div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/my-caterings"
-        element={
-          <ProtectedRoute>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1"><MyCaterings /></main>
-            </div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1"><Profile /></main>
-            </div>
-          </ProtectedRoute>
-        }
-      />
+      {/* ── Student portal ───────────────────────────── */}
+      <Route path="/"           element={isAdmin ? <Navigate to="/admin" replace /> : <StudentPage page={<Dashboard />} />} />
+      <Route path="/my-events"  element={<StudentPage page={<MyEvents />} />} />
+      <Route path="/history"    element={<StudentPage page={<History />} />} />
+      <Route path="/settings"   element={<StudentPage page={<Settings />} />} />
 
-      {/* Admin routes — wrapped in AdminShell */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute adminOnly>
-            <AdminShell><AdminDashboard /></AdminShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/events"
-        element={
-          <ProtectedRoute adminOnly>
-            <AdminShell><AdminEvents /></AdminShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/events/create"
-        element={
-          <ProtectedRoute adminOnly>
-            <AdminShell><CreateCatering /></AdminShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/catering/:id/edit"
-        element={
-          <ProtectedRoute adminOnly>
-            <AdminShell><EditCatering /></AdminShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/catering/:id/attendance"
-        element={
-          <ProtectedRoute adminOnly>
-            <AdminShell><AttendancePage /></AdminShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/catering/:id/payments"
-        element={
-          <ProtectedRoute adminOnly>
-            <AdminShell><PaymentsPage /></AdminShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/users"
-        element={
-          <ProtectedRoute adminOnly>
-            <AdminShell><AdminUsers /></AdminShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/settings"
-        element={
-          <ProtectedRoute adminOnly>
-            <AdminShell><AdminSettings /></AdminShell>
-          </ProtectedRoute>
-        }
-      />
+      {/* These stay outside shell (full-page detail views) */}
+      <Route path="/catering/:id"          element={<ProtectedRoute><CateringDetail /></ProtectedRoute>} />
+      <Route path="/catering/:id/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
 
-      {/* Legacy admin route redirect */}
+      {/* Legacy redirects */}
+      <Route path="/my-caterings" element={<Navigate to="/my-events" replace />} />
+      <Route path="/profile"      element={<Navigate to="/settings"  replace />} />
+
+      {/* ── Admin portal ─────────────────────────────── */}
+      <Route path="/admin"                          element={<AdminPage page={<AdminDashboard />} />} />
+      <Route path="/admin/events"                   element={<AdminPage page={<AdminEvents />} />} />
+      <Route path="/admin/events/create"            element={<AdminPage page={<CreateCatering />} />} />
+      <Route path="/admin/catering/:id/edit"        element={<AdminPage page={<EditCatering />} />} />
+      <Route path="/admin/catering/:id/attendance"  element={<AdminPage page={<AttendancePage />} />} />
+      <Route path="/admin/catering/:id/payments"    element={<AdminPage page={<PaymentsPage />} />} />
+      <Route path="/admin/users"                    element={<AdminPage page={<AdminUsers />} />} />
+      <Route path="/admin/settings"                 element={<AdminPage page={<AdminSettings />} />} />
+
+      {/* Legacy admin redirect */}
       <Route path="/admin/create-catering" element={<Navigate to="/admin/events/create" replace />} />
 
       <Route path="*" element={<Navigate to={user ? (isAdmin ? "/admin" : "/") : "/login"} replace />} />
