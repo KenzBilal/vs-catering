@@ -28,6 +28,10 @@
     color: var(--text-primary);
     font-family: 'Gabarito', sans-serif;
     -webkit-font-smoothing: antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
 
   input, select, textarea {
