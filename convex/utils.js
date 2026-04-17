@@ -22,8 +22,11 @@ export function validateRegistrationNumber(regNum) {
 }
 
 /**
- * Validates a phone number (10 digits).
+ * Validates a phone number (10 digits, or with +91 prefix).
  */
 export function validatePhone(phone) {
-  return /^\d{10}$/.test(phone);
+  if (!phone) return false;
+  // Support both 10 digits and +91 format
+  const clean = phone.replace(/\D/g, "");
+  return clean.length === 10 || (clean.length === 12 && clean.startsWith("91"));
 }

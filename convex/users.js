@@ -17,7 +17,8 @@ export const createUser = mutation({
     registrationNumber: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const phone = args.phone.trim();
+    // Sanitize: remove any +91 or spaces to keep 10 digits in DB
+    const phone = args.phone.replace(/\D/g, "").slice(-10);
     if (!validatePhone(phone)) {
       throw new ConvexError("Enter a valid 10-digit mobile number.");
     }
@@ -51,7 +52,8 @@ export const createUser = mutation({
 export const loginUser = mutation({
   args: { phone: v.string(), name: v.string() },
   handler: async (ctx, { phone, name }) => {
-    const cleanPhone = phone.trim();
+    // Sanitize: remove any +91 or spaces to keep 10 digits in DB
+    const cleanPhone = phone.replace(/\D/g, "").slice(-10);
 
     // Enforce valid format before even touching DB
     if (!validatePhone(cleanPhone)) {
