@@ -1,31 +1,25 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
-// Vite environment variables must start with VITE_
+// Vite environment variables
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSy_dummy",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "dummy.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "dummy",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "dummy.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123:web:abc",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-123"
 };
 
-let app;
-let auth;
-
+// Extremely safe initialization
+let auth = null;
 try {
-  // Only initialize if we have at least the API key
-  if (firebaseConfig.apiKey) {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    auth.useDeviceLanguage();
-  } else {
-    console.error("Firebase API Key is missing. Phone Auth will not work.");
-  }
-} catch (error) {
-  console.error("Firebase initialization failed:", error);
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  auth.useDeviceLanguage();
+} catch (e) {
+  console.error("Firebase init failed", e);
 }
 
 export { auth };
