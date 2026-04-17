@@ -1,15 +1,26 @@
 # VS-Catering
 
-A web application for managing catering registrations, attendance, and payments.
+A production-grade web application for managing catering registrations, attendance, and payments.
 
 ---
 
 ## Tech Stack
 
 - **Frontend**: React + Vite
-- **Database**: Convex
+- **Database**: Convex (Serverless Database)
 - **Styling**: Tailwind CSS
 - **Hosting**: Vercel
+
+---
+
+## Architecture & Security
+
+This project employs a robust, server-side verified Role-Based Access Control (RBAC) system. 
+- **Session Tokens**: Rather than storing sensitive user roles locally, users authenticate and receive a secure 30-day session token (UUID).
+- **Backend Enforced**: All data-mutating functions verify the user's token against the `sessions` table. 
+  - `createCatering`, `setUserRole` → Strictly require `admin` privileges.
+  - `markAttendance`, `createPayment` → Require `sub_admin` or `admin` privileges.
+- **Automated Lifecycle**: A server-side Convex Cron Job automatically processes and updates the status of catering events (`upcoming`, `today`, `ended`) every day at midnight IST.
 
 ---
 
@@ -48,11 +59,7 @@ VITE_CONVEX_URL=https://your-convex-deployment.convex.cloud
 
 Convex will print this URL when you run `npx convex dev`.
 
-### Step 4 — Seed the drop points
-
-After Convex is running, open your browser console on the app and run or call the `seedDropPoints` mutation once. This adds Main Gate, Dakoha, and Law Gate as defaults. You can also trigger this from the Convex dashboard.
-
-### Step 5 — Run the app locally
+### Step 4 — Run the app locally
 
 In one terminal:
 ```bash
@@ -68,28 +75,36 @@ The app will be at `http://localhost:5173`.
 
 ---
 
-## Deploying to Vercel
+## Deploying to Vercel (Production)
 
-1. Push this project to a GitHub repository.
-2. Go to [vercel.com](https://vercel.com) and import the repository.
-3. Add environment variable: `VITE_CONVEX_URL` = your Convex URL.
-4. Deploy. Vercel auto-detects Vite.
+To push this site live on Vercel, you need to configure your database for production.
 
-For Convex production deployment:
+### Step 1 — Deploy the Backend
+Run the deployment command:
 ```bash
 npx convex deploy
 ```
+*Convex will deploy your database, tables, cron jobs, and give you a **Production URL** (e.g., `https://utmost-gerbil-978.convex.cloud`).*
+
+### Step 2 — Import & Configure Vercel
+1. Push this project to your GitHub repository.
+2. Go to [Vercel Dashboard](https://vercel.com/dashboard) and import your repository.
+3. In the setup screen, go to **Environment Variables** and add:
+   - Name: `VITE_CONVEX_URL`
+   - Value: `https://utmost-gerbil-978.convex.cloud` *(replace with the URL from Step 1)*
+4. Click **Deploy**. Vercel will auto-detect Vite and build your app.
 
 ---
 
 ## Setting up the first Admin
 
-1. Sign up on the website as a normal student.
-2. Go to the Convex dashboard → Data → users table.
-3. Find your user record and change the `role` field from `"student"` to `"admin"`.
-4. Refresh the app — you will now see the Admin dashboard.
+Because security is strictly enforced on the server side, you cannot make yourself an admin from the frontend app initially.
 
-After that, you can promote other users to sub-admin or admin directly from the Settings page inside the app.
+1. Sign up on the website as a normal student.
+2. Go to the [Convex Dashboard](https://dashboard.convex.dev) → Data → `users` table.
+3. Find your user record and change the `role` field from `"student"` to `"admin"`.
+4. Log out of the app and log back in to get your new session token.
+5. You will now see the Admin dashboard and have permission to promote other users.
 
 ---
 
@@ -112,16 +127,12 @@ After that, you can promote other users to sub-admin or admin directly from the 
 
 ## Features
 
-- Student signup and login with name and phone number
-- Catering listing with status: Today, Tomorrow, Upcoming, Ended
-- Student registration with role selection, drop point, and optional photo
-- Queue system — registrations beyond slot limit go on waiting list
-- Two-day catering support with same or different slots per day
-- Admin creates caterings with all details, dress code, photo requirement
-- Auto-generated WhatsApp message with copyable registration link
-- Sub-admins mark attendance, change roles, record rejections with reason
-- Payment tracking per student per catering — pending and cleared
-- Confirmation step before marking payment as cleared
-- Monthly analytics — total caterings, students, payouts, pending amounts
-- Drop point management from settings
-- Role management — promote students to sub-admin or admin
+- **Hardened Security**: Custom token-based authentication with backend role validation.
+- **Automated Lifecycle**: Cron jobs auto-update event statuses at midnight.
+- **Student Flow**: Signup/login, registration with role selection, drop point, and optional photo.
+- **Queue System**: Registrations beyond slot limit go on a waiting list.
+- **Event Management**: Two-day catering support with same or different slots per day.
+- **Attendance**: Sub-admins mark attendance, change roles, record rejections with reason.
+- **Payments**: Track payments per student per catering (pending, cleared, cash/UPI).
+- **Fast Analytics**: Highly indexed database queries to calculate total caterings, payouts, and pending amounts instantly.
+- **Role Management**: Promote students to sub-admin or admin securely from settings.
