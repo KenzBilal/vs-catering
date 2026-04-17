@@ -1,109 +1,77 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { UserPlus, Phone, User, UtensilsCrossed, MapPin, Hash, ShieldCheck, ArrowRight, RefreshCcw } from "lucide-react";
+import { UserPlus, Mail, Lock, User, MapPin, Hash, Phone, ArrowRight } from "lucide-react";
 import SegmentedControl from "../components/ui/SegmentedControl";
-import { isValidPhone, isValidRegNumber } from "../lib/helpers";
+import { isValidEmail, isValidRegNumber, isValidPhone } from "../lib/helpers";
 import { auth } from "../lib/firebase";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 export default function Signup() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const createUser = useMutation(api.users.createUser);
+  const createUserMutation = useMutation(api.users.createUser);
   const dropPoints = useQuery(api.dropPoints.getDropPoints);
 
   const [form, setForm] = useState({
     name: "",
+    email: "",
+    password: "",
     phone: "",
     stayType: "hostel",
     gender: "male",
     defaultDropPoint: "Main Gate",
     registrationNumber: "",
   });
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState("input"); // input, otp
+  
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState(null);
-
-  useEffect(() => {
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "invisible",
-    });
-  }, []);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const handleSendOTP = async () => {
+  const handleSignup = async (e) => {
+    e?.preventDefault();
     setError("");
+    
     if (!form.name.trim()) return setError("Name is required.");
-    if (!form.phone.trim()) return setError("Phone number is required.");
-    if (!isValidPhone(form.phone)) return setError("Enter a valid 10-digit number.");
+    if (!form.email.trim()) return setError("Email is required.");
+    if (!isValidEmail(form.email)) return setError("Enter a valid email address.");
+    if (form.password.length < 6) return setError("Password must be at least 6 characters.");
     if (form.registrationNumber.trim() && !isValidRegNumber(form.registrationNumber.trim())) {
       return setError("Enter a valid 8-digit registration number.");
     }
     
     setLoading(true);
     try {
-      // Sanitize: Remove all non-numeric characters and handle existing +91
-      const cleanPhone = form.phone.replace(/\D/g, "").slice(-10);
-      const formattedPhone = `+91${cleanPhone}`;
+      // 1. Create account in Firebase
+      await createUserWithEmailAndPassword(auth, form.email.toLowerCase().trim(), form.password);
       
-      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
-      setConfirmationResult(confirmation);
-      setStep("otp");
-    } catch (e) {
-      console.error("Firebase Send OTP Error (Signup):", e);
-      // Reset reCAPTCHA on failure so they can try again
-      if (window.recaptchaVerifier && window.grecaptcha) {
-        try {
-          window.recaptchaVerifier.render().then(widgetId => {
-            window.grecaptcha.reset(widgetId);
-          });
-        } catch (resetErr) {
-          console.error("Failed to reset recaptcha", resetErr);
-        }
-      }
-      const errorCode = e.code || "";
-      let msg = e.message || "Failed to send OTP. Please check your number or try again.";
-      if (errorCode === "auth/unauthorized-domain") {
-        msg = "This domain is not authorized in Firebase. Please add your Vercel URL to Authorized Domains in Firebase Console.";
-      } else if (errorCode === "auth/invalid-app-credential") {
-        msg = "Invalid app credentials. Please check your Firebase API key restrictions and ensure Phone Auth is fully set up.";
-      }
-      setError(`${msg} (${errorCode})`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOTP = async () => {
-    setError("");
-    if (!otp || otp.length < 6) return setError("Enter a valid 6-digit OTP.");
-    
-    setLoading(true);
-    try {
-      await confirmationResult.confirm(otp);
+      // 2. Create user in Convex
+      const { password, ...userData } = form; // Don't send password to Convex
+      const result = await createUserMutation({
+        ...userData,
+        email: form.email.toLowerCase().trim(),
+      });
       
-      // If confirmed, create user in Convex
-      const result = await createUser(form);
       login(result);
       navigate("/", { replace: true });
     } catch (e) {
-      console.error(e);
-      const rawMsg = e.data || e.message || "";
-      const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
+      console.error("Signup Error:", e);
+      const errorCode = e.code || "";
+      let msg = "Failed to create account.";
       
-      if (msg.includes("auth/invalid-verification-code")) {
-        setError("Invalid OTP code. Please try again.");
-      } else if (msg.includes("ConvexError:")) {
-        setError(msg.split("ConvexError:")[1].trim());
-      } else {
-        setError(msg || "Account creation failed.");
+      if (errorCode === "auth/email-already-in-use") msg = "This email is already registered.";
+      if (errorCode === "auth/invalid-email") msg = "Invalid email address.";
+      if (errorCode === "auth/weak-password") msg = "Password is too weak.";
+      
+      const rawMsg = e.data || e.message || "";
+      if (typeof rawMsg === "string" && rawMsg.includes("ConvexError:")) {
+        msg = rawMsg.split("ConvexError:")[1].trim();
       }
+      
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -111,59 +79,81 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-cream-bg">
-      <div id="recaptcha-container"></div>
-      
       <div className="w-full max-w-md animate-slide-up">
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 bg-stone-900 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-stone-900/20">
-            <UtensilsCrossed className="text-cream-50" size={24} />
+            <UserPlus className="text-cream-50" size={24} />
           </div>
-          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
-            {step === "input" ? "Create Account" : "Verify Phone"}
-          </h1>
-          <p className="text-[14.5px] text-stone-500 mt-1 font-medium text-center">
-            {step === "input" 
-              ? "Join Catering" 
-              : `Enter the 6-digit code sent to +91 ${form.phone}`}
-          </p>
+          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Create Account</h1>
+          <p className="text-[14.5px] text-stone-500 mt-1 font-medium text-center">Join the catering team</p>
         </div>
 
         <div className="card p-6 sm:p-8 flex flex-col gap-5 shadow-xl shadow-stone-200/50">
-          {step === "input" ? (
-            <>
+          <form onSubmit={handleSignup} className="flex flex-col gap-5">
+            <div>
+              <label className="label">Full Name</label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Your official name"
+                  className="pl-11"
+                  value={form.name}
+                  onChange={(e) => set("name", e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5">
               <div>
-                <label className="label">Full Name</label>
+                <label className="label">Email Address</label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
                   <input
-                    type="text"
-                    placeholder="Your official name"
+                    type="email"
+                    placeholder="name@example.com"
                     className="pl-11"
-                    value={form.name}
-                    onChange={(e) => set("name", e.target.value)}
+                    value={form.email}
+                    onChange={(e) => set("email", e.target.value)}
+                    disabled={loading}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="label">Phone Number</label>
+                <label className="label">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                  <input
+                    type="password"
+                    placeholder="Min. 6 characters"
+                    className="pl-11"
+                    value={form.password}
+                    onChange={(e) => set("password", e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">Phone <span className="text-stone-400">(Optional)</span></label>
                 <div className="relative">
                   <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-                  <div className="absolute left-10 top-1/2 -translate-y-1/2 text-[14.5px] font-bold text-stone-400 border-r border-stone-200 pr-2">
-                    +91
-                  </div>
                   <input
                     type="tel"
-                    placeholder="10-digit number"
-                    className="pl-20"
+                    placeholder="10-digit"
+                    className="pl-11"
                     value={form.phone}
                     onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    disabled={loading}
                   />
                 </div>
               </div>
-
               <div>
-                <label className="label">LPU Registration Number <span className="text-stone-400 lowercase">(Optional)</span></label>
+                <label className="label">Reg. No. <span className="text-stone-400">(Opt.)</span></label>
                 <div className="relative">
                   <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
                   <input
@@ -172,117 +162,77 @@ export default function Signup() {
                     className="pl-11"
                     value={form.registrationNumber}
                     onChange={(e) => set("registrationNumber", e.target.value.replace(/\D/g, "").slice(0, 8))}
+                    disabled={loading}
                   />
                 </div>
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="label mb-2">Gender</label>
-                  <SegmentedControl
-                    options={[
-                      { label: "Male", value: "male" },
-                      { label: "Female", value: "female" }
-                    ]}
-                    value={form.gender}
-                    onChange={(val) => set("gender", val)}
-                  />
-                </div>
-
-                <div>
-                  <label className="label mb-2">Accommodation</label>
-                  <SegmentedControl
-                    options={[
-                      { label: "Hostel", value: "hostel" },
-                      { label: "Day Scholar", value: "day_scholar" }
-                    ]}
-                    value={form.stayType}
-                    onChange={(val) => set("stayType", val)}
-                  />
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label mb-2">Gender</label>
+                <SegmentedControl
+                  options={[
+                    { label: "Male", value: "male" },
+                    { label: "Female", value: "female" }
+                  ]}
+                  value={form.gender}
+                  onChange={(val) => set("gender", val)}
+                  disabled={loading}
+                />
               </div>
 
               <div>
-                <label className="label">Default Drop Point</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-                  <select
-                    value={form.defaultDropPoint}
-                    className="pl-11"
-                    onChange={(e) => set("defaultDropPoint", e.target.value)}
-                  >
-                    {(dropPoints || ["Main Gate", "Dakoha", "Law Gate"]).map((dp) => (
-                      <option key={dp.name || dp} value={dp.name || dp}>
-                        {dp.name || dp}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <label className="label mb-2">Accommodation</label>
+                <SegmentedControl
+                  options={[
+                    { label: "Hostel", value: "hostel" },
+                    { label: "Day Scholar", value: "day_scholar" }
+                  ]}
+                  value={form.stayType}
+                  onChange={(val) => set("stayType", val)}
+                  disabled={loading}
+                />
               </div>
+            </div>
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium animate-fade-in">
-                  {error}
-                </div>
-              )}
-
-              <button
-                className="btn-primary w-full py-3.5 mt-2 text-[15px]"
-                onClick={handleSendOTP}
-                disabled={loading}
-              >
-                {loading ? "Sending OTP..." : (
-                  <>
-                    Next <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="label">Verification Code</label>
-                <div className="relative">
-                  <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-                  <input
-                    type="text"
-                    placeholder="6-digit code"
-                    value={otp}
-                    className="pl-11 text-center tracking-[0.5em] font-bold text-lg"
-                    maxLength={6}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleVerifyOTP();
-                    }}
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium animate-fade-in">
-                  {error}
-                </div>
-              )}
-
-              <div className="flex flex-col gap-3">
-                <button
-                  className="btn-primary w-full py-3.5 text-[15px]"
-                  onClick={handleVerifyOTP}
+            <div>
+              <label className="label">Default Drop Point</label>
+              <div className="relative">
+                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <select
+                  value={form.defaultDropPoint}
+                  className="pl-11"
+                  onChange={(e) => set("defaultDropPoint", e.target.value)}
                   disabled={loading}
                 >
-                  {loading ? "Verifying..." : "Verify & Create Account"}
-                </button>
-                
-                <button
-                  className="text-[13px] font-bold text-stone-500 hover:text-stone-900 transition-colors flex items-center justify-center gap-1.5"
-                  onClick={() => setStep("input")}
-                  disabled={loading}
-                >
-                  <RefreshCcw size={14} /> Back to Details
-                </button>
+                  {(dropPoints || [{name: "Main Gate"}]).map((dp) => (
+                    <option key={dp.name || dp} value={dp.name || dp}>
+                      {dp.name || dp}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </>
-          )}
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium animate-fade-in">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="btn-primary w-full py-3.5 mt-2 text-[15px]"
+              disabled={loading}
+            >
+              {loading ? "Creating Account..." : (
+                <>
+                  Get Started <ArrowRight size={18} />
+                </>
+              )}
+            </button>
+          </form>
         </div>
 
         <p className="text-[14px] text-center mt-6 font-medium text-stone-500">

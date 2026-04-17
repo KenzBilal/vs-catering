@@ -4,7 +4,8 @@ import { v } from "convex/values";
 export default defineSchema({
   users: defineTable({
     name: v.string(),
-    phone: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     gender: v.union(v.literal("male"), v.literal("female")),
     defaultDropPoint: v.string(),
@@ -13,7 +14,7 @@ export default defineSchema({
     role: v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student")),
     createdAt: v.number(),
   })
-    .index("by_phone", ["phone"]),
+    .index("by_email", ["email"]),
 
   sessions: defineTable({
     userId: v.id("users"),
@@ -23,10 +24,10 @@ export default defineSchema({
 
   // Rate limiting for login attempts
   loginAttempts: defineTable({
-    phone: v.string(),
+    email: v.string(),
     attempts: v.number(),
     windowStart: v.number(), // timestamp of first attempt in current window
-  }).index("by_phone", ["phone"]),
+  }).index("by_email", ["email"]),
 
   dropPoints: defineTable({
     name: v.string(),

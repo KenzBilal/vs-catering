@@ -103,8 +103,14 @@ export function getStatusLabel(status) {
   return map[status] || status;
 }
 
+// Validate Email format
+export function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
 // Validate Indian mobile: 10 digits, starting with 6–9
 export function isValidPhone(phone) {
+  if (!phone) return true; // Optional now
   return /^[6-9]\d{9}$/.test(phone.trim());
 }
 

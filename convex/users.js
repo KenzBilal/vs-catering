@@ -2,7 +2,7 @@ import { v, ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./auth";
 
-import { sanitizeString, validatePhone, validateRegistrationNumber } from "./utils";
+import { sanitizeString, validatePhone, validateRegistrationNumber, validateEmail } from "./utils";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const RATE_LIMIT_MAX = 5;
@@ -10,16 +10,20 @@ const RATE_LIMIT_MAX = 5;
 export const createUser = mutation({
   args: {
     name: v.string(),
-    phone: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     gender: v.union(v.literal("male"), v.literal("female")),
     defaultDropPoint: v.string(),
     registrationNumber: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Sanitize: remove any +91 or spaces to keep 10 digits in DB
-    const phone = args.phone.replace(/\D/g, "").slice(-10);
-    if (!validatePhone(phone)) {
+    const email = args.email.toLowerCase().trim();
+    if (!validateEmail(email)) {
+      throw new ConvexError("Enter a valid email address.");
+    }
+
+    if (args.phone && !validatePhone(args.phone)) {
       throw new ConvexError("Enter a valid 10-digit mobile number.");
     }
 
@@ -32,13 +36,14 @@ export const createUser = mutation({
 
     const existing = await ctx.db
       .query("users")
-      .withIndex("by_phone", (q) => q.eq("phone", phone))
+      .withIndex("by_email", (q) => q.eq("email", email))
       .first();
-    if (existing) throw new ConvexError("This phone number is already registered.");
+    if (existing) throw new ConvexError("This email is already registered.");
 
     const userId = await ctx.db.insert("users", {
       name,
-      phone,
+      email,
+      phone: args.phone ? args.phone.replace(/\D/g, "").slice(-10) : undefined,
       stayType: args.stayType,
       gender: args.gender,
       defaultDropPoint: sanitizeString(args.defaultDropPoint).slice(0, 100),
@@ -57,21 +62,20 @@ export const createUser = mutation({
 });
 
 export const loginUser = mutation({
-  args: { phone: v.string(), name: v.string() },
-  handler: async (ctx, { phone, name }) => {
-    // Sanitize: remove any +91 or spaces to keep 10 digits in DB
-    const cleanPhone = phone.replace(/\D/g, "").slice(-10);
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const cleanEmail = email.toLowerCase().trim();
 
     // Enforce valid format before even touching DB
-    if (!validatePhone(cleanPhone)) {
-      throw new ConvexError("Enter a valid 10-digit mobile number.");
+    if (!validateEmail(cleanEmail)) {
+      throw new ConvexError("Enter a valid email address.");
     }
 
     // Rate limiting
     const now = Date.now();
     const attemptRecord = await ctx.db
       .query("loginAttempts")
-      .withIndex("by_phone", (q) => q.eq("phone", cleanPhone))
+      .withIndex("by_email", (q) => q.eq("email", cleanEmail))
       .first();
 
     if (attemptRecord) {
@@ -88,10 +92,10 @@ export const loginUser = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_phone", (q) => q.eq("phone", cleanPhone))
+      .withIndex("by_email", (q) => q.eq("email", cleanEmail))
       .first();
 
-    if (!user || user.name.toLowerCase() !== name.toLowerCase().trim()) {
+    if (!user) {
       // Record failed attempt
       if (attemptRecord) {
         const withinWindow = now - attemptRecord.windowStart < RATE_LIMIT_WINDOW_MS;
@@ -100,7 +104,7 @@ export const loginUser = mutation({
           windowStart: withinWindow ? attemptRecord.windowStart : now,
         });
       } else {
-        await ctx.db.insert("loginAttempts", { phone: cleanPhone, attempts: 1, windowStart: now });
+        await ctx.db.insert("loginAttempts", { email: cleanEmail, attempts: 1, windowStart: now });
       }
       return null;
     }
