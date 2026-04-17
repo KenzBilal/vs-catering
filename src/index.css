@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --cream-bg: #faf4e8;
+    --cream-card: #fdfaf5;
+    --cream-border: #e8dcc8;
+    --cream-muted: #c9b99a;
+    --text-primary: #1c1916;
+    --text-secondary: #5c524a;
+    --text-muted: #8c7e72;
+    --accent: #2c2420;
+    --accent-hover: #1c1510;
+    --status-upcoming: #1a5c3a;
+    --status-today: #8b3a00;
+    --status-tomorrow: #1a3a6b;
+    --status-ended: #5c524a;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    background-color: var(--cream-bg);
+    color: var(--text-primary);
+    font-family: 'Gabarito', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  input, select, textarea {
+    background-color: var(--cream-card);
+    border: 1px solid var(--cream-border);
+    color: var(--text-primary);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: 'Gabarito', sans-serif;
+    font-size: 15px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+
+  input::placeholder {
+    color: var(--text-muted);
+  }
+
+  button {
+    font-family: 'Gabarito', sans-serif;
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-stone-800 text-cream-50 px-5 py-2.5 rounded-md text-sm font-medium hover:bg-stone-900 transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-cream-100 text-stone-800 border border-cream-300 px-5 py-2.5 rounded-md text-sm font-medium hover:bg-cream-200 transition-colors;
+  }
+
+  .btn-danger {
+    @apply bg-red-700 text-white px-5 py-2.5 rounded-md text-sm font-medium hover:bg-red-800 transition-colors;
+  }
+
+  .card {
+    background: var(--cream-card);
+    border: 1px solid var(--cream-border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  .label {
+    @apply block text-xs font-medium uppercase tracking-wide mb-1.5;
+    color: var(--text-muted);
+  }
+
+  .badge-upcoming {
+    background: #e8f5ee;
+    color: var(--status-upcoming);
+    border: 1px solid #b8dfc8;
+    @apply text-xs font-medium px-2.5 py-0.5 rounded-full;
+  }
+
+  .badge-today {
+    background: #fdf0e6;
+    color: var(--status-today);
+    border: 1px solid #f5d0aa;
+    @apply text-xs font-medium px-2.5 py-0.5 rounded-full;
+  }
+
+  .badge-tomorrow {
+    background: #e8eef8;
+    color: var(--status-tomorrow);
+    border: 1px solid #b8cce8;
+    @apply text-xs font-medium px-2.5 py-0.5 rounded-full;
+  }
+
+  .badge-ended {
+    background: #f0ece8;
+    color: var(--status-ended);
+    border: 1px solid #d8cfc8;
+    @apply text-xs font-medium px-2.5 py-0.5 rounded-full;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--cream-border);
+    margin: 16px 0;
+  }
+
+  .page-container {
+    @apply max-w-2xl mx-auto px-4 py-6;
+  }
+
+  .section-title {
+    @apply text-base font-semibold mb-4;
+    color: var(--text-primary);
+  }
+}
