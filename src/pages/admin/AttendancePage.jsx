@@ -60,8 +60,8 @@ export default function AttendancePage() {
     if (statusFilter !== "all" && r.status !== statusFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      const nameMatch = r.user?.name?.toLowerCase().includes(q);
-      const phoneMatch = r.user?.phone?.includes(q);
+      const nameMatch = (r.user?.name?.toLowerCase() || "").includes(q);
+      const phoneMatch = (r.user?.phone || "").includes(q);
       if (!nameMatch && !phoneMatch) return false;
     }
     return true;

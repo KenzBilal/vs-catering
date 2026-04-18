@@ -124,14 +124,14 @@ export const getRegistrationsByCatering = query({
             _id: r._id,
             role: r.role,
             isConfirmed: r.isConfirmed,
-            user: {
+            user: user ? {
               name: user.name,
-              photoStorageId: user.photoStorageId, // Photos are generally fine for a social list
-            }
+              photoStorageId: user.photoStorageId,
+            } : { name: "Deleted User", photoStorageId: null }
           };
         }
 
-        return { ...r, user };
+        return { ...r, user: user || { name: "Deleted User" } };
       })
     );
 
