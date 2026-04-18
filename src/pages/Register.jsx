@@ -9,6 +9,7 @@ import ConvexImage from "../components/shared/ConvexImage"; // #10: was missing
 import { ArrowLeft, CheckCircle2, UserCheck, MapPin, AlertCircle, Shirt, Camera, XCircle } from "lucide-react";
 import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
 import ErrorState from "../components/shared/ErrorState";
+import toast from "react-hot-toast";
 
 const MAX_PHOTO_SIZE_MB = 5;
 
@@ -18,8 +19,8 @@ export default function Register() {
   const navigate = useNavigate();
 
   // #9: ALL hooks must be declared before any conditional returns
-  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id });
-  const dropPointsRaw = useQuery(api.dropPoints.getDropPoints);
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id, token });
+  const dropPointsRaw = useQuery(api.dropPoints.getDropPoints, { token });
   const { data: catering, timedOut: catTimeout } = useQueryWithTimeout(cateringRaw);
   const { data: dropPoints, timedOut: dpTimeout } = useQueryWithTimeout(dropPointsRaw);
   const registerMutation = useMutation(api.registrations.register);
@@ -34,9 +35,21 @@ export default function Register() {
   const [dropPoint, setDropPoint] = useState(user?.defaultDropPoint || "Main Gate");
   const [selectedDays, setSelectedDays] = useState([0]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreview(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
+
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [done, setDone] = useState(false);
 
   // Early returns after all hooks
@@ -50,8 +63,9 @@ export default function Register() {
   const availableRoles = [...new Set(catering.slots.filter((s) => s.day === 0 && s.limit > 0).map((s) => s.role))];
 
   const filteredRoles = availableRoles.filter((r) => {
-    if (user.gender === "male") return r === "service_boy" || r === "captain_male";
-    return r === "service_girl" || r === "captain_female";
+    if (user?.gender === "male") return r === "service_boy" || r === "captain_male";
+    if (user?.gender === "female") return r === "service_girl" || r === "captain_female";
+    return false;
   });
 
   const daysToRegister = catering.isTwoDay && catering.joinRule === "both_days" ? [0, 1] : selectedDays;
@@ -66,20 +80,29 @@ export default function Register() {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
-      setError(`Photo must be under ${MAX_PHOTO_SIZE_MB}MB.`);
+      setErrors((prev) => ({ ...prev, photo: `Photo must be under ${MAX_PHOTO_SIZE_MB}MB.` }));
       return;
     }
-    setError("");
+    if (errors.photo) setErrors((prev) => ({ ...prev, photo: "" }));
     setSelectedFile(file);
   };
 
   const handleSubmit = async () => {
-    setError("");
-    if (!role) return setError("Please select a role.");
-    if (daysToRegister.length === 0) return setError("Please select at least one day.");
+    setErrors({});
+    let hasError = false;
+    const newErrors = {};
+
+    if (!role) { newErrors.role = "Please select a role."; hasError = true; }
+    if (daysToRegister.length === 0) { newErrors.days = "Please select at least one day."; hasError = true; }
     if (catering.photoRequired && !selectedFile && !user?.photoStorageId) {
-      return setError("Please upload a photo to register.");
+      newErrors.photo = "Please upload a photo to register."; hasError = true;
     }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -123,11 +146,12 @@ export default function Register() {
       }
 
       setDone(true);
+      toast.success("Successfully registered!");
     } catch (e) {
       const rawMsg = e.data || e.message || "";
       const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
       const cleanMsg = msg.replace(/^\[CONVEX [A-Z]\([^)]+\)\]\s*/, "");
-      setError(cleanMsg.includes("ConvexError:") ? cleanMsg.split("ConvexError:")[1].trim() : cleanMsg);
+      toast.error(cleanMsg.includes("ConvexError:") ? cleanMsg.split("ConvexError:")[1].trim() : cleanMsg);
     } finally {
       setLoading(false);
       setUploading(false);
@@ -182,7 +206,7 @@ export default function Register() {
               return (
                 <button
                   key={r}
-                  onClick={() => setRole(r)}
+                  onClick={() => { setRole(r); if(errors.role) setErrors(e=>({...e, role:""})); }}
                   className={`flex justify-between items-center px-4 py-3 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
                     isSelected
                       ? "bg-stone-800 border-stone-800 shadow-md text-cream-50"
@@ -201,6 +225,7 @@ export default function Register() {
                 </p>
               </div>
             )}
+            {errors.role && <p className="text-[12.5px] text-red-600 font-medium mt-1 ml-1">{errors.role}</p>}
           </div>
         </div>
 
@@ -215,7 +240,7 @@ export default function Register() {
                 return (
                   <button
                     key={i}
-                    onClick={() => handleDayToggle(i)}
+                    onClick={() => { handleDayToggle(i); if(errors.days) setErrors(e=>({...e, days:""})); }}
                     className={`flex-1 py-3 rounded-xl border text-[14px] font-semibold transition-all duration-200 active:scale-[0.98] ${
                       isSelected
                         ? "bg-stone-800 border-stone-800 text-cream-50"
@@ -227,6 +252,7 @@ export default function Register() {
                 );
               })}
             </div>
+            {errors.days && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.days}</p>}
           </div>
         )}
 
@@ -269,17 +295,17 @@ export default function Register() {
                   </label>
                 </div>
               ) : !selectedFile ? (
-                <div className="relative border-2 border-dashed border-cream-200 rounded-2xl p-8 flex flex-col items-center justify-center hover:border-stone-300 transition-colors cursor-pointer group">
+                <div className={`relative border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center hover:border-stone-300 transition-colors cursor-pointer group ${errors.photo ? 'border-red-300 bg-red-50/30' : 'border-cream-200'}`}>
                   <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} />
                   <div className="w-12 h-12 bg-cream-50 rounded-full flex items-center justify-center mb-3 group-hover:bg-cream-100 transition-colors">
-                    <Camera size={24} className="text-stone-400" />
+                    <Camera size={24} className={errors.photo ? 'text-red-400' : 'text-stone-400'} />
                   </div>
-                  <p className="text-[13.5px] font-semibold text-stone-600">Click to upload photo</p>
+                  <p className={`text-[13.5px] font-semibold ${errors.photo ? 'text-red-600' : 'text-stone-600'}`}>Click to upload photo</p>
                   <p className="text-[11px] text-stone-400 mt-1 font-medium">PNG, JPG up to {MAX_PHOTO_SIZE_MB}MB</p>
                 </div>
               ) : (
                 <div className="relative rounded-2xl overflow-hidden border border-cream-200 bg-white p-2">
-                  <img src={URL.createObjectURL(selectedFile)} className="w-full h-48 object-cover rounded-xl" alt="Preview" />
+                  <img src={preview} className="w-full h-48 object-cover rounded-xl" alt="Preview" />
                   <button
                     onClick={() => setSelectedFile(null)}
                     className="absolute top-4 right-4 bg-white/90 backdrop-blur shadow-sm p-2 rounded-full text-red-600 hover:bg-white transition-colors"
@@ -300,6 +326,7 @@ export default function Register() {
                 </div>
               )}
             </div>
+            {errors.photo && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.photo}</p>}
             {selectedFile && (
               <p className="text-[11px] text-[#8b3a00] font-bold mt-2 px-1 flex items-center gap-1.5">
                 <AlertCircle size={12} /> This will also update your account profile photo.
@@ -308,11 +335,6 @@ export default function Register() {
           </div>
         )}
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium animate-fade-in">
-            {error}
-          </div>
-        )}
 
         <button
           className="btn-primary w-full py-4 mt-2"

@@ -7,6 +7,9 @@ import { useState } from "react";
 import { CalendarDays, CheckCircle2, Clock, AlertCircle, XCircle, ArrowRight, AlertTriangle } from "lucide-react";
 import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
 import ErrorState from "../components/shared/ErrorState";
+import LoadingState from "../components/shared/LoadingState";
+import EmptyState from "../components/shared/EmptyState";
+import toast from "react-hot-toast";
 
 const ATTENDANCE_STYLE = {
   attended:   { text: "Attended", color: "text-[#1a5c3a]", bg: "bg-[#e8f5ee]" },
@@ -17,7 +20,7 @@ const ATTENDANCE_STYLE = {
 
 export default function MyEvents() {
   const { user, token } = useAuth();
-  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id, token });
   const paymentsRaw = useQuery(api.payments.getPaymentsByUser, { userId: user._id });
   const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
   const { data: payments, timedOut: payTimeout } = useQueryWithTimeout(paymentsRaw);
@@ -40,6 +43,7 @@ export default function MyEvents() {
     try {
       await cancelRegistration({ registrationId: confirmCancel, token });
       setConfirmCancel(null);
+      toast.success("Registration cancelled");
     } catch (e) {
       setCancelError(e.message || "Failed to cancel.");
     } finally {
@@ -78,18 +82,16 @@ export default function MyEvents() {
       )}
 
       {registrations === undefined && (
-        <div className="animate-pulse flex flex-col gap-3">
-          {[1, 2].map((n) => <div key={n} className="h-40 bg-cream-100 rounded-2xl" />)}
-        </div>
+        <LoadingState rows={2} />
       )}
 
       {registrations !== undefined && registrations.length === 0 && (
-        <div className="card bg-white text-center py-16">
-          <CalendarDays size={40} className="mx-auto text-cream-300 mb-3" />
-          <p className="font-semibold text-stone-600">No registrations yet.</p>
-          <p className="text-stone-400 text-[13.5px] mt-1 mb-6">Browse events and register for one.</p>
-          <Link to="/"><button className="btn-primary py-2.5 px-5 text-[14px]">Browse Events <ArrowRight size={15} /></button></Link>
-        </div>
+        <EmptyState 
+          icon={CalendarDays} 
+          title="No registrations yet" 
+          description="Browse events and register for one to see them here." 
+          action={{ label: "Browse Events", href: "/" }}
+        />
       )}
 
       <div className="flex flex-col gap-4">

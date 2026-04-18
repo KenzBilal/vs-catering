@@ -7,14 +7,17 @@ import { useState } from "react";
 import { ArrowLeft, MapPin, CalendarDays, CheckCircle2, Clock, IndianRupee, HandCoins } from "lucide-react";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
+import LoadingState from "../../components/shared/LoadingState";
+import EmptyState from "../../components/shared/EmptyState";
+import toast from "react-hot-toast";
 
 export default function PaymentsPage() {
   const { id } = useParams();
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id });
-  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id });
-  const paymentsRaw = useQuery(api.payments.getPaymentsByCatering, { cateringId: id });
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id, token });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id, token });
+  const paymentsRaw = useQuery(api.payments.getPaymentsByCatering, { cateringId: id, token });
   const { data: catering, timedOut: catTimeout } = useQueryWithTimeout(cateringRaw);
   const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
   const { data: payments, timedOut: payTimeout } = useQueryWithTimeout(paymentsRaw);
@@ -54,6 +57,9 @@ export default function PaymentsPage() {
         method,
         token,
       });
+      toast.success("Payment added to pending");
+    } catch (e) {
+      toast.error(e.message || "Failed to create payment");
     } finally {
       setSaving((s) => ({ ...s, [reg._id]: false }));
     }
@@ -68,6 +74,9 @@ export default function PaymentsPage() {
         token,
       });
       setConfirmClear(null);
+      toast.success("Payment marked as paid");
+    } catch (e) {
+      toast.error(e.message || "Failed to clear payment");
     } finally {
       setSaving((s) => ({ ...s, [paymentId]: false }));
     }
@@ -119,21 +128,23 @@ export default function PaymentsPage() {
       </div>
 
       {catering?.status === "upcoming" && (
-        <div className="card text-center py-16 bg-white border-dashed">
-          <Clock size={48} className="mx-auto text-cream-300 mb-4" />
-          <p className="text-stone-500 font-bold text-[17px]">Event has not started yet</p>
-          <p className="text-stone-400 text-[14px] mt-2 max-w-sm mx-auto font-medium">
-            Payment management will be available once the event starts and attendance is marked.
-          </p>
-        </div>
+        <EmptyState 
+          icon={Clock} 
+          title="Event has not started yet" 
+          description="Payment management will be available once the event starts and attendance is marked." 
+        />
       )}
 
-      {catering?.status !== "upcoming" && attendedRegs.length === 0 && (
-        <div className="card text-center py-12">
-          <HandCoins size={48} className="mx-auto text-cream-300 mb-4" />
-          <p className="text-stone-500 font-medium text-[15px]">No attended students yet.</p>
-          <p className="text-stone-400 text-[14px] mt-1">Mark attendance first before managing payments.</p>
-        </div>
+      {catering?.status !== "upcoming" && registrations === undefined && (
+        <LoadingState rows={3} />
+      )}
+
+      {catering?.status !== "upcoming" && registrations !== undefined && attendedRegs.length === 0 && (
+        <EmptyState 
+          icon={HandCoins} 
+          title="No attended students yet" 
+          description="Mark attendance first before managing payments." 
+        />
       )}
 
       {catering?.status !== "upcoming" && attendedRegs.length > 0 && (

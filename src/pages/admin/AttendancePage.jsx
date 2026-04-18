@@ -8,13 +8,16 @@ import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Users, MapPin, CalendarD
 import ConvexImage from "../../components/shared/ConvexImage";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
+import LoadingState from "../../components/shared/LoadingState";
+import EmptyState from "../../components/shared/EmptyState";
+import toast from "react-hot-toast";
 
 export default function AttendancePage() {
   const { user, token } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
-  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id });
-  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id });
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id, token });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id, token });
   const { data: catering, timedOut: catTimeout } = useQueryWithTimeout(cateringRaw);
   const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
   const markAttendance = useMutation(api.registrations.markAttendance);
@@ -35,13 +38,21 @@ export default function AttendancePage() {
     setSaving((s) => ({ ...s, [regId]: true }));
     try {
       await markAttendance({ registrationId: regId, status, token, ...(reason ? { rejectionReason: reason } : {}) });
+      toast.success(`Marked as ${status}`);
+    } catch (e) {
+      toast.error(e.message || `Failed to mark ${status}`);
     } finally {
       setSaving((s) => ({ ...s, [regId]: false }));
     }
   };
 
   const handleRoleChange = async (regId, role) => {
-    await changeRole({ registrationId: regId, role, token });
+    try {
+      await changeRole({ registrationId: regId, role, token });
+      toast.success("Role updated");
+    } catch (e) {
+      toast.error(e.message || "Failed to update role");
+    }
   };
 
   const filtered = (registrations || []).filter((r) => {
@@ -49,8 +60,8 @@ export default function AttendancePage() {
     if (statusFilter !== "all" && r.status !== statusFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      const nameMatch = r.user?.name.toLowerCase().includes(q);
-      const phoneMatch = r.user?.phone.includes(q);
+      const nameMatch = r.user?.name?.toLowerCase().includes(q);
+      const phoneMatch = r.user?.phone?.includes(q);
       if (!nameMatch && !phoneMatch) return false;
     }
     return true;
@@ -133,8 +144,14 @@ export default function AttendancePage() {
 
       {catering?.status !== "upcoming" && (
         <>
-          {registrations === undefined && <p className="text-stone-500 text-[14px] animate-pulse">Loading students...</p>}
-          {registrations?.length === 0 && <p className="text-stone-500 text-[14px]">No registrations yet.</p>}
+          {registrations === undefined && <LoadingState rows={3} />}
+          {registrations !== undefined && filtered.length === 0 && (
+            <EmptyState 
+              icon={Users} 
+              title="No registrations found" 
+              description={searchQuery || roleFilter !== 'all' || statusFilter !== 'all' ? "Try adjusting your filters or search term." : "No students have registered for this event yet."}
+            />
+          )}
 
           <div className="flex flex-col gap-4">
         {filtered.map((reg) => (

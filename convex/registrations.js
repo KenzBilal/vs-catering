@@ -46,14 +46,18 @@ export const register = mutation({
       if (!/^https?:\/\/.+/.test(photoUrl)) throw new ConvexError("Photo URL must be a valid http/https link.");
     }
 
-    // #15: Queue position is per-role per-day (not global across all days)
+    // #15: Queue position is per-role per-day
     const primaryDay = args.days[0];
-    const allRegsForSlot = await ctx.db
+    const sameRoleRegs = await ctx.db
       .query("registrations")
-      .withIndex("by_catering", (q) => q.eq("cateringId", args.cateringId))
+      .withIndex("by_catering_role", (q) => 
+        q.eq("cateringId", args.cateringId).eq("role", args.role)
+      )
       .collect();
-    const sameRoleDayRegs = allRegsForSlot.filter((r) => r.role === args.role && r.days.includes(primaryDay));
-    const queuePosition = sameRoleDayRegs.length + 1;
+    
+    const sameRoleDayRegs = sameRoleRegs.filter((r) => r.days.includes(primaryDay));
+    const maxPos = sameRoleDayRegs.reduce((max, r) => Math.max(max, r.queuePosition || 0), 0);
+    const queuePosition = maxPos + 1;
 
     const slot = catering.slots.find((s) => s.role === args.role && s.day === primaryDay);
     const isConfirmed = slot ? queuePosition <= slot.limit : false;
@@ -67,6 +71,8 @@ export const register = mutation({
       if (args.role !== "service_girl" && args.role !== "captain_female") {
         throw new ConvexError("Females can only register as Service Girl or Captain.");
       }
+    } else {
+      throw new ConvexError("Your profile is missing gender information. Please update your profile before registering.");
     }
 
     // Persistent photo: save new upload to profile or reuse existing
@@ -96,27 +102,57 @@ export const register = mutation({
 // ─── getRegistrationsByCatering ───────────────────────────────────────────────
 
 export const getRegistrationsByCatering = query({
-  args: { cateringId: v.id("caterings") },
-  handler: async (ctx, { cateringId }) => {
+  args: { cateringId: v.id("caterings"), token: v.string() },
+  handler: async (ctx, { cateringId, token }) => {
+    const caller = await getUserFromToken(ctx, token);
+    if (!caller) throw new ConvexError("Not authenticated.");
+
+    const isAdmin = caller.role === "admin" || caller.role === "sub_admin";
+
     const regs = await ctx.db
       .query("registrations")
       .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
       .collect();
+    
     const withUsers = await Promise.all(
       regs.map(async (r) => {
         const user = await ctx.db.get(r.userId);
+        if (!user) return null;
+
+        // If not admin, hide sensitive data
+        if (!isAdmin) {
+          return {
+            _id: r._id,
+            role: r.role,
+            isConfirmed: r.isConfirmed,
+            user: {
+              name: user.name,
+              photoStorageId: user.photoStorageId, // Photos are generally fine for a social list
+            }
+          };
+        }
+
         return { ...r, user };
       })
     );
-    return withUsers;
+
+    return withUsers.filter(r => r !== null);
   },
 });
 
 // ─── getRegistrationsByUser ───────────────────────────────────────────────────
 
 export const getRegistrationsByUser = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, { userId }) => {
+  args: { userId: v.id("users"), token: v.string() },
+  handler: async (ctx, { userId, token }) => {
+    const caller = await getUserFromToken(ctx, token);
+    if (!caller) throw new ConvexError("Not authenticated.");
+    
+    // Authorization: User can see their own, or admin can see any
+    if (caller._id !== userId && caller.role !== "admin" && caller.role !== "sub_admin") {
+      throw new ConvexError("Unauthorized access.");
+    }
+
     const regs = await ctx.db
       .query("registrations")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -166,6 +202,7 @@ export const changeRole = mutation({
     token: v.string(),
   },
   handler: async (ctx, { registrationId, role, token }) => {
+    await requireSubAdmin(ctx, token);
     if (!VALID_ROLES.includes(role)) throw new ConvexError("Invalid role.");
     const reg = await ctx.db.get(registrationId);
     if (!reg) throw new ConvexError("Registration not found.");
@@ -203,7 +240,10 @@ export const cancelRegistration = mutation({
 
     const catering = await ctx.db.get(reg.cateringId);
     if (catering?.status === "ended") throw new ConvexError("This event has already ended.");
-    if (reg.status === "attended") throw new ConvexError("Cannot cancel — you have already been marked as attended.");
+    
+    if (reg.status !== "registered") {
+      throw new ConvexError(`Cannot cancel registration once you have been marked as ${reg.status}.`);
+    }
 
     const wasConfirmed = reg.isConfirmed;
     await ctx.db.delete(registrationId);
@@ -221,7 +261,11 @@ export const cancelRegistration = mutation({
           .filter((r) => r.role === reg.role && r.days.includes(reg.days[0]) && !r.isConfirmed)
           .sort((a, b) => a.queuePosition - b.queuePosition);
 
-        if (waitlisted.length > 0) {
+        const confirmedCount = allRegs.filter(
+          (r) => r.role === reg.role && r.days.includes(reg.days[0]) && r.isConfirmed
+        ).length;
+
+        if (waitlisted.length > 0 && confirmedCount < slot.limit) {
           await ctx.db.patch(waitlisted[0]._id, { isConfirmed: true });
         }
       }

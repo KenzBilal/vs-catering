@@ -21,13 +21,38 @@ function computeStatus(dates) {
   return "upcoming";
 }
 
+const MAX_PAY_PER_SLOT = 10000;
+
 function validateSlots(slots) {
   for (const s of slots) {
     if (!Number.isInteger(s.limit) || s.limit < 0) throw new ConvexError("Slot limit cannot be negative.");
+    if (s.limit > 500) throw new ConvexError("Slot limit is too high.");
     if (typeof s.pay !== "number" || s.pay < 0) throw new ConvexError("Pay cannot be negative.");
+    if (s.pay > MAX_PAY_PER_SLOT) throw new ConvexError(`Pay exceeds maximum limit (₹${MAX_PAY_PER_SLOT}).`);
     if (!["service_boy", "service_girl", "captain_male", "captain_female"].includes(s.role)) {
       throw new ConvexError(`Unknown role: ${s.role}`);
     }
+  }
+}
+
+function validateDates(dates, isTwoDay) {
+  if (dates.length === 0) throw new ConvexError("At least one date is required.");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const d1 = new Date(dates[0]);
+  if (isNaN(d1.getTime())) throw new ConvexError("Invalid date format.");
+  if (d1 < today) throw new ConvexError("Cannot create an event for a past date.");
+  
+  const maxFuture = new Date();
+  maxFuture.setFullYear(maxFuture.getFullYear() + 1);
+  if (d1 > maxFuture) throw new ConvexError("Cannot schedule events more than 1 year in advance.");
+
+  if (isTwoDay) {
+    if (dates.length < 2) throw new ConvexError("Second date is required for two-day events.");
+    const d2 = new Date(dates[1]);
+    if (isNaN(d2.getTime())) throw new ConvexError("Invalid second date format.");
+    if (d2 <= d1) throw new ConvexError("Second date must be after the first date.");
   }
 }
 
@@ -58,7 +83,8 @@ export const createCatering = mutation({
     const place = sanitizeString(args.place).slice(0, 200);
     const dressCodeNotes = sanitizeString(args.dressCodeNotes).slice(0, 2000);
     if (!place) throw new ConvexError("Place is required.");
-    if (args.dates.length === 0) throw new ConvexError("At least one date is required.");
+    
+    validateDates(args.dates, args.isTwoDay);
     validateSlots(args.slots);
 
     const { token, place: _p, dressCodeNotes: _d, ...rest } = args;
@@ -135,8 +161,14 @@ export const cancelCatering = mutation({
 });
 
 export const listCaterings = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const caller = await getUserFromToken(ctx, token);
+    if (!caller) throw new ConvexError("Not authenticated.");
+
+    // Helper for role checks
+    const isAdmin = caller.role === "admin" || caller.role === "sub_admin";
+
     const all = await ctx.db.query("caterings").order("desc").collect();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -153,8 +185,10 @@ export const listCaterings = query({
 });
 
 export const getCatering = query({
-  args: { cateringId: v.id("caterings") },
-  handler: async (ctx, { cateringId }) => {
+  args: { cateringId: v.id("caterings"), token: v.string() },
+  handler: async (ctx, { cateringId, token }) => {
+    const user = await getUserFromToken(ctx, token);
+    if (!user) throw new ConvexError("Not authenticated.");
     return await ctx.db.get(cateringId);
   },
 });

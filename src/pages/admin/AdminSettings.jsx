@@ -5,10 +5,11 @@ import { useState } from "react";
 import { MapPin, Plus, Trash2 } from "lucide-react";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
+import toast from "react-hot-toast";
 
 export default function AdminSettings() {
-  const { user } = useAuth();
-  const dropPointsRaw = useQuery(api.dropPoints.getDropPoints);
+  const { user, token } = useAuth();
+  const dropPointsRaw = useQuery(api.dropPoints.getDropPoints, { token });
   const { data: dropPoints, timedOut } = useQueryWithTimeout(dropPointsRaw);
   const addDropPoint = useMutation(api.dropPoints.addDropPoint);
   const deactivateDropPoint = useMutation(api.dropPoints.deactivateDropPoint);
@@ -31,9 +32,15 @@ export default function AdminSettings() {
   const handleAddDrop = async () => {
     if (!newDrop.trim()) return;
     setAddingDrop(true);
-    await addDropPoint({ name: newDrop.trim() });
+    await addDropPoint({ name: newDrop.trim(), token });
+    toast.success("Drop point added");
     setNewDrop("");
     setAddingDrop(false);
+  };
+
+  const handleDeactivate = async (id) => {
+    await deactivateDropPoint({ dropPointId: id, token });
+    toast.success("Drop point removed");
   };
 
   return (
@@ -64,7 +71,7 @@ export default function AdminSettings() {
                 <span className="text-[14.5px] font-semibold text-stone-800">{dp.name}</span>
                 {dp.name !== "Main Gate" && (
                   <button
-                    onClick={() => deactivateDropPoint({ dropPointId: dp._id })}
+                    onClick={() => handleDeactivate(dp._id)}
                     className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-all active:scale-95"
                   >
                     <Trash2 size={15} />

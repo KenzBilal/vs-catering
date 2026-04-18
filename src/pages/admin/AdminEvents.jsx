@@ -7,13 +7,16 @@ import { Plus, Search, UserCheck, CreditCard, CalendarDays, Clock, Users, Edit, 
 import { useAuth } from "../../lib/AuthContext";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
+import LoadingState from "../../components/shared/LoadingState";
+import EmptyState from "../../components/shared/EmptyState";
+import toast from "react-hot-toast";
 
 const STATUS_FILTERS = ["All", "Upcoming", "Today", "Tomorrow", "Ended"];
 
 export default function AdminEvents() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const cateringsRaw = useQuery(api.caterings.listCaterings);
+  const cateringsRaw = useQuery(api.caterings.listCaterings, { token });
   const { data: caterings, timedOut } = useQueryWithTimeout(cateringsRaw);
   const cancelCatering = useMutation(api.caterings.cancelCatering);
 
@@ -40,6 +43,7 @@ export default function AdminEvents() {
     try {
       await cancelCatering({ cateringId, token });
       setConfirmCancel(null);
+      toast.success("Event cancelled successfully");
     } catch (e) {
       setCancelError(e.message || "Failed to cancel event.");
     } finally {
@@ -97,22 +101,16 @@ export default function AdminEvents() {
 
       {/* Loading skeleton */}
       {caterings === undefined && (
-        <div className="flex flex-col gap-3 animate-pulse">
-          {[1, 2, 3].map((n) => (
-            <div key={n} className="h-28 bg-cream-100 rounded-2xl w-full" />
-          ))}
-        </div>
+        <LoadingState rows={3} />
       )}
 
       {/* Empty */}
       {caterings !== undefined && filtered.length === 0 && (
-        <div className="card text-center py-16 bg-white">
-          <CalendarDays size={40} className="mx-auto text-cream-300 mb-3" />
-          <p className="font-semibold text-stone-600 text-[15px]">No events found.</p>
-          {search && (
-            <p className="text-stone-400 text-[13px] mt-1">Try a different search term.</p>
-          )}
-        </div>
+        <EmptyState 
+          icon={CalendarDays} 
+          title="No events found" 
+          description={search ? "Try a different search term or filter." : "There are no events matching your current filter."}
+        />
       )}
 
       {/* Event list */}

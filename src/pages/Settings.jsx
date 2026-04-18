@@ -9,6 +9,7 @@ import ConvexImage from "../components/shared/ConvexImage";
 import { isValidRegNumber } from "../lib/helpers";
 import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
 import ErrorState from "../components/shared/ErrorState";
+import toast from "react-hot-toast";
 
 const ROLE_LABEL = { student: "Student", sub_admin: "Sub-Admin", admin: "Admin" };
 const ROLE_BADGE = {
@@ -19,7 +20,7 @@ const ROLE_BADGE = {
 
 export default function Settings() {
   const { user, token, login } = useAuth();
-  const dropPointsRaw = useQuery(api.dropPoints.getDropPoints);
+  const dropPointsRaw = useQuery(api.dropPoints.getDropPoints, { token });
   const { data: dropPoints, timedOut } = useQueryWithTimeout(dropPointsRaw);
   const updatePrefs = useMutation(api.users.updatePreferences);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
@@ -34,13 +35,12 @@ export default function Settings() {
   const [loading, setLoading]     = useState(false);
   const [uploading, setUploading] = useState(false);
   const [regNumber, setRegNumber] = useState(user?.registrationNumber || "");
-  const [error, setError]         = useState(""); // #8: was missing, caused crash on save failure
+  const [errors, setErrors]       = useState({});
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-    setError("");
     try {
       const postUrl = await generateUploadUrl();
       const result = await fetch(postUrl, {
@@ -52,18 +52,19 @@ export default function Settings() {
       // #2: Pass token, not raw userId
       await updatePrefs({ token, defaultDropPoint: dropPoint, stayType, photoStorageId: storageId, registrationNumber: regNumber });
       login({ ...user, photoStorageId: storageId, registrationNumber: regNumber });
+      toast.success("Profile photo updated");
     } catch (e) {
       const rawMsg = e.data || e.message || "";
-      setError(typeof rawMsg === "string" ? rawMsg.replace(/.*ConvexError:\s*/, "") : "Photo upload failed.");
+      toast.error(typeof rawMsg === "string" ? rawMsg.replace(/.*ConvexError:\s*/, "") : "Photo upload failed.");
     } finally {
       setUploading(false);
     }
   };
 
   const handleSave = async () => {
-    setError("");
+    setErrors({});
     if (regNumber.trim() && !isValidRegNumber(regNumber.trim())) {
-      setError("Enter a valid 8-digit registration number.");
+      setErrors({ regNumber: "Enter a valid 8-digit registration number." });
       return;
     }
     setLoading(true);
@@ -71,14 +72,14 @@ export default function Settings() {
       // #2: Pass token, not raw userId
       await updatePrefs({ token, defaultDropPoint: dropPoint, stayType, registrationNumber: regNumber });
       login({ ...user, defaultDropPoint: dropPoint, stayType, registrationNumber: regNumber });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      toast.success("Preferences saved successfully");
     } catch (e) {
       const rawMsg = e.data || e.message || "";
       const msg = typeof rawMsg === "string" ? rawMsg : "Something went wrong.";
-      if (msg.includes("ConvexError:")) setError(msg.split("ConvexError:")[1].trim());
-      else if (msg.includes("Error:")) setError(msg.split("Error:")[1].trim());
-      else setError(msg);
+      let finalMsg = msg;
+      if (msg.includes("ConvexError:")) finalMsg = msg.split("ConvexError:")[1].trim();
+      else if (msg.includes("Error:")) finalMsg = msg.split("Error:")[1].trim();
+      toast.error(finalMsg);
     } finally {
       setLoading(false);
     }
@@ -125,7 +126,7 @@ export default function Settings() {
           {/* #28: Admin gets "—" for phone instead of "0000000000" */}
           <Row label="Phone"  value={displayPhone} />
           <Row label="Email"  value={user?.email} />
-          <Row label="Gender" value={user?.gender === "male" ? "Male" : "Female"} />
+          <Row label="Gender" value={user?.gender ? (user.gender === "male" ? "Male" : "Female") : "—"} />
           <div className="flex justify-between items-center text-[14px] pt-2 border-t border-cream-100">
             <span className="font-medium text-stone-500">Role</span>
             <span className={`text-[12px] font-bold px-3 py-1 rounded-full ${ROLE_BADGE[user?.role] || ROLE_BADGE.student}`}>
@@ -164,32 +165,24 @@ export default function Settings() {
           <div>
             <label className="label">LPU Registration Number <span className="text-stone-400 lowercase">(Optional)</span></label>
             <div className="relative">
-              <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={15} />
+              <Hash className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.regNumber ? 'text-red-400' : 'text-stone-400'}`} size={15} />
               <input
                 type="text"
                 placeholder="eg. 12517494"
                 value={regNumber}
-                onChange={(e) => setRegNumber(e.target.value.replace(/\D/g, "").slice(0, 8))}
-                className="pl-9 bg-white"
+                onChange={(e) => { setRegNumber(e.target.value.replace(/\D/g, "").slice(0, 8)); if(errors.regNumber) setErrors({}); }}
+                className={`pl-9 bg-white ${errors.regNumber ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
               />
             </div>
+            {errors.regNumber && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.regNumber}</p>}
           </div>
-
-          {/* #8: Display errors properly */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium">
-              {error}
-            </div>
-          )}
 
           <button
             className="btn-primary w-full py-3 text-[14px]"
             onClick={handleSave}
             disabled={loading}
           >
-            {saved ? (
-              <><CheckCircle2 size={17} /> Saved</>
-            ) : loading ? "Saving..." : (
+            {loading ? "Saving..." : (
               <><Save size={17} /> Save Preferences</>
             )}
           </button>

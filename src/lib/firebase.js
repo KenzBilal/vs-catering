@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 
 // Public Firebase configuration (Safe to be in code as it's a client-side SDK)
 const firebaseConfig = {
-  apiKey: "AIzaSyCQES_DBkdexEZKw81x2EPVYEPhjiHh8Y8",
-  authDomain: "catering-dc8da.firebaseapp.com",
-  projectId: "catering-dc8da",
-  storageBucket: "catering-dc8da.firebasestorage.app",
-  messagingSenderId: "1061693442588",
-  appId: "1:1061693442588:web:e7fdf2428040e93fc76dd9",
-  measurementId: "G-YDJNJVBTTX"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 let app;

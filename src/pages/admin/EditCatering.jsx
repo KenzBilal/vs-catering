@@ -9,12 +9,13 @@ import Toggle from "../../components/ui/Toggle";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
+import toast from "react-hot-toast";
 
 export default function EditCatering() {
   const { id } = useParams();
   const { token } = useAuth();
   const navigate = useNavigate();
-  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id });
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id, token });
   const { data: catering, timedOut } = useQueryWithTimeout(cateringRaw);
   const updateCatering = useMutation(api.caterings.updateCatering);
 
@@ -25,7 +26,7 @@ export default function EditCatering() {
   const [dressCodeNotes, setDressCodeNotes] = useState("");
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [saved, setSaved] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
@@ -51,9 +52,17 @@ export default function EditCatering() {
   };
 
   const handleSubmit = async () => {
-    setError("");
-    if (!place.trim()) return setError("Place is required.");
-    if (!specificTime.trim()) return setError("Time is required.");
+    setErrors({});
+    let hasError = false;
+    const newErrors = {};
+
+    if (!place.trim()) { newErrors.place = "Place is required."; hasError = true; }
+    if (!specificTime.trim()) { newErrors.specificTime = "Time is required."; hasError = true; }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
 
     const finalSlots = slots.map(s => ({
       ...s,
@@ -63,7 +72,10 @@ export default function EditCatering() {
 
     // Ensure at least one slot has a limit > 0
     const totalSlots = finalSlots.reduce((sum, s) => sum + s.limit, 0);
-    if (totalSlots === 0) return setError("At least one role must have more than 0 slots.");
+    if (totalSlots === 0) {
+      toast.error("At least one role must have more than 0 slots.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -78,6 +90,7 @@ export default function EditCatering() {
         token,
       });
       setSaved(true);
+      toast.success("Event updated successfully");
       setTimeout(() => {
         navigate(`/admin/events`);
       }, 1000);
@@ -89,9 +102,9 @@ export default function EditCatering() {
       const cleanMsg = msg.replace(/^\[CONVEX [A-Z]\([^)]+\)\]\s*/, "");
       
       if (cleanMsg.includes("ConvexError:")) {
-        setError(cleanMsg.split("ConvexError:")[1].trim());
+        toast.error(cleanMsg.split("ConvexError:")[1].trim());
       } else {
-        setError(cleanMsg);
+        toast.error(cleanMsg);
       }
     } finally {
       setLoading(false);
@@ -147,7 +160,13 @@ export default function EditCatering() {
           <div className="flex flex-col gap-5">
             <div>
               <label className="label">Place / Venue</label>
-              <input type="text" value={place} onChange={(e) => setPlace(e.target.value)} />
+              <input 
+                type="text" 
+                value={place} 
+                onChange={(e) => { setPlace(e.target.value); if(errors.place) setErrors(e=>({...e, place:""})) }} 
+                className={errors.place ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}
+              />
+              {errors.place && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.place}</p>}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -164,8 +183,14 @@ export default function EditCatering() {
               <div>
                 <label className="label">Event Time</label>
                 <div className="flex flex-col gap-1.5">
-                  <input type="time" value={specificTime} onChange={(e) => setSpecificTime(e.target.value)} />
-                  {specificTime && (
+                  <input 
+                    type="time" 
+                    value={specificTime} 
+                    onChange={(e) => { setSpecificTime(e.target.value); if(errors.specificTime) setErrors(e=>({...e, specificTime:""})) }} 
+                    className={errors.specificTime ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}
+                  />
+                  {errors.specificTime && <p className="text-[12.5px] text-red-600 font-medium ml-1">{errors.specificTime}</p>}
+                  {specificTime && !errors.specificTime && (
                     <p className="text-[11px] font-bold text-[#1a5c3a] ml-1">
                       Preview: {formatTime12h(specificTime)}
                     </p>
@@ -217,11 +242,7 @@ export default function EditCatering() {
           </div>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium animate-fade-in">
-            {error}
-          </div>
-        )}
+
 
         <button
           className="btn-primary w-full py-4"

@@ -7,13 +7,15 @@ import { useState } from "react";
 import { CalendarDays, Clock, Users } from "lucide-react";
 import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
 import ErrorState from "../components/shared/ErrorState";
+import EmptyState from "../components/shared/EmptyState";
+import LoadingState from "../components/shared/LoadingState";
 
 const FILTERS = ["All", "Today", "Tomorrow", "Upcoming", "Ended"];
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const cateringsRaw = useQuery(api.caterings.listCaterings);
-  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id });
+  const { user, token } = useAuth();
+  const cateringsRaw = useQuery(api.caterings.listCaterings, { token });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id, token });
   const { data: caterings, timedOut: cateringTimeout } = useQueryWithTimeout(cateringsRaw);
   const { data: registrations } = useQueryWithTimeout(registrationsRaw);
   const [filter, setFilter] = useState("All");
@@ -79,17 +81,16 @@ export default function Dashboard() {
 
       {/* Loading */}
       {caterings === undefined && (
-        <div className="animate-pulse flex flex-col gap-3">
-          {[1, 2, 3].map((n) => <div key={n} className="h-32 bg-cream-100 rounded-2xl" />)}
-        </div>
+        <LoadingState rows={3} />
       )}
 
       {/* Empty */}
       {caterings !== undefined && filtered.length === 0 && (
-        <div className="card text-center py-14 bg-white">
-          <CalendarDays size={36} className="mx-auto text-cream-300 mb-3" />
-          <p className="text-stone-500 font-medium">No events for this filter.</p>
-        </div>
+        <EmptyState 
+          icon={CalendarDays} 
+          title="No events found" 
+          description="There are no events matching your current filter." 
+        />
       )}
 
       {/* Grouped list */}

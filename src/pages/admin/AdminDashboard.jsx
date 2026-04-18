@@ -11,17 +11,19 @@ import {
 } from "lucide-react";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
+import LoadingState from "../../components/shared/LoadingState";
+import EmptyState from "../../components/shared/EmptyState";
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
-  const cateringsRaw = useQuery(api.caterings.listCaterings);
-  const pendingPaymentsRaw = useQuery(api.payments.getPendingPayments);
+  const cateringsRaw = useQuery(api.caterings.listCaterings, { token });
+  const pendingPaymentsRaw = useQuery(api.payments.getPendingPayments, { token });
 
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
-  const analyticsRaw = useQuery(api.payments.getMonthlyAnalytics, { month, year });
+  const analyticsRaw = useQuery(api.payments.getMonthlyAnalytics, { month, year, token });
 
   const { data: caterings, timedOut: catTimeout } = useQueryWithTimeout(cateringsRaw);
   const { data: pendingPayments, timedOut: payTimeout } = useQueryWithTimeout(pendingPaymentsRaw);
@@ -88,9 +90,7 @@ export default function AdminDashboard() {
           <StatCard icon={<TrendingUp size={14}/>} label="Amt Pending" value={formatCurrency(analytics.pendingPayout)} highlight />
         </div>
       ) : (
-        <div className="animate-pulse grid grid-cols-2 gap-3 mb-8">
-          {[1,2,3,4].map(n => <div key={n} className="h-24 bg-cream-100 rounded-2xl" />)}
-        </div>
+        <LoadingState rows={2} />
       )}
 
       {/* Two columns: active events + pending payments */}
@@ -108,10 +108,11 @@ export default function AdminDashboard() {
           </div>
 
           {activeCaterings.length === 0 && (
-            <div className="bg-white border border-cream-200 rounded-xl p-6 text-center">
-              <CalendarDays size={28} className="mx-auto text-cream-300 mb-2" />
-              <p className="text-[13px] font-medium text-stone-400">No active events right now.</p>
-            </div>
+            <EmptyState 
+              icon={CalendarDays} 
+              title="No active events" 
+              description="There are no events currently today, tomorrow, or upcoming."
+            />
           )}
 
           <div className="flex flex-col gap-2">
@@ -165,10 +166,11 @@ export default function AdminDashboard() {
           </div>
 
           {pendingPayments?.length === 0 && (
-            <div className="bg-white border border-cream-200 rounded-xl p-6 text-center">
-              <UserCheck size={28} className="mx-auto text-[#b8dfc8] mb-2" />
-              <p className="text-[13px] font-medium text-stone-400">All payments cleared.</p>
-            </div>
+            <EmptyState 
+              icon={UserCheck} 
+              title="All clear" 
+              description="There are no pending payments to be resolved."
+            />
           )}
 
           <div className="flex flex-col gap-2">

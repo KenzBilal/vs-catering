@@ -21,7 +21,8 @@ export default defineSchema({
     userId: v.id("users"),
     token: v.string(),
     expiresAt: v.number(),
-  }).index("by_token", ["token"]),
+  }).index("by_token", ["token"])
+    .index("by_user", ["userId"]),
 
   // Rate limiting for login attempts
   loginAttempts: defineTable({
@@ -85,7 +86,8 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_catering", ["cateringId"])
-    .index("by_user_catering", ["userId", "cateringId"]),
+    .index("by_user_catering", ["userId", "cateringId"])
+    .index("by_catering_role", ["cateringId", "role"]),
 
   payments: defineTable({
     userId: v.id("users"),
@@ -103,6 +105,7 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_catering", ["cateringId"])
+    .index("by_registration", ["registrationId"])
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"]),
 });

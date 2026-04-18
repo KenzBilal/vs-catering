@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useConvex } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -8,10 +8,12 @@ import SegmentedControl from "../components/ui/SegmentedControl";
 import { isValidEmail, isValidPhone } from "../lib/helpers";
 import { auth } from "../lib/firebase";
 import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
+import toast from "react-hot-toast";
 
 export default function Signup() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const convex = useConvex();
   const createUserMutation = useMutation(api.users.createUser);
 
   const [form, setForm] = useState({
@@ -22,26 +24,49 @@ export default function Signup() {
     stayType: "hostel",
     gender: "male",
     defaultDropPoint: "Main Gate",
+    rememberMe: true,
   });
   
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k, v) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    if (errors[k]) setErrors((e) => ({ ...e, [k]: "" }));
+  };
 
   const handleSignup = async (e) => {
     e?.preventDefault();
-    setError("");
+    setErrors({});
+    let hasError = false;
+    const newErrors = {};
     
-    if (!form.name.trim()) return setError("Name is required.");
-    if (!form.email.trim()) return setError("Email is required.");
-    if (!isValidEmail(form.email)) return setError("Enter a valid email address.");
-    if (form.password.length < 6) return setError("Password must be at least 6 characters.");
-    if (!form.phone.trim()) return setError("Phone number is required.");
-    if (!isValidPhone(form.phone)) return setError("Enter a valid 10-digit number.");
+    if (!form.name.trim()) { newErrors.name = "Name is required."; hasError = true; }
+    if (!form.email.trim()) { newErrors.email = "Email is required."; hasError = true; }
+    else if (!isValidEmail(form.email)) { newErrors.email = "Enter a valid email address."; hasError = true; }
+    if (form.password.length < 6) { newErrors.password = "Password must be at least 6 characters."; hasError = true; }
+    if (!form.phone.trim()) { newErrors.phone = "Phone number is required."; hasError = true; }
+    else if (!isValidPhone(form.phone)) { newErrors.phone = "Enter a valid 10-digit number."; hasError = true; }
+    
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
     
     setLoading(true);
     try {
+      // #9: Pre-check in Convex before calling Firebase to minimize orphaned accounts
+      const check = await convex.query(api.users.checkUserExists, { 
+        email: form.email.toLowerCase().trim(),
+        phone: form.phone.trim()
+      });
+      
+      if (check.exists) {
+        setErrors({ [check.reason]: `This ${check.reason} is already registered.` });
+        setLoading(false);
+        return;
+      }
+
       // 1. Create account in Firebase
       const firebaseUserCred = await createUserWithEmailAndPassword(auth, form.email.toLowerCase().trim(), form.password);
 
@@ -49,16 +74,14 @@ export default function Signup() {
       const { password, ...userData } = form;
       let result;
       try {
-        result = await createUserMutation({
-          ...userData,
-          email: form.email.toLowerCase().trim(),
-        });
+        result = await createUserMutation(userData);
       } catch (convexErr) {
         // #29: Rollback — delete Firebase account so the email is freed
         try { await deleteUser(firebaseUserCred.user); } catch (_) {}
         throw convexErr;
       }
       
+      toast.success("Account created successfully!");
       login(result);
       navigate("/", { replace: true });
     } catch (e) {
@@ -76,7 +99,7 @@ export default function Signup() {
         msg = rawMsg.split("ConvexError:")[1].trim();
       }
       
-      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -98,61 +121,65 @@ export default function Signup() {
             <div>
               <label className="label">Full Name</label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <User className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.name ? 'text-red-400' : 'text-stone-400'}`} size={18} />
                 <input
                   type="text"
                   placeholder="Your official name"
-                  className="pl-11"
+                  className={`pl-11 ${errors.name ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
                   value={form.name}
                   onChange={(e) => set("name", e.target.value)}
                   disabled={loading}
                 />
               </div>
+              {errors.name && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.name}</p>}
             </div>
 
             <div>
               <label className="label">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.email ? 'text-red-400' : 'text-stone-400'}`} size={18} />
                 <input
                   type="email"
                   placeholder="name@example.com"
-                  className="pl-11"
+                  className={`pl-11 ${errors.email ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
                   value={form.email}
                   onChange={(e) => set("email", e.target.value)}
                   disabled={loading}
                 />
               </div>
+              {errors.email && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.email}</p>}
             </div>
 
             <div>
               <label className="label">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.password ? 'text-red-400' : 'text-stone-400'}`} size={18} />
                 <input
                   type="password"
                   placeholder="Min. 6 characters"
-                  className="pl-11"
+                  className={`pl-11 ${errors.password ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
                   value={form.password}
                   onChange={(e) => set("password", e.target.value)}
                   disabled={loading}
                 />
               </div>
+              {errors.password && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.password}</p>}
             </div>
 
             <div>
               <label className="label">Phone Number</label>
               <div className="relative">
-                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <Phone className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.phone ? 'text-red-400' : 'text-stone-400'}`} size={18} />
                 <input
                   type="tel"
                   placeholder="10-digit mobile number"
-                  className="pl-11"
+                  className={`pl-11 ${errors.phone ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
                   value={form.phone}
                   onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
                   disabled={loading}
                 />
               </div>
+              {errors.phone && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.phone}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -183,11 +210,19 @@ export default function Signup() {
               </div>
             </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium animate-fade-in">
-                {error}
-              </div>
-            )}
+            <div className="flex items-center gap-2 px-1">
+              <input
+                type="checkbox"
+                id="remember_signup"
+                checked={form.rememberMe}
+                onChange={(e) => set("rememberMe", e.target.checked)}
+                className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900/20 cursor-pointer"
+              />
+              <label htmlFor="remember_signup" className="text-[13.5px] font-medium text-stone-600 cursor-pointer select-none">
+                Keep me signed in
+              </label>
+            </div>
+
 
             <button
               type="submit"

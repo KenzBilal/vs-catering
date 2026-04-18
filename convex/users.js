@@ -27,6 +27,7 @@ export const createUser = mutation({
     gender: v.union(v.literal("male"), v.literal("female")),
     defaultDropPoint: v.string(),
     registrationNumber: v.optional(v.string()),
+    rememberMe: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const email = args.email.toLowerCase().trim();
@@ -39,7 +40,7 @@ export const createUser = mutation({
       throw new ConvexError("Enter a valid 8-digit registration number.");
     }
 
-    const name = sanitizeString(args.name).slice(0, 100);
+    const name = sanitizeString(args.name).slice(0, 50);
     if (name.length < 2) throw new ConvexError("Name is too short.");
 
     const existingEmail = await ctx.db.query("users").withIndex("by_email", (q) => q.eq("email", email)).first();
@@ -62,7 +63,9 @@ export const createUser = mutation({
 
     const user = await ctx.db.get(userId);
     const token = makeToken();
-    const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30; // 30 days
+    // #8: Flexible session expiry
+    const duration = args.rememberMe ? 1000 * 60 * 60 * 24 * 30 : 1000 * 60 * 60 * 24;
+    const expiresAt = Date.now() + duration;
     await ctx.db.insert("sessions", { userId, token, expiresAt });
     return { ...user, token };
   },
@@ -71,8 +74,8 @@ export const createUser = mutation({
 // ─── loginUser ───────────────────────────────────────────────────────────────
 
 export const loginUser = mutation({
-  args: { email: v.string() },
-  handler: async (ctx, { email }) => {
+  args: { email: v.string(), rememberMe: v.optional(v.boolean()) },
+  handler: async (ctx, { email, rememberMe }) => {
     const cleanEmail = email.toLowerCase().trim();
     if (!validateEmail(cleanEmail)) throw new ConvexError("Enter a valid email address.");
 
@@ -85,9 +88,11 @@ export const loginUser = mutation({
       .first();
 
     if (attemptRecord) {
-      const withinWindow = now - attemptRecord.windowStart < RATE_LIMIT_WINDOW_MS;
+      const timeSinceStart = now - attemptRecord.windowStart;
+      const withinWindow = timeSinceStart >= 0 && timeSinceStart < RATE_LIMIT_WINDOW_MS;
+
       if (withinWindow && attemptRecord.attempts >= RATE_LIMIT_MAX) {
-        const waitMins = Math.ceil((RATE_LIMIT_WINDOW_MS - (now - attemptRecord.windowStart)) / 60000);
+        const waitMins = Math.ceil((RATE_LIMIT_WINDOW_MS - timeSinceStart) / 60000);
         throw new ConvexError(`Too many login attempts. Try again in ${waitMins} minute${waitMins !== 1 ? "s" : ""}.`);
       }
       if (!withinWindow) {
@@ -103,7 +108,8 @@ export const loginUser = mutation({
     if (!user) {
       // Record failed attempt
       if (attemptRecord) {
-        const withinWindow = now - attemptRecord.windowStart < RATE_LIMIT_WINDOW_MS;
+        const timeSinceStart = now - attemptRecord.windowStart;
+        const withinWindow = timeSinceStart >= 0 && timeSinceStart < RATE_LIMIT_WINDOW_MS;
         await ctx.db.patch(attemptRecord._id, {
           attempts: withinWindow ? attemptRecord.attempts + 1 : 1,
           windowStart: withinWindow ? attemptRecord.windowStart : now,
@@ -129,7 +135,9 @@ export const loginUser = mutation({
     }
 
     const token = makeToken();
-    const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30;
+    // #8: Flexible session expiry
+    const duration = rememberMe ? 1000 * 60 * 60 * 24 * 30 : 1000 * 60 * 60 * 24;
+    const expiresAt = Date.now() + duration;
     await ctx.db.insert("sessions", { userId: user._id, token, expiresAt });
     return { ...user, token };
   },
@@ -148,12 +156,85 @@ export const logoutUser = mutation({
   },
 });
 
+// #13: Admin mutation to delete a user with cascade session cleanup
+export const deleteUser = mutation({
+  args: { userId: v.id("users"), token: v.string() },
+  handler: async (ctx, { userId, token }) => {
+    await requireAdmin(ctx, token);
+
+    // Cascade delete sessions
+    const sessions = await ctx.db
+      .query("sessions")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    for (const s of sessions) {
+      await ctx.db.delete(s._id);
+    }
+
+    // Cascade delete registrations
+    const regs = await ctx.db
+      .query("registrations")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    for (const r of regs) {
+      await ctx.db.delete(r._id);
+    }
+
+    // Cascade delete payments
+    const payments = await ctx.db
+      .query("payments")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    for (const p of payments) {
+      await ctx.db.delete(p._id);
+    }
+
+    // Delete login attempts
+    const user = await ctx.db.get(userId);
+    if (user) {
+      const attempts = await ctx.db
+        .query("loginAttempts")
+        .withIndex("by_email", (q) => q.eq("email", user.email))
+        .collect();
+      for (const a of attempts) {
+        await ctx.db.delete(a._id);
+      }
+    }
+
+    await ctx.db.delete(userId);
+  },
+});
+
 // ─── getUser ─────────────────────────────────────────────────────────────────
 
 export const getUser = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, { userId }) => {
-    return await ctx.db.get(userId);
+  args: { userId: v.id("users"), token: v.string() },
+  handler: async (ctx, { userId, token }) => {
+    const caller = await getUserFromToken(ctx, token);
+    if (!caller) throw new ConvexError("Unauthorized");
+
+    // Only allow self or admin/sub-admin
+    const isAdmin = caller.role === "admin" || caller.role === "sub_admin";
+    if (caller._id !== userId && !isAdmin) {
+      throw new ConvexError("Unauthorized: You can only view your own profile.");
+    }
+
+    const user = await ctx.db.get(userId);
+    if (!user) return null;
+
+    // Filter sensitive fields for sub-admins if they are viewing others
+    if (caller.role === "sub_admin" && caller._id !== userId) {
+      return {
+        _id: user._id,
+        _creationTime: user._creationTime,
+        name: user.name,
+        role: user.role,
+        gender: user.gender,
+        photoStorageId: user.photoStorageId,
+      };
+    }
+
+    return user;
   },
 });
 
@@ -171,6 +252,9 @@ export const updatePreferences = mutation({
     // Derive userId server-side — never trust client
     const caller = await getUserFromToken(ctx, token);
     if (!caller) throw new ConvexError("Not authenticated.");
+
+    // Helper for role checks
+    const isAdmin = caller.role === "admin" || caller.role === "sub_admin";
 
     if (registrationNumber && !validateRegistrationNumber(registrationNumber)) {
       throw new ConvexError("Enter a valid 8-digit registration number.");
@@ -208,13 +292,33 @@ export const getAllStudents = query({
     if (!caller || (caller.role !== "admin" && caller.role !== "sub_admin")) {
       throw new ConvexError("Unauthorized.");
     }
-    return await ctx.db.query("users").collect(); // admins need all roles visible
+    
+    const users = await ctx.db.query("users").collect();
+    // #5: Sub-admins only see students to protect admin PII
+    if (caller.role === "sub_admin") {
+      return users.filter((u) => u.role === "student");
+    }
+    return users;
   },
 });
 
 // ─── resolveLoginEmail — resolves phone or email identifier for Firebase login ─
 // Uses indexed lookup for performance (#13) and returns only the email string,
 // not the full user object, to minimise data exposure (#7)
+
+// #9: Pre-check for existing account to avoid orphaned Firebase accounts
+export const checkUserExists = query({
+  args: { email: v.string(), phone: v.string() },
+  handler: async (ctx, { email, phone }) => {
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanPhone = phone.replace(/\D/g, "").slice(-10);
+    
+    const byEmail = await ctx.db.query("users").withIndex("by_email", (q) => q.eq("email", cleanEmail)).first();
+    const byPhone = await ctx.db.query("users").withIndex("by_phone", (q) => q.eq("phone", cleanPhone)).first();
+    
+    return { exists: !!(byEmail || byPhone) };
+  },
+});
 
 export const resolveLoginEmail = query({
   args: { identifier: v.string() },

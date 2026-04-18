@@ -13,9 +13,9 @@ const ROLE_LABEL = {
 };
 
 export default function Profile() {
-  const { user, login, logout } = useAuth();
+  const { user, token, login, logout } = useAuth();
   const navigate = useNavigate();
-  const dropPoints = useQuery(api.dropPoints.getDropPoints);
+  const dropPoints = useQuery(api.dropPoints.getDropPoints, { token });
   const updatePrefs = useMutation(api.users.updatePreferences);
 
   const [dropPoint, setDropPoint] = useState(user?.defaultDropPoint || "Main Gate");
@@ -26,7 +26,7 @@ export default function Profile() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      await updatePrefs({ userId: user._id, defaultDropPoint: dropPoint, stayType });
+      await updatePrefs({ token, defaultDropPoint: dropPoint, stayType });
       login({ ...user, defaultDropPoint: dropPoint, stayType });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);

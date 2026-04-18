@@ -17,13 +17,15 @@ import { ArrowLeft, MapPin, CalendarDays, Clock, Camera, AlertCircle, Link as Li
 import ConvexImage from "../components/shared/ConvexImage";
 import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
 import ErrorState from "../components/shared/ErrorState";
+import LoadingState from "../components/shared/LoadingState";
+import EmptyState from "../components/shared/EmptyState";
 
 export default function CateringDetail() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
-  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id });
-  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id });
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id, token });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id, token });
   const { data: catering, timedOut: catTimeout } = useQueryWithTimeout(cateringRaw);
   const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
   const [copied, setCopied] = useState(false);
@@ -36,11 +38,18 @@ export default function CateringDetail() {
   const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
 
   if (catering === undefined) {
-    return <div className="page-container"><p className="text-stone-500 animate-pulse">Loading event details...</p></div>;
+    return <LoadingState rows={3} />;
   }
 
   if (!catering) {
-    return <div className="page-container"><p className="text-stone-500">Event not found.</p></div>;
+    return (
+      <EmptyState 
+        icon={CalendarDays} 
+        title="Event not found" 
+        description="The event you are looking for does not exist or has been removed."
+        action={{ label: "Go Home", href: "/" }}
+      />
+    );
   }
 
   const myReg = registrations?.find((r) => r.userId === user?._id);

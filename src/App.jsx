@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import OfflineBanner from "./components/shared/OfflineBanner";
+import { Toaster } from "react-hot-toast";
 
 // Shells
 import StudentShell from "./components/student/StudentShell";
@@ -143,6 +144,22 @@ export default function App() {
     <ErrorBoundary>
       <ConvexProvider client={convex}>
         <AuthProvider>
+          <Toaster
+            position="bottom-center"
+            toastOptions={{
+              style: {
+                background: '#fff',
+                color: '#1c1917',
+                borderRadius: '12px',
+                border: '1px solid #f4ece4',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                fontSize: '14px',
+                fontWeight: '500',
+              },
+              success: { iconTheme: { primary: '#1a5c3a', secondary: '#fff' } },
+              error: { iconTheme: { primary: '#dc2626', secondary: '#fff' } },
+            }}
+          />
           <BrowserRouter>
             <AppRoutes />
           </BrowserRouter>

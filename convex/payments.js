@@ -25,11 +25,10 @@ export const createPayment = mutation({
     const userId = reg.userId;
 
     // Prevent duplicate payment for same registration
-    const existing = await ctx.db
+    const duplicate = await ctx.db
       .query("payments")
-      .withIndex("by_catering", (q) => q.eq("cateringId", args.cateringId))
-      .collect();
-    const duplicate = existing.find((p) => p.registrationId === args.registrationId);
+      .withIndex("by_registration", (q) => q.eq("registrationId", args.registrationId))
+      .first();
     if (duplicate) throw new ConvexError("A payment record already exists for this registration.");
 
     const { token, ...dataToInsert } = args;
@@ -67,8 +66,16 @@ export const clearPayment = mutation({
 });
 
 export const getPaymentsByUser = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, { userId }) => {
+  args: { userId: v.id("users"), token: v.string() },
+  handler: async (ctx, { userId, token }) => {
+    const caller = await getUserFromToken(ctx, token);
+    if (!caller) throw new ConvexError("Not authenticated.");
+
+    // Self or admin/sub-admin
+    if (caller._id !== userId && caller.role !== "admin" && caller.role !== "sub_admin") {
+      throw new ConvexError("Unauthorized access.");
+    }
+
     const payments = await ctx.db
       .query("payments")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -85,8 +92,9 @@ export const getPaymentsByUser = query({
 });
 
 export const getPaymentsByCatering = query({
-  args: { cateringId: v.id("caterings") },
-  handler: async (ctx, { cateringId }) => {
+  args: { cateringId: v.id("caterings"), token: v.string() },
+  handler: async (ctx, { cateringId, token }) => {
+    await requireSubAdmin(ctx, token);
     const payments = await ctx.db
       .query("payments")
       .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
@@ -103,8 +111,9 @@ export const getPaymentsByCatering = query({
 });
 
 export const getPendingPayments = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    await requireSubAdmin(ctx, token);
     const payments = await ctx.db
       .query("payments")
       .withIndex("by_status", (q) => q.eq("status", "pending"))
@@ -122,8 +131,9 @@ export const getPendingPayments = query({
 });
 
 export const getMonthlyAnalytics = query({
-  args: { month: v.number(), year: v.number() },
-  handler: async (ctx, { month, year }) => {
+  args: { month: v.number(), year: v.number(), token: v.string() },
+  handler: async (ctx, { month, year, token }) => {
+    await requireSubAdmin(ctx, token);
     const start = new Date(year, month - 1, 1).getTime();
     const end = new Date(year, month, 1).getTime();
 

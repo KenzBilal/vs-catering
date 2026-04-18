@@ -6,6 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Utensils, ArrowRight, Phone } from "lucide-react";
 import { auth } from "../lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import toast from "react-hot-toast";
 
 export default function Login() {
   const { login } = useAuth();
@@ -14,7 +15,8 @@ export default function Login() {
   const [identifier, setIdentifier] = useState(""); // phone or email
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [rememberMe, setRememberMe] = useState(true);
 
   const loginUserMutation = useMutation(api.users.loginUser);
 
@@ -29,19 +31,29 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e?.preventDefault();
-    setError("");
+    setErrors({});
+    
+    let hasError = false;
+    const newErrors = {};
 
-    if (!identifier.trim()) return setError("Enter your phone number or email.");
-    if (!password.trim()) return setError("Password is required.");
+    if (!identifier.trim()) { newErrors.identifier = "Enter your phone number or email."; hasError = true; }
+    if (!password.trim()) { newErrors.password = "Password is required."; hasError = true; }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
 
     // If it looks like a phone, we need an email to pass to Firebase
     const firebaseEmail = isPhone ? resolvedEmail : identifier.toLowerCase().trim();
 
     if (isPhone && resolvedEmail === undefined) {
-      return setError("Looking up your account... please try again.");
+      toast.error("Looking up your account... please try again.");
+      return;
     }
     if (isPhone && resolvedEmail === null) {
-      return setError("No account found with this phone number.");
+      setErrors({ identifier: "No account found with this phone number." });
+      return;
     }
 
     setLoading(true);
@@ -50,11 +62,12 @@ export default function Login() {
       await signInWithEmailAndPassword(auth, firebaseEmail, password);
 
       // 2. Create a session in Convex
-      const result = await loginUserMutation({ email: firebaseEmail });
+      const result = await loginUserMutation({ email: firebaseEmail, rememberMe });
 
       if (result === null) {
-        setError("Account not found. Please sign up first.");
+        setErrors({ identifier: "Account not found. Please sign up first." });
       } else {
+        toast.success("Welcome back!");
         login(result);
         navigate("/", { replace: true });
       }
@@ -73,7 +86,7 @@ export default function Login() {
         msg = rawMsg.split("ConvexError:")[1].trim();
       }
 
-      setError(`${msg}${errorCode ? ` (${errorCode})` : ""}`);
+      toast.error(`${msg}${errorCode ? ` (${errorCode})` : ""}`);
     } finally {
       setLoading(false);
     }
@@ -100,21 +113,22 @@ export default function Login() {
               <label className="label">Phone Number or Email</label>
               <div className="relative">
                 {isPhone
-                  ? <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-                  : <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                  ? <Phone className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.identifier ? 'text-red-400' : 'text-stone-400'}`} size={18} />
+                  : <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.identifier ? 'text-red-400' : 'text-stone-400'}`} size={18} />
                 }
                 <input
                   type="text"
                   placeholder="Phone or email"
                   value={identifier}
-                  className="pl-11"
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  className={`pl-11 ${errors.identifier ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
+                  onChange={(e) => { setIdentifier(e.target.value); if(errors.identifier) setErrors(e=>({...e, identifier: ""})); }}
                   disabled={loading}
                   autoComplete="username"
                 />
               </div>
+              {errors.identifier && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.identifier}</p>}
               {/* Subtle indicator */}
-              {identifier.trim().length > 0 && (
+              {identifier.trim().length > 0 && !errors.identifier && (
                 <p className="text-[11.5px] font-medium text-stone-400 mt-1.5 ml-1">
                   {isPhone ? "🔢 Signing in with phone number" : "✉️ Signing in with email"}
                 </p>
@@ -124,28 +138,36 @@ export default function Login() {
             <div>
               <label className="label">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.password ? 'text-red-400' : 'text-stone-400'}`} size={18} />
                 <input
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  className="pl-11"
-                  onChange={(e) => setPassword(e.target.value)}
+                  className={`pl-11 ${errors.password ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
+                  onChange={(e) => { setPassword(e.target.value); if(errors.password) setErrors(e=>({...e, password: ""})); }}
                   disabled={loading}
                   autoComplete="current-password"
                 />
               </div>
+              {errors.password && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.password}</p>}
             </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[13px] font-medium animate-fade-in">
-                {error}
-              </div>
-            )}
+            <div className="flex items-center gap-2 px-1">
+              <input
+                type="checkbox"
+                id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900/20 cursor-pointer"
+              />
+              <label htmlFor="remember" className="text-[13.5px] font-medium text-stone-600 cursor-pointer select-none">
+                Keep me signed in
+              </label>
+            </div>
 
             <button
               type="submit"
-              className="btn-primary w-full py-3.5 mt-2 text-[15px]"
+              className="btn-primary w-full py-3.5 mt-1 text-[15px]"
               disabled={loading}
             >
               {loading ? "Signing in..." : (

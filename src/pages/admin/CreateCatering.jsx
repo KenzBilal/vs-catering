@@ -7,6 +7,7 @@ import { getRoleLabel, formatTime12h } from "../../lib/helpers";
 import { ArrowLeft, Clock, MapPin, Calendar, Users, Shirt, Camera, Moon, Sun, CalendarRange, CheckCircle2 } from "lucide-react";
 import Toggle from "../../components/ui/Toggle";
 import SegmentedControl from "../../components/ui/SegmentedControl";
+import toast from "react-hot-toast";
 
 const DEFAULT_DRESS_CODE = `Service Boy: Black formal pants, formal shoes, clean shave. Short or long hair is acceptable.
 Service Girl: Black formal pants or skirt, formal shoes.
@@ -34,7 +35,7 @@ export default function CreateCatering() {
     { role: "captain_male", day: 0, limit: 10, pay: 0 },
   ]);
 
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const updateSlot = (index, key, value) => {
@@ -70,11 +71,19 @@ export default function CreateCatering() {
   };
 
   const handleSubmit = async () => {
-    setError("");
-    if (!place.trim()) return setError("Place is required.");
-    if (!specificTime.trim()) return setError("Time is required.");
-    if (!dates[0]) return setError("Date is required.");
-    if (isTwoDay && !dates[1]) return setError("Second date is required for a two-day event.");
+    setErrors({});
+    let hasError = false;
+    const newErrors = {};
+
+    if (!place.trim()) { newErrors.place = "Place is required."; hasError = true; }
+    if (!specificTime.trim()) { newErrors.specificTime = "Time is required."; hasError = true; }
+    if (!dates[0]) { newErrors.date1 = "Date is required."; hasError = true; }
+    if (isTwoDay && !dates[1]) { newErrors.date2 = "Second date is required for a two-day event."; hasError = true; }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
 
     const finalDates = (isTwoDay ? dates : [dates[0]]).map(d => 
       d instanceof Date ? d.toISOString() : d
@@ -88,7 +97,10 @@ export default function CreateCatering() {
 
     // Ensure at least one slot has a limit > 0
     const totalSlots = finalSlots.reduce((sum, s) => sum + s.limit, 0);
-    if (totalSlots === 0) return setError("At least one role must have more than 0 slots.");
+    if (totalSlots === 0) {
+      toast.error("At least one role must have more than 0 slots.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -107,6 +119,7 @@ export default function CreateCatering() {
         createdBy: user._id,
         token,
       });
+      toast.success("Event created successfully");
       navigate(`/catering/${id}`);
     } catch (e) {
       const rawMsg = e.data || e.message || "";
@@ -116,9 +129,9 @@ export default function CreateCatering() {
       const cleanMsg = msg.replace(/^\[CONVEX [A-Z]\([^)]+\)\]\s*/, "");
       
       if (cleanMsg.includes("ConvexError:")) {
-        setError(cleanMsg.split("ConvexError:")[1].trim());
+        toast.error(cleanMsg.split("ConvexError:")[1].trim());
       } else {
-        setError(cleanMsg);
+        toast.error(cleanMsg);
       }
     } finally {
       setLoading(false);
@@ -147,7 +160,14 @@ export default function CreateCatering() {
           <div className="flex flex-col gap-5">
             <div>
               <label className="label">Place / Venue</label>
-              <input type="text" placeholder="e.g. Ludhiana Convention Centre" value={place} onChange={(e) => setPlace(e.target.value)} />
+              <input 
+                type="text" 
+                placeholder="e.g. Ludhiana Convention Centre" 
+                value={place} 
+                onChange={(e) => { setPlace(e.target.value); if(errors.place) setErrors(e=>({...e, place:""})) }} 
+                className={errors.place ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}
+              />
+              {errors.place && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.place}</p>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -165,8 +185,14 @@ export default function CreateCatering() {
               <div>
                 <label className="label">Event Time</label>
                 <div className="flex flex-col gap-1.5">
-                  <input type="time" value={specificTime} onChange={(e) => setSpecificTime(e.target.value)} />
-                  {specificTime && (
+                  <input 
+                    type="time" 
+                    value={specificTime} 
+                    onChange={(e) => { setSpecificTime(e.target.value); if(errors.specificTime) setErrors(e=>({...e, specificTime:""})) }} 
+                    className={errors.specificTime ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}
+                  />
+                  {errors.specificTime && <p className="text-[12.5px] text-red-600 font-medium ml-1">{errors.specificTime}</p>}
+                  {specificTime && !errors.specificTime && (
                     <p className="text-[11px] font-bold text-[#1a5c3a] ml-1 flex items-center gap-1">
                       <Clock size={10} /> Preview: {formatTime12h(specificTime)}
                     </p>
@@ -199,12 +225,24 @@ export default function CreateCatering() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="label">{isTwoDay ? "Day 1 Date" : "Date"}</label>
-                <input type="date" value={dates[0]} onChange={(e) => setDates([e.target.value, dates[1]])} />
+                <input 
+                  type="date" 
+                  value={dates[0]} 
+                  onChange={(e) => { setDates([e.target.value, dates[1]]); if(errors.date1) setErrors(e=>({...e, date1:""})) }} 
+                  className={errors.date1 ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}
+                />
+                {errors.date1 && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.date1}</p>}
               </div>
               {isTwoDay && (
                 <div>
                   <label className="label">Day 2 Date</label>
-                  <input type="date" value={dates[1]} onChange={(e) => setDates([dates[0], e.target.value])} />
+                  <input 
+                    type="date" 
+                    value={dates[1]} 
+                    onChange={(e) => { setDates([dates[0], e.target.value]); if(errors.date2) setErrors(e=>({...e, date2:""})) }} 
+                    className={errors.date2 ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}
+                  />
+                  {errors.date2 && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.date2}</p>}
                 </div>
               )}
             </div>
@@ -325,11 +363,6 @@ export default function CreateCatering() {
           </div>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[14px] font-medium animate-fade-in">
-            {error}
-          </div>
-        )}
 
         <button className="btn-primary w-full py-4 mt-2" onClick={handleSubmit} disabled={loading}>
           {loading ? "Creating Event..." : (

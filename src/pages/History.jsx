@@ -5,11 +5,13 @@ import { formatDate, formatCurrency, getRoleLabel } from "../lib/helpers";
 import { CalendarDays, CheckCircle2, Clock, XCircle, Ban, TrendingUp, IndianRupee, UserCheck } from "lucide-react";
 import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
 import ErrorState from "../components/shared/ErrorState";
+import LoadingState from "../components/shared/LoadingState";
+import EmptyState from "../components/shared/EmptyState";
 
 export default function History() {
-  const { user } = useAuth();
-  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id });
-  const paymentsRaw = useQuery(api.payments.getPaymentsByUser, { userId: user._id });
+  const { user, token } = useAuth();
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id, token });
+  const paymentsRaw = useQuery(api.payments.getPaymentsByUser, { userId: user._id, token });
   const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
   const { data: payments, timedOut: payTimeout } = useQueryWithTimeout(paymentsRaw);
 
@@ -63,16 +65,15 @@ export default function History() {
 
       {/* Full timeline */}
       {registrations === undefined && (
-        <div className="animate-pulse flex flex-col gap-3">
-          {[1, 2, 3].map((n) => <div key={n} className="h-24 bg-cream-100 rounded-xl" />)}
-        </div>
+        <LoadingState rows={3} />
       )}
 
       {regs.length === 0 && registrations !== undefined && (
-        <div className="card bg-white text-center py-14">
-          <TrendingUp size={36} className="mx-auto text-cream-300 mb-3" />
-          <p className="text-stone-500 font-medium">No history yet. Register for an event to get started.</p>
-        </div>
+        <EmptyState 
+          icon={TrendingUp} 
+          title="No history yet" 
+          description="Register for an event to get started and see your history here." 
+        />
       )}
 
       <div className="bg-white border border-cream-200 rounded-2xl overflow-hidden shadow-sm">

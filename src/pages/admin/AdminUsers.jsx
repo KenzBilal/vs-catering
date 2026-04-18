@@ -5,6 +5,9 @@ import { useState } from "react";
 import { Search, Shield, User, UserCog } from "lucide-react";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
+import LoadingState from "../../components/shared/LoadingState";
+import EmptyState from "../../components/shared/EmptyState";
+import toast from "react-hot-toast";
 
 const ROLE_FILTERS = ["All", "Admin", "Sub-Admin", "Student"];
 
@@ -40,6 +43,9 @@ export default function AdminUsers() {
     setSavingRole((s) => ({ ...s, [userId]: true }));
     try {
       await setUserRole({ userId, role, token });
+      toast.success("Role updated successfully");
+    } catch (e) {
+      toast.error(e.message || "Failed to update role");
     } finally {
       setSavingRole((s) => ({ ...s, [userId]: false }));
     }
@@ -120,20 +126,17 @@ export default function AdminUsers() {
 
       {/* Loading */}
       {allUsers === undefined && (
-        <div className="animate-pulse flex flex-col gap-2">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <div key={n} className="h-14 bg-cream-100 rounded-xl w-full" />
-          ))}
-        </div>
+        <LoadingState rows={5} />
       )}
 
       {/* User list */}
       <div className="bg-white border border-cream-200 rounded-2xl overflow-hidden shadow-sm">
         {filtered.length === 0 && allUsers !== undefined && (
-          <div className="text-center py-12">
-            <User size={36} className="mx-auto text-cream-300 mb-3" />
-            <p className="font-semibold text-stone-500 text-[14px]">No users found.</p>
-          </div>
+          <EmptyState 
+            icon={User} 
+            title="No users found" 
+            description={search ? "Try a different search term or role filter." : "There are no users to display."}
+          />
         )}
 
         {filtered.map((u, idx) => (
@@ -162,16 +165,25 @@ export default function AdminUsers() {
               </span>
 
               {isAdmin && (
-                <select
-                  value={u.role}
-                  onChange={(e) => handleRoleChange(u._id, e.target.value)}
-                  disabled={savingRole[u._id] || u._id === currentUser._id}
-                  className="bg-cream-50 border border-cream-200 text-stone-700 text-[12px] font-medium rounded-lg px-2 py-1.5 w-auto outline-none focus:ring-2 focus:ring-stone-800/10 cursor-pointer disabled:opacity-40"
-                >
-                  <option value="student">Student</option>
-                  <option value="sub_admin">Sub-Admin</option>
-                  <option value="admin">Admin</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={u.role}
+                    onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                    disabled={savingRole[u._id] || u._id === currentUser._id}
+                    className={`bg-cream-50 border border-cream-200 text-stone-700 text-[12px] font-medium rounded-lg px-2 py-1.5 w-auto outline-none transition-all ${
+                      savingRole[u._id] ? "opacity-50 cursor-not-allowed pr-8" : "focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+                    }`}
+                  >
+                    <option value="student">Student</option>
+                    <option value="sub_admin">Sub-Admin</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  {savingRole[u._id] && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      <div className="w-3 h-3 border-2 border-stone-400 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
