@@ -1,6 +1,6 @@
 import { v, ConvexError } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
-import { requireAdmin, requireSubAdmin } from "./auth";
+import { requireAdmin, requireSubAdmin, getUserFromToken } from "./auth";
 
 import { sanitizeString } from "./utils";
 

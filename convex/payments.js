@@ -167,3 +167,10 @@ export const getMonthlyAnalytics = query({
     };
   },
 });
+
+export const debugTest = query({
+  args: {},
+  handler: async (ctx) => {
+    return "ok";
+  }
+});

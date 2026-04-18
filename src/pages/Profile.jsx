@@ -15,7 +15,7 @@ const ROLE_LABEL = {
 export default function Profile() {
   const { user, token, login, logout } = useAuth();
   const navigate = useNavigate();
-  const dropPoints = useQuery(api.dropPoints.getDropPoints, { token });
+  const dropPoints = useQuery(api.dropPoints.getDropPoints, token ? { token } : "skip");
   const updatePrefs = useMutation(api.users.updatePreferences);
 
   const [dropPoint, setDropPoint] = useState(user?.defaultDropPoint || "Main Gate");

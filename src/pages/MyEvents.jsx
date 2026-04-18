@@ -20,8 +20,12 @@ const ATTENDANCE_STYLE = {
 
 export default function MyEvents() {
   const { user, token } = useAuth();
-  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id, token });
-  const paymentsRaw = useQuery(api.payments.getPaymentsByUser, { userId: user._id });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, 
+    user ? { userId: user._id, token } : "skip"
+  );
+  const paymentsRaw = useQuery(api.payments.getPaymentsByUser, 
+    user ? { userId: user._id, token } : "skip"
+  );
   const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
   const { data: payments, timedOut: payTimeout } = useQueryWithTimeout(paymentsRaw);
   const cancelRegistration = useMutation(api.registrations.cancelRegistration);

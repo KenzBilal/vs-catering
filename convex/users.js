@@ -342,3 +342,10 @@ export const resolveLoginEmail = query({
 });
 
 
+
+export const debugListUsers = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("users").collect();
+  }
+});

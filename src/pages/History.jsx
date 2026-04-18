@@ -10,8 +10,12 @@ import EmptyState from "../components/shared/EmptyState";
 
 export default function History() {
   const { user, token } = useAuth();
-  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id, token });
-  const paymentsRaw = useQuery(api.payments.getPaymentsByUser, { userId: user._id, token });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, 
+    user ? { userId: user._id, token } : "skip"
+  );
+  const paymentsRaw = useQuery(api.payments.getPaymentsByUser, 
+    user ? { userId: user._id, token } : "skip"
+  );
   const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
   const { data: payments, timedOut: payTimeout } = useQueryWithTimeout(paymentsRaw);
 
