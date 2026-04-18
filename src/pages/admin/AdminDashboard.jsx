@@ -56,7 +56,7 @@ export default function AdminDashboard() {
         <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Dashboard</h1>
         <p className="text-[14px] font-medium text-stone-500 mt-1">
           Good {now.getHours() < 12 ? "morning" : now.getHours() < 17 ? "afternoon" : "evening"},{" "}
-          {user?.name.split(" ")[0]}.
+          {user?.name?.split(" ")[0] || "Admin"}.
         </p>
       </div>
 
@@ -193,7 +193,11 @@ export default function AdminDashboard() {
                   ))}
                   <button
                     className="mt-3 w-full py-1.5 text-[12px] font-semibold text-[#8b3a00] bg-white border border-[#f5d0aa] rounded-lg hover:bg-[#fdf0e6] transition-colors"
-                    onClick={() => navigate(`/admin/catering/${payments[0].cateringId}/payments`)}
+                    onClick={() => {
+                      if (payments && payments.length > 0) {
+                        navigate(`/admin/catering/${payments[0].cateringId}/payments`);
+                      }
+                    }}
                   >
                     Resolve
                   </button>

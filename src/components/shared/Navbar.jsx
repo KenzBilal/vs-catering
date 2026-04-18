@@ -28,7 +28,7 @@ export default function Navbar() {
           <div className="flex items-center gap-1">
             <NavLink to="/" label="Events" isActive={isActive("/")} />
             <NavLink to="/my-caterings" label="My Events" isActive={isActive("/my-caterings")} />
-            <NavLink to="/profile" label={user.name.split(" ")[0]} isActive={isActive("/profile")} icon={<User size={14} />} />
+            <NavLink to="/profile" label={user?.name?.split(" ")[0] || "User"} isActive={isActive("/profile")} icon={<User size={14} />} />
             <button
               onClick={handleLogout}
               className="ml-1 p-2 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-all"

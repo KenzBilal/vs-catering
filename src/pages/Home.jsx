@@ -48,7 +48,7 @@ export default function Dashboard() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Dashboard</h1>
         <p className="text-[14px] font-medium text-stone-500 mt-1">
-          Welcome back, {user?.name.split(" ")[0]}.
+          Welcome back, {user?.name?.split(" ")[0] || "User"}.
         </p>
       </div>
 
