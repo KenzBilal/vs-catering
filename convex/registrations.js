@@ -102,12 +102,11 @@ export const register = mutation({
 // ─── getRegistrationsByCatering ───────────────────────────────────────────────
 
 export const getRegistrationsByCatering = query({
-  args: { cateringId: v.id("caterings"), token: v.string() },
+  args: { cateringId: v.id("caterings"), token: v.optional(v.string()) },
   handler: async (ctx, { cateringId, token }) => {
-    const caller = await getUserFromToken(ctx, token);
-    if (!caller) throw new ConvexError("Not authenticated.");
-
-    const isAdmin = caller.role === "admin" || caller.role === "sub_admin";
+    const caller = token ? await getUserFromToken(ctx, token) : null;
+    
+    const isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
 
     const regs = await ctx.db
       .query("registrations")

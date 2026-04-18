@@ -14,8 +14,10 @@ const FILTERS = ["All", "Today", "Tomorrow", "Upcoming", "Ended"];
 
 export default function Dashboard() {
   const { user, token } = useAuth();
-  const cateringsRaw = useQuery(api.caterings.listCaterings, { token });
-  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, { userId: user._id, token });
+  const cateringsRaw = useQuery(api.caterings.listCaterings, { token: token || undefined });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, 
+    user ? { userId: user._id, token } : "skip"
+  );
   const { data: caterings, timedOut: cateringTimeout } = useQueryWithTimeout(cateringsRaw);
   const { data: registrations } = useQueryWithTimeout(registrationsRaw);
   const [filter, setFilter] = useState("All");

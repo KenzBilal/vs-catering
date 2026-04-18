@@ -161,13 +161,12 @@ export const cancelCatering = mutation({
 });
 
 export const listCaterings = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
-    const caller = await getUserFromToken(ctx, token);
-    if (!caller) throw new ConvexError("Not authenticated.");
-
+    const caller = token ? await getUserFromToken(ctx, token) : null;
+    
     // Helper for role checks
-    const isAdmin = caller.role === "admin" || caller.role === "sub_admin";
+    const isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
 
     const all = await ctx.db.query("caterings").order("desc").collect();
     const today = new Date();
@@ -185,10 +184,9 @@ export const listCaterings = query({
 });
 
 export const getCatering = query({
-  args: { cateringId: v.id("caterings"), token: v.string() },
+  args: { cateringId: v.id("caterings"), token: v.optional(v.string()) },
   handler: async (ctx, { cateringId, token }) => {
-    const user = await getUserFromToken(ctx, token);
-    if (!user) throw new ConvexError("Not authenticated.");
+    // Publicly accessible query
     return await ctx.db.get(cateringId);
   },
 });

@@ -24,8 +24,8 @@ export default function CateringDetail() {
   const { id } = useParams();
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id, token });
-  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id, token });
+  const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id, token: token || undefined });
+  const registrationsRaw = useQuery(api.registrations.getRegistrationsByCatering, { cateringId: id, token: token || undefined });
   const { data: catering, timedOut: catTimeout } = useQueryWithTimeout(cateringRaw);
   const { data: registrations, timedOut: regTimeout } = useQueryWithTimeout(registrationsRaw);
   const [copied, setCopied] = useState(false);
@@ -35,7 +35,7 @@ export default function CateringDetail() {
     return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
   }
 
-  const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
+  const isAdmin = user ? (user.role === "admin" || user.role === "sub_admin") : false;
 
   if (catering === undefined) {
     return <LoadingState rows={3} />;
