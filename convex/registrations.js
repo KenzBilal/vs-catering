@@ -224,8 +224,8 @@ export const changeRole = mutation({
     await ctx.db.insert("notifications", {
       type: "role",
       category: "individual",
-      title: "Role Updated",
-      message: `Your role for the event has been changed to ${role.replace("_", " ")}`,
+      title: "Role Change",
+      message: `Your role was updated to ${role.replace("_", " ")}.`,
       targetUserId: reg.userId,
       targetUserName: user.name,
       isRead: false,

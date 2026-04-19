@@ -97,32 +97,38 @@ export default function NotificationsPage() {
                   !n.isRead ? "border-stone-400 bg-stone-50/30" : "border-cream-200"
                 }`}
               >
-                {!n.isRead && (
-                  <div className="absolute top-4 right-4 w-2 h-2 bg-stone-900 rounded-full" />
-                )}
-                
                 <div className="flex gap-4">
                   <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${COLOR_MAP[n.type]}`}>
                     <Icon size={20} />
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start gap-2 mb-1">
-                      <p className={`text-[14.5px] font-bold truncate ${!n.isRead ? "text-stone-900" : "text-stone-700"}`}>
-                        {n.title}
-                      </p>
-                      <span className="text-[11px] font-medium text-stone-400 whitespace-nowrap pt-0.5">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border shrink-0 ${
+                          n.category === "global" 
+                            ? "bg-stone-100 text-stone-500 border-stone-200" 
+                            : "bg-cream-100 text-stone-600 border-cream-200"
+                        }`}>
+                          {n.category === "global" ? "System" : "Personal"}
+                        </span>
+                        <p className={`text-[14px] font-bold truncate ${!n.isRead ? "text-stone-900" : "text-stone-700"}`}>
+                          {n.title}
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-medium text-stone-400 whitespace-nowrap">
                         {formatDate(n.createdAt)}
                       </span>
                     </div>
+                    
                     <p className={`text-[13px] leading-relaxed ${!n.isRead ? "text-stone-600 font-medium" : "text-stone-500"}`}>
                       {n.message}
                     </p>
 
                     {n.type === "payment" && n.payoutDate && (
-                      <div className="mt-3 flex items-center gap-1.5 bg-orange-50/50 border border-orange-100 rounded-lg px-2.5 py-1.5 w-fit">
-                        <Clock size={12} className="text-orange-600" />
-                        <span className="text-[11px] font-bold text-orange-700">Payout: {n.payoutDate}</span>
+                      <div className="mt-3 flex items-center gap-1.5 bg-stone-50 border border-cream-200 rounded-lg px-2.5 py-1.5 w-fit">
+                        <Clock size={12} className="text-stone-400" />
+                        <span className="text-[11px] font-bold text-stone-600">Expected Payout: {n.payoutDate}</span>
                       </div>
                     )}
                   </div>
