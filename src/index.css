@@ -34,9 +34,13 @@
     -ms-user-select: none;
   }
 
-  input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  input, select, textarea {
     @apply bg-cream-50 border border-cream-300 text-stone-800 rounded-xl px-4 py-3 text-[15px] w-full outline-none transition-all duration-200 shadow-sm appearance-none;
     font-family: 'Gabarito', sans-serif;
+  }
+
+  input[type="checkbox"], input[type="radio"] {
+    @apply w-auto appearance-auto shadow-none border-none p-0;
   }
 
   select {
