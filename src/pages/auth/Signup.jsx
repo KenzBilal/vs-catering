@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useMutation, useConvex } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useAuth } from "../lib/AuthContext";
+import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { UserPlus, Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
-import SegmentedControl from "../components/ui/SegmentedControl";
-import { isValidEmail, isValidPhone } from "../lib/helpers";
-import { auth } from "../lib/firebase";
+import SegmentedControl from "../../components/ui/SegmentedControl";
+import { isValidEmail, isValidPhone } from "../../lib/helpers";
+import { auth } from "../../lib/firebase";
 import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
 import toast from "react-hot-toast";
 

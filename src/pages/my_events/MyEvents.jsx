@@ -1,14 +1,14 @@
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useAuth } from "../lib/AuthContext";
-import { formatDate, formatCurrency, getRoleLabel, getStatusBadgeClass, getStatusLabel } from "../lib/helpers";
+import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../lib/AuthContext";
+import { formatDate, formatCurrency, getRoleLabel, getStatusBadgeClass, getStatusLabel } from "../../lib/helpers";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { CalendarDays, CheckCircle2, Clock, AlertCircle, XCircle, ArrowRight, AlertTriangle } from "lucide-react";
-import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
-import ErrorState from "../components/shared/ErrorState";
-import LoadingState from "../components/shared/LoadingState";
-import EmptyState from "../components/shared/EmptyState";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
+import LoadingState from "../../components/shared/LoadingState";
+import EmptyState from "../../components/shared/EmptyState";
 import toast from "react-hot-toast";
 
 const ATTENDANCE_STYLE = {

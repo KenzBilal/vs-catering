@@ -1,12 +1,12 @@
 import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useAuth } from "../lib/AuthContext";
-import { formatDate, formatCurrency, getRoleLabel } from "../lib/helpers";
+import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../lib/AuthContext";
+import { formatDate, formatCurrency, getRoleLabel } from "../../lib/helpers";
 import { CalendarDays, CheckCircle2, Clock, XCircle, Ban, TrendingUp, IndianRupee, UserCheck } from "lucide-react";
-import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
-import ErrorState from "../components/shared/ErrorState";
-import LoadingState from "../components/shared/LoadingState";
-import EmptyState from "../components/shared/EmptyState";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
+import LoadingState from "../../components/shared/LoadingState";
+import EmptyState from "../../components/shared/EmptyState";
 
 export default function History() {
   const { user, token } = useAuth();

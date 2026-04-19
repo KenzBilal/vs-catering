@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useAuth } from "../lib/AuthContext";
-import { formatDate } from "../lib/helpers";
-import CustomSelect from "../components/ui/CustomSelect";
+import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../lib/AuthContext";
+import { formatDate } from "../../lib/helpers";
+import CustomSelect from "../../components/ui/CustomSelect";
 import { ArrowLeft, MapPin, UserCheck } from "lucide-react";
-import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
-import ErrorState from "../components/shared/ErrorState";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
 import toast from "react-hot-toast";
 
 // Sub-components

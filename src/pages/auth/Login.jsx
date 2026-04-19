@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useAuth } from "../lib/AuthContext";
+import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Utensils, ArrowRight, Phone } from "lucide-react";
-import { auth } from "../lib/firebase";
+import { auth } from "../../lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import toast from "react-hot-toast";
 

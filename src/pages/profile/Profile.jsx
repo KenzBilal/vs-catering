@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useAuth } from "../lib/AuthContext";
+import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { LogOut, Save, CheckCircle2 } from "lucide-react";
-import SegmentedControl from "../components/ui/SegmentedControl";
+import SegmentedControl from "../../components/ui/SegmentedControl";
 
 const ROLE_LABEL = {
   student: "Student",

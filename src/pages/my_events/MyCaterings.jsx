@@ -1,7 +1,7 @@
 import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useAuth } from "../lib/AuthContext";
-import { formatDate, formatCurrency, getRoleLabel, getStatusBadgeClass, getStatusLabel } from "../lib/helpers";
+import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../lib/AuthContext";
+import { formatDate, formatCurrency, getRoleLabel, getStatusBadgeClass, getStatusLabel } from "../../lib/helpers";
 import { Link } from "react-router-dom";
 import { CalendarDays, CheckCircle2, Clock, AlertCircle, XCircle, ArrowRight } from "lucide-react";
 

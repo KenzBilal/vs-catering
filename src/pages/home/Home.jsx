@@ -1,5 +1,5 @@
 import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
 import { useState } from "react";
 import { CalendarDays } from "lucide-react";

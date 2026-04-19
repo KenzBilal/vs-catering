@@ -1,14 +1,14 @@
 import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/AuthContext";
-import { generateWhatsAppMessage } from "../lib/helpers";
+import { useAuth } from "../../lib/AuthContext";
+import { generateWhatsAppMessage } from "../../lib/helpers";
 import { useState } from "react";
 import { ArrowLeft, CalendarDays } from "lucide-react";
-import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
-import ErrorState from "../components/shared/ErrorState";
-import LoadingState from "../components/shared/LoadingState";
-import EmptyState from "../components/shared/EmptyState";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
+import LoadingState from "../../components/shared/LoadingState";
+import EmptyState from "../../components/shared/EmptyState";
 
 // Sub-components
 import CateringHeader from "./components/CateringHeader";

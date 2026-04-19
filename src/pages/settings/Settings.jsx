@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useAuth } from "../lib/AuthContext";
+import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../lib/AuthContext";
 import { Save, CheckCircle2, User, MapPin, Camera, Hash } from "lucide-react";
-import SegmentedControl from "../components/ui/SegmentedControl";
-import CustomSelect from "../components/ui/CustomSelect";
-import ConvexImage from "../components/shared/ConvexImage";
-import { isValidRegNumber } from "../lib/helpers";
-import { useQueryWithTimeout } from "../hooks/useQueryWithTimeout";
-import ErrorState from "../components/shared/ErrorState";
+import SegmentedControl from "../../components/ui/SegmentedControl";
+import CustomSelect from "../../components/ui/CustomSelect";
+import ConvexImage from "../../components/shared/ConvexImage";
+import { isValidRegNumber } from "../../lib/helpers";
+import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
+import ErrorState from "../../components/shared/ErrorState";
 import toast from "react-hot-toast";
 
 const ROLE_LABEL = { student: "Student", sub_admin: "Sub-Admin", admin: "Admin" };
