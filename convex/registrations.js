@@ -60,7 +60,7 @@ export const register = mutation({
     const queuePosition = maxPos + 1;
 
     const slot = catering.slots.find((s) => s.role === args.role && s.day === primaryDay);
-    const isConfirmed = slot ? queuePosition <= slot.limit : false;
+    const isConfirmed = true; // Always confirm — per admin request to handle no-shows
 
     // Gender-based role restrictions
     if (caller.gender === "male") {
@@ -256,30 +256,6 @@ export const cancelRegistration = mutation({
       throw new ConvexError(`Cannot cancel registration once you have been marked as ${reg.status}.`);
     }
 
-    const wasConfirmed = reg.isConfirmed;
     await ctx.db.delete(registrationId);
-
-    // #19: Waitlist promotion — if this was a confirmed slot, promote the next in queue
-    if (wasConfirmed) {
-      const slot = catering?.slots.find((s) => s.role === reg.role && s.day === reg.days[0]);
-      if (slot) {
-        // Find all unconfirmed registrations for same role/day, order by queuePosition
-        const allRegs = await ctx.db
-          .query("registrations")
-          .withIndex("by_catering", (q) => q.eq("cateringId", reg.cateringId))
-          .collect();
-        const waitlisted = allRegs
-          .filter((r) => r.role === reg.role && r.days.includes(reg.days[0]) && !r.isConfirmed)
-          .sort((a, b) => a.queuePosition - b.queuePosition);
-
-        const confirmedCount = allRegs.filter(
-          (r) => r.role === reg.role && r.days.includes(reg.days[0]) && r.isConfirmed
-        ).length;
-
-        if (waitlisted.length > 0 && confirmedCount < slot.limit) {
-          await ctx.db.patch(waitlisted[0]._id, { isConfirmed: true });
-        }
-      }
-    }
   },
 });
