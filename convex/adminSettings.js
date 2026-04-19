@@ -48,6 +48,28 @@ export const getDropPoints = query({
   },
 });
 
+export const getMyPermissions = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const user = await getUserFromToken(ctx, token);
+    if (!user) return DEFAULT_PERMISSIONS.map(p => ({ ...p, enabled: false }));
+
+    if (user.role === "admin") {
+      return DEFAULT_PERMISSIONS.map(p => ({ ...p, enabled: true }));
+    }
+
+    if (user.role === "sub_admin") {
+      const settings = await ctx.db
+        .query("adminSettings")
+        .withIndex("by_key", (q) => q.eq("key", "global"))
+        .first();
+      return settings?.subAdminPermissions || DEFAULT_PERMISSIONS;
+    }
+
+    return DEFAULT_PERMISSIONS.map(p => ({ ...p, enabled: false }));
+  },
+});
+
 export const getSubAdmins = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
