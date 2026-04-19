@@ -282,8 +282,31 @@ export const setEventPayout = mutation({
       payoutDate,
       payoutNote,
     });
+
+    // Notify all attended users
+    const catering = await ctx.db.get(cateringId);
+    const registrations = await ctx.db
+      .query("registrations")
+      .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
+      .filter((q) => q.eq(q.field("status"), "attended"))
+      .collect();
+
+    for (const reg of registrations) {
+      await ctx.db.insert("notifications", {
+        type: "payment",
+        category: "individual",
+        title: "Payout Scheduled",
+        message: `Payout for ${catering.place} is scheduled for ${payoutDate}.`,
+        targetUserId: reg.userId,
+        cateringId: cateringId,
+        cateringTitle: catering.place,
+        isRead: false,
+        createdAt: Date.now(),
+      });
+    }
   },
 });
+
 
 
 
