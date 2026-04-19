@@ -77,7 +77,7 @@ export default function ManagePayouts() {
               toast.error("Cleanup failed.");
             }
           }}
-          className="mt-2 text-[10px] text-stone-300 hover:text-stone-500 underline"
+          className="mt-3 text-[11px] text-stone-400 hover:text-stone-700 underline underline-offset-2 transition-colors"
         >
           Run Schema Migration
         </button>
