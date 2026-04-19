@@ -9,7 +9,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [storedUser, setStoredUser] = useState(() => {
     try {
-      const stored = localStorage.getItem("vs_user");
+      const stored = localStorage.getItem("vs_user") || sessionStorage.getItem("vs_user");
       return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
@@ -41,6 +41,7 @@ export function AuthProvider({ children }) {
       // Token is invalid/expired, clear storage
       setStoredUser(null);
       localStorage.removeItem("vs_user");
+      sessionStorage.removeItem("vs_user");
     }
   }, [validUser, storedUser]);
 
@@ -49,9 +50,13 @@ export function AuthProvider({ children }) {
     ? (validUser ? { ...validUser, token: storedUser?.token } : null)
     : storedUser; // show stored data while loading to avoid flicker
 
-  const login = (userData) => {
+  const login = (userData, rememberMe) => {
     setStoredUser(userData);
-    localStorage.setItem("vs_user", JSON.stringify(userData));
+    if (rememberMe) {
+      localStorage.setItem("vs_user", JSON.stringify(userData));
+    } else {
+      sessionStorage.setItem("vs_user", JSON.stringify(userData));
+    }
   };
 
   const logout = async () => {
@@ -70,6 +75,7 @@ export function AuthProvider({ children }) {
 
     setStoredUser(null);
     localStorage.removeItem("vs_user");
+    sessionStorage.removeItem("vs_user");
   };
 
   return (

@@ -82,7 +82,7 @@ export default function Signup() {
       }
       
       toast.success("Account created successfully!");
-      login(result);
+      login(result, form.rememberMe);
       navigate("/", { replace: true });
     } catch (e) {
       console.error("Signup Error Object:", e);

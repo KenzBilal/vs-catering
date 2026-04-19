@@ -68,7 +68,7 @@ export default function Login() {
         setErrors({ identifier: "Account not found. Please sign up first." });
       } else {
         toast.success("Welcome back!");
-        login(result);
+        login(result, rememberMe);
         navigate("/", { replace: true });
       }
     } catch (e) {

@@ -10,12 +10,12 @@ import StudentShell from "./components/student/StudentShell";
 import AdminShell   from "./components/admin/AdminShell";
 
 // Student pages
-import Dashboard    from "./pages/Home";
-import MyEvents     from "./pages/MyEvents";
-import History      from "./pages/History";
-import Settings     from "./pages/Settings";
-import CateringDetail from "./pages/CateringDetail";
-import Register     from "./pages/Register";
+import Dashboard    from "./pages/home/Home";
+import MyEvents     from "./pages/my_events/MyEvents";
+import History      from "./pages/history/History";
+import Settings     from "./pages/settings/Settings";
+import CateringDetail from "./pages/catering_detail/CateringDetail";
+import Register     from "./pages/register/Register";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -28,8 +28,8 @@ import PaymentsPage   from "./pages/admin/PaymentsPage";
 import AdminSettings  from "./pages/admin/AdminSettings";
 
 // Auth pages
-import Login  from "./pages/Login";
-import Signup from "./pages/Signup";
+import Login  from "./pages/auth/Login";
+import Signup from "./pages/auth/Signup";
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
 if (!convexUrl) {

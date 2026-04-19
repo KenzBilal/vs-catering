@@ -11,14 +11,14 @@ import LoadingState from "../components/shared/LoadingState";
 import EmptyState from "../components/shared/EmptyState";
 
 // Sub-components
-import CateringHeader from "./catering_detail/components/CateringHeader";
-import CateringInfoGrid from "./catering_detail/components/CateringInfoGrid";
-import CateringSlots from "./catering_detail/components/CateringSlots";
-import RegistrationList from "./catering_detail/components/RegistrationList";
-import UserProfileModal from "./catering_detail/components/UserProfileModal";
-import AdminSummary from "./catering_detail/components/AdminSummary";
-import RegistrationStatus from "./catering_detail/components/RegistrationStatus";
-import { AdminActionButtons, CateringDressCode } from "./catering_detail/components/MiscComponents";
+import CateringHeader from "./components/CateringHeader";
+import CateringInfoGrid from "./components/CateringInfoGrid";
+import CateringSlots from "./components/CateringSlots";
+import RegistrationList from "./components/RegistrationList";
+import UserProfileModal from "./components/UserProfileModal";
+import AdminSummary from "./components/AdminSummary";
+import RegistrationStatus from "./components/RegistrationStatus";
+import { AdminActionButtons, CateringDressCode } from "./components/MiscComponents";
 
 export default function CateringDetail() {
   const { id } = useParams();
@@ -62,7 +62,7 @@ export default function CateringDetail() {
 
   const roleCounts = {};
   (registrations || []).forEach((r) => {
-    const key = `${r.role}-${r.days[0]}`;
+    const key = `${r.role}-${r.days?.[0]}`;
     roleCounts[key] = (roleCounts[key] || 0) + 1;
   });
 
