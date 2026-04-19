@@ -25,7 +25,9 @@ import CreateCatering from "./pages/admin/CreateCatering";
 import EditCatering   from "./pages/admin/EditCatering";
 import AttendancePage from "./pages/admin/AttendancePage";
 import PaymentsPage   from "./pages/admin/PaymentsPage";
-import AdminSettings  from "./pages/admin/AdminSettings";
+import SettingsMenu   from "./pages/admin/SettingsMenu";
+import ManageDropPoints from "./pages/admin/ManageDropPoints";
+import ManageSubAdmins  from "./pages/admin/ManageSubAdmins";
 
 // Auth pages
 import Login  from "./pages/auth/Login";
@@ -126,7 +128,11 @@ function AppRoutes() {
       <Route path="/admin/catering/:id/payments"    element={<AdminPage page={<PaymentsPage />} />} />
       {/* #21: Users and Settings are admin-only, not sub_admin */}
       <Route path="/admin/users"    element={<ProtectedRoute superAdminOnly><AdminShell><AdminUsers /></AdminShell></ProtectedRoute>} />
-      <Route path="/admin/settings" element={<ProtectedRoute superAdminOnly><AdminShell><AdminSettings /></AdminShell></ProtectedRoute>} />
+      
+      {/* Settings Sub-Routes */}
+      <Route path="/admin/settings"             element={<ProtectedRoute superAdminOnly><AdminShell><SettingsMenu /></AdminShell></ProtectedRoute>} />
+      <Route path="/admin/settings/drop-points" element={<ProtectedRoute superAdminOnly><AdminShell><ManageDropPoints /></AdminShell></ProtectedRoute>} />
+      <Route path="/admin/settings/sub-admins"  element={<ProtectedRoute superAdminOnly><AdminShell><ManageSubAdmins /></AdminShell></ProtectedRoute>} />
 
       {/* Legacy admin redirect */}
       <Route path="/admin/create-catering" element={<Navigate to="/admin/events/create" replace />} />

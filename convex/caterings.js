@@ -1,6 +1,6 @@
 import { v, ConvexError } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
-import { requireAdmin, requireSubAdmin, getUserFromToken } from "./auth";
+import { requireAdmin, requireSubAdmin, getUserFromToken, checkPermission } from "./auth";
 
 import { sanitizeString } from "./utils";
 
@@ -78,7 +78,7 @@ export const createCatering = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.token);
+    await checkPermission(ctx, args.token, "manage_caterings");
 
     const place = sanitizeString(args.place).slice(0, 200);
     const dressCodeNotes = sanitizeString(args.dressCodeNotes).slice(0, 2000);
@@ -118,7 +118,7 @@ export const updateCatering = mutation({
     token: v.string(),
   },
   handler: async (ctx, { cateringId, token, ...updates }) => {
-    await requireAdmin(ctx, token);
+    await checkPermission(ctx, token, "manage_caterings");
 
     const existing = await ctx.db.get(cateringId);
     if (!existing) throw new ConvexError("Event not found.");
@@ -151,7 +151,7 @@ export const cancelCatering = mutation({
     token: v.string(),
   },
   handler: async (ctx, { cateringId, token }) => {
-    await requireAdmin(ctx, token);
+    await checkPermission(ctx, token, "manage_caterings");
     const existing = await ctx.db.get(cateringId);
     if (!existing) throw new ConvexError("Event not found.");
     if (existing.status === "cancelled") throw new ConvexError("Event is already cancelled.");

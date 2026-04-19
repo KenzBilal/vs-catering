@@ -38,6 +38,31 @@ export async function requireSubAdmin(ctx, token) {
   return user;
 }
 
+// Helper to check granular permissions for sub-admins
+export async function checkPermission(ctx, token, permissionKey) {
+  const user = await getUserFromToken(ctx, token);
+  if (!user) throw new ConvexError("Not authenticated.");
+  
+  // Admin has all permissions
+  if (user.role === "admin") return user;
+  
+  if (user.role === "sub_admin") {
+    const settings = await ctx.db
+      .query("adminSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    
+    if (!settings) return user; // Fallback to basic access if not initialized
+    
+    const perm = settings.subAdminPermissions.find(p => p.permission === permissionKey);
+    if (perm && perm.enabled) return user;
+    
+    throw new ConvexError(`Unauthorized: You do not have permission to ${permissionKey.replace(/_/g, " ")}.`);
+  }
+  
+  throw new ConvexError("Unauthorized access.");
+}
+
 // Query to validate current session from frontend
 export const validateSession = query({
   args: { token: v.string() },

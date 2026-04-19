@@ -1,6 +1,6 @@
 import { v, ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireSubAdmin, requireAdmin, getUserFromToken } from "./auth";
+import { requireSubAdmin, requireAdmin, getUserFromToken, checkPermission } from "./auth";
 
 import { sanitizeString } from "./utils";
 
@@ -15,7 +15,7 @@ export const createPayment = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireSubAdmin(ctx, args.token);
+    await checkPermission(ctx, args.token, "manage_payments");
 
     if (args.amount < 0) throw new ConvexError("Payment amount cannot be negative.");
 
@@ -50,7 +50,7 @@ export const clearPayment = mutation({
   },
   handler: async (ctx, { paymentId, upiRef, token }) => {
     // Derive clearedBy from session token — never trust the client
-    const adminUser = await requireAdmin(ctx, token);
+    const adminUser = await checkPermission(ctx, token, "manage_payments");
 
     const payment = await ctx.db.get(paymentId);
     if (!payment) throw new ConvexError("Payment not found.");
@@ -94,7 +94,7 @@ export const getPaymentsByUser = query({
 export const getPaymentsByCatering = query({
   args: { cateringId: v.id("caterings"), token: v.string() },
   handler: async (ctx, { cateringId, token }) => {
-    await requireSubAdmin(ctx, token);
+    await checkPermission(ctx, token, "manage_payments");
     const payments = await ctx.db
       .query("payments")
       .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
@@ -113,7 +113,7 @@ export const getPaymentsByCatering = query({
 export const getPendingPayments = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
-    await requireSubAdmin(ctx, token);
+    await checkPermission(ctx, token, "manage_payments");
     const payments = await ctx.db
       .query("payments")
       .withIndex("by_status", (q) => q.eq("status", "pending"))
@@ -133,7 +133,7 @@ export const getPendingPayments = query({
 export const getMonthlyAnalytics = query({
   args: { month: v.number(), year: v.number(), token: v.string() },
   handler: async (ctx, { month, year, token }) => {
-    await requireSubAdmin(ctx, token);
+    await checkPermission(ctx, token, "manage_payments");
     const start = new Date(year, month - 1, 1).getTime();
     const end = new Date(year, month, 1).getTime();
 

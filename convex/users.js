@@ -1,6 +1,6 @@
 import { v, ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAdmin, getUserFromToken } from "./auth";
+import { requireAdmin, getUserFromToken, checkPermission } from "./auth";
 
 import { sanitizeString, validatePhone, validateRegistrationNumber, validateEmail } from "./utils";
 
@@ -214,8 +214,15 @@ export const getUser = query({
     if (!caller) throw new ConvexError("Unauthorized");
 
     // Only allow self or admin/sub-admin
-    const isAdmin = caller.role === "admin" || caller.role === "sub_admin";
-    if (caller._id !== userId && !isAdmin) {
+    let canViewAll = false;
+    try {
+      await checkPermission(ctx, token, "manage_users");
+      canViewAll = true;
+    } catch (e) {
+      canViewAll = false;
+    }
+
+    if (caller._id !== userId && !canViewAll) {
       throw new ConvexError("Unauthorized: You can only view your own profile.");
     }
 
@@ -288,10 +295,7 @@ export const setUserRole = mutation({
 export const getAllStudents = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
-    const caller = await getUserFromToken(ctx, token);
-    if (!caller || (caller.role !== "admin" && caller.role !== "sub_admin")) {
-      throw new ConvexError("Unauthorized.");
-    }
+    const caller = await checkPermission(ctx, token, "manage_users");
     
     const users = await ctx.db.query("users").collect();
     // #5: Sub-admins only see students to protect admin PII

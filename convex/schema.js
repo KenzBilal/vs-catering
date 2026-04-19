@@ -108,4 +108,13 @@ export default defineSchema({
     .index("by_registration", ["registrationId"])
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"]),
+
+  adminSettings: defineTable({
+    key: v.string(), // singleton "global"
+    subAdminPermissions: v.array(v.object({
+      permission: v.string(),
+      enabled: v.boolean(),
+    })),
+    createdAt: v.number(),
+  }).index("by_key", ["key"]),
 });

@@ -1,6 +1,6 @@
 import { v, ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireSubAdmin, getUserFromToken } from "./auth";
+import { requireSubAdmin, getUserFromToken, checkPermission } from "./auth";
 
 import { sanitizeString } from "./utils";
 
@@ -180,7 +180,7 @@ export const markAttendance = mutation({
     token: v.string(),
   },
   handler: async (ctx, { registrationId, status, rejectionReason, token }) => {
-    await requireSubAdmin(ctx, token);
+    await checkPermission(ctx, token, "mark_attendance");
     await ctx.db.patch(registrationId, {
       status,
       // #16: Clear isConfirmed when rejected or absent
@@ -201,7 +201,7 @@ export const changeRole = mutation({
     token: v.string(),
   },
   handler: async (ctx, { registrationId, role, token }) => {
-    await requireSubAdmin(ctx, token);
+    await checkPermission(ctx, token, "mark_attendance");
     if (!VALID_ROLES.includes(role)) throw new ConvexError("Invalid role.");
     const reg = await ctx.db.get(registrationId);
     if (!reg) throw new ConvexError("Registration not found.");
