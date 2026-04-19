@@ -48,6 +48,7 @@ export const getSettings = query({
   },
 });
 
+
 export const getSubAdminPermissions = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
