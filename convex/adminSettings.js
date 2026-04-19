@@ -7,29 +7,29 @@ const DEFAULT_PERMISSIONS = [
   { 
     permission: "manage_caterings", 
     enabled: false,
-    label: "Manage Caterings & Events",
-    description: "Create, edit, and cancel events",
+    label: "Manage Events",
+    description: "Create and edit catering events",
     category: "events"
   },
   { 
     permission: "mark_attendance", 
     enabled: false,
     label: "Mark Attendance",
-    description: "Check-in students and change roles",
+    description: "Check student attendance",
     category: "attendance"
   },
   { 
     permission: "manage_payments", 
     enabled: false,
-    label: "Manage & Clear Payments",
-    description: "Create payments and clear payouts",
+    label: "Handle Payments",
+    description: "Manage student payments",
     category: "payments"
   },
   { 
     permission: "manage_users", 
     enabled: false,
-    label: "View User Data",
-    description: "Access registered student records",
+    label: "View Students",
+    description: "Access student information",
     category: "users"
   },
 ];

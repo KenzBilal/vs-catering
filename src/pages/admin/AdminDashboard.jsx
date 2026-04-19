@@ -68,7 +68,7 @@ export default function AdminDashboard() {
         <>
           <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">
-              Monthly Overview
+              Overview
             </h2>
             <div className="flex bg-white border border-cream-200 rounded-2xl p-1 shadow-sm gap-1">
               <CustomSelect

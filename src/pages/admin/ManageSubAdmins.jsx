@@ -73,9 +73,9 @@ export default function ManageSubAdmins() {
         >
           <ArrowLeft size={16} /> Back to Settings
         </button>
-        <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Sub-Admin Management</h1>
+        <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Sub-Admins</h1>
         <p className="text-[14.5px] font-medium text-stone-500 mt-1">
-          Promote students and configure global permissions for all sub-admins.
+          Manage sub-admin access and permissions.
         </p>
       </div>
 
@@ -85,10 +85,10 @@ export default function ManageSubAdmins() {
           <div className="card bg-white p-6">
             <h2 className="font-bold text-[16px] text-stone-900 mb-2 flex items-center gap-2">
               <ShieldCheck size={18} className="text-stone-400" />
-              Global Permissions
+              Permissions
             </h2>
             <p className="text-[12.5px] font-medium text-stone-400 mb-6">
-              Enable or disable these capabilities for all active sub-admins.
+              Set what sub-admins can do across the platform.
             </p>
 
             <div className="space-y-3">
@@ -124,7 +124,7 @@ export default function ManageSubAdmins() {
         <div className="lg:col-span-3 space-y-6">
           {/* Add New Sub-Admin */}
           <div className="card bg-white p-6">
-            <h2 className="font-bold text-[16px] text-stone-900 mb-5">Add New Sub-Admin</h2>
+            <h2 className="font-bold text-[16px] text-stone-900 mb-5">Add Sub-Admin</h2>
             <div className="relative mb-4">
               <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
               <input
@@ -164,7 +164,7 @@ export default function ManageSubAdmins() {
 
           {/* Current Sub-Admins */}
           <div className="card bg-white p-6">
-            <h2 className="font-bold text-[16px] text-stone-900 mb-5">Active Sub-Admins</h2>
+            <h2 className="font-bold text-[16px] text-stone-900 mb-5">Current Sub-Admins</h2>
             <div className="space-y-3">
               {subAdmins.length === 0 ? (
                 <div className="text-center py-8">
