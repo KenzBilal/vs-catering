@@ -157,6 +157,21 @@ export const updateCatering = mutation({
     if (updates.photoRequired !== undefined) sanitized.photoRequired = updates.photoRequired;
 
     await ctx.db.patch(cateringId, sanitized);
+
+    // Create notification for major updates
+    if (sanitized.place || sanitized.specificTime) {
+      await ctx.db.insert("notifications", {
+        type: "catering",
+        category: "global",
+        title: "Event Updated",
+        message: `Event at "${sanitized.place || existing.place}" has been updated. New Time: ${sanitized.specificTime || existing.specificTime}`,
+        cateringId,
+        cateringTitle: sanitized.place || existing.place,
+        cateringDate: existing.dates[0],
+        isRead: false,
+        createdAt: Date.now(),
+      });
+    }
   },
 });
 

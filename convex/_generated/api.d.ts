@@ -15,6 +15,7 @@ import type * as crons from "../crons.js";
 import type * as dropPoints from "../dropPoints.js";
 import type * as files from "../files.js";
 import type * as maintenance from "../maintenance.js";
+import type * as notifications from "../notifications.js";
 import type * as payments from "../payments.js";
 import type * as registrations from "../registrations.js";
 import type * as users from "../users.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   dropPoints: typeof dropPoints;
   files: typeof files;
   maintenance: typeof maintenance;
+  notifications: typeof notifications;
   payments: typeof payments;
   registrations: typeof registrations;
   users: typeof users;
