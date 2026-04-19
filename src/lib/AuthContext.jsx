@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("vs_user");
       sessionStorage.removeItem("vs_user");
     }
-  }, [validUser, storedUser]);
+  }, [validUser, permissions, storedUser]);
 
   // #26: Use server-validated user data once available, fallback to stored only during loading
   const user = serverValidated
