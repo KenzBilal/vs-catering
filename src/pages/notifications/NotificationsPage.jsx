@@ -95,6 +95,10 @@ export default function NotificationsPage() {
                 onClick={() => handleItemClick(n)}
                 className={`group relative bg-white border rounded-2xl p-4 transition-all duration-200 cursor-pointer hover:border-stone-300 hover:shadow-sm ${
                   !n.isRead ? "border-stone-400 bg-stone-50/30" : "border-cream-200"
+                } ${
+                  n.category === "global" 
+                    ? "border-l-4 border-l-stone-800" 
+                    : "border-l-4 border-l-orange-300"
                 }`}
               >
                 <div className="flex gap-4">
@@ -104,18 +108,9 @@ export default function NotificationsPage() {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className={`text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border shrink-0 ${
-                          n.category === "global" 
-                            ? "bg-stone-100 text-stone-500 border-stone-200" 
-                            : "bg-cream-100 text-stone-600 border-cream-200"
-                        }`}>
-                          {n.category === "global" ? "System" : "Personal"}
-                        </span>
-                        <p className={`text-[14px] font-bold truncate ${!n.isRead ? "text-stone-900" : "text-stone-700"}`}>
-                          {n.title}
-                        </p>
-                      </div>
+                      <p className={`text-[14px] font-bold truncate ${!n.isRead ? "text-stone-900" : "text-stone-700"}`}>
+                        {n.title}
+                      </p>
                       <span className="text-[11px] font-medium text-stone-400 whitespace-nowrap">
                         {formatDate(n.createdAt)}
                       </span>
