@@ -25,7 +25,7 @@ const NAV_ITEMS = [
 export default function AdminShell({ children }) {
   const { user, permissions, logout } = useAuth();
   const navigate = useNavigate();
-  const settingsRaw = useQuery(api.adminSettings.getSettings, { token: user?.token || "" });
+  const settingsRaw = useQuery(api.adminSettings.getSettings, user?.role === "admin" ? { token: user?.token || "" } : "skip");
   const initializeSettings = useMutation(api.adminSettings.initializeSettings);
 
   useEffect(() => {
