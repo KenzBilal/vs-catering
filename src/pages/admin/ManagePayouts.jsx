@@ -14,7 +14,6 @@ export default function ManagePayouts() {
   const navigate = useNavigate();
   const finishedEvents = useQuery(api.caterings.getFinishedCaterings, { token });
   const setEventPayout = useMutation(api.caterings.setEventPayout);
-  const cleanup = useMutation(api.caterings.cleanupAdminSettings);
 
   const [search, setSearch] = useState("");
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -68,19 +67,6 @@ export default function ManagePayouts() {
         <p className="text-[14px] font-medium text-stone-500 mt-1">
           Manage and schedule payment dates for finished catering events.
         </p>
-        <button 
-          onClick={async () => {
-            try {
-              await cleanup();
-              toast.success("Database cleaned.");
-            } catch (e) {
-              toast.error("Cleanup failed.");
-            }
-          }}
-          className="mt-3 text-[11px] text-stone-400 hover:text-stone-700 underline underline-offset-2 transition-colors"
-        >
-          Run Schema Migration
-        </button>
       </div>
 
       <div className="relative mb-6">

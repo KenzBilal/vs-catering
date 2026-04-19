@@ -121,7 +121,6 @@ export default defineSchema({
       description: v.optional(v.string()),
       category: v.optional(v.string()),
     })),
-    payoutSettings: v.optional(v.any()),
     createdAt: v.number(),
   }).index("by_key", ["key"]),
 
