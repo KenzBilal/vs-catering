@@ -40,10 +40,7 @@ export const createPayment = mutation({
     });
 
     // Create notification
-    const settings = await ctx.db
-      .query("adminSettings")
-      .withIndex("by_key", (q) => q.eq("key", "global"))
-      .first();
+    const catering = await ctx.db.get(args.cateringId);
 
     await ctx.db.insert("notifications", {
       type: "payment",
@@ -53,7 +50,7 @@ export const createPayment = mutation({
       targetUserId: userId,
       paymentId,
       amount: args.amount,
-      payoutDate: settings?.payoutSettings?.nextPayoutDate,
+      payoutDate: catering?.payoutDate,
       isRead: false,
       createdAt: Date.now(),
     });

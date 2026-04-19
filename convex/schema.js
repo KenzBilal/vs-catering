@@ -61,6 +61,8 @@ export default defineSchema({
       v.literal("ended"),
       v.literal("cancelled"),
     ),
+    payoutDate: v.optional(v.string()),
+    payoutNote: v.optional(v.string()),
     createdBy: v.id("users"),
     createdAt: v.number(),
   })
@@ -118,11 +120,6 @@ export default defineSchema({
       label: v.optional(v.string()),
       description: v.optional(v.string()),
       category: v.optional(v.string()),
-    })),
-    payoutSettings: v.optional(v.object({
-      nextPayoutDate: v.optional(v.string()),
-      payoutNote: v.optional(v.string()),
-      lastUpdatedBy: v.optional(v.id("users")),
     })),
     createdAt: v.number(),
   }).index("by_key", ["key"]),

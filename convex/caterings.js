@@ -247,3 +247,41 @@ export const refreshStatuses = internalMutation({
     }
   },
 });
+
+// ─── Payout Management ───────────────────────────────────────────────────────
+
+export const getFinishedCaterings = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    await checkPermission(ctx, token, "manage_payments");
+    
+    return await ctx.db
+      .query("caterings")
+      .filter((q) => 
+        q.and(
+          q.eq(q.field("status"), "ended"),
+          q.neq(q.field("status"), "cancelled")
+        )
+      )
+      .order("desc")
+      .collect();
+  },
+});
+
+export const setEventPayout = mutation({
+  args: {
+    cateringId: v.id("caterings"),
+    payoutDate: v.string(),
+    payoutNote: v.optional(v.string()),
+    token: v.string(),
+  },
+  handler: async (ctx, { cateringId, payoutDate, payoutNote, token }) => {
+    await checkPermission(ctx, token, "manage_payments");
+    
+    await ctx.db.patch(cateringId, {
+      payoutDate,
+      payoutNote,
+    });
+  },
+});
+
