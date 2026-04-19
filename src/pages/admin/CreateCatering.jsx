@@ -27,6 +27,7 @@ export default function CreateCatering() {
   const [photoRequired, setPhotoRequired] = useState(false);
   const [dressCodeNotes, setDressCodeNotes] = useState(DEFAULT_DRESS_CODE);
   const [sameSlotsForBothDays, setSameSlotsForBothDays] = useState(true);
+  const [limitSlots, setLimitSlots] = useState(false);
 
   // Slots: { role, day, limit, pay }
   const [slots, setSlots] = useState([
@@ -115,6 +116,7 @@ export default function CreateCatering() {
         joinRule: isTwoDay ? joinRule : "any_day",
         photoRequired,
         dressCodeNotes,
+        limitSlots,
         slots: finalSlots,
         createdBy: user._id,
         token,
@@ -266,9 +268,18 @@ export default function CreateCatering() {
         {/* Card 3: Roles and Pay */}
         <div className="card">
           <div className="flex items-center gap-2 mb-5">
-            <Users className="text-stone-400" size={18} />
             <h3 className="font-semibold text-stone-800 text-[16px]">{isTwoDay ? "Roles & Pay (Day 1)" : "Roles & Pay"}</h3>
           </div>
+          
+          <div className="mb-6 p-4 bg-stone-50 border border-cream-200 rounded-xl">
+            <Toggle 
+              label="Enable Slot Limits & Queue"
+              description="If off, anyone can register and get confirmed. If on, people after the limit go to waitlist."
+              checked={limitSlots}
+              onChange={setLimitSlots}
+            />
+          </div>
+
           <div className="flex flex-col gap-3">
             <div className="grid grid-cols-[1fr_90px_100px] sm:grid-cols-[1fr_120px_120px] gap-3">
               <div />

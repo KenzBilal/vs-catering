@@ -25,6 +25,7 @@ export default function EditCatering() {
   const [photoRequired, setPhotoRequired] = useState(false);
   const [dressCodeNotes, setDressCodeNotes] = useState("");
   const [slots, setSlots] = useState([]);
+  const [limitSlots, setLimitSlots] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [saved, setSaved] = useState(false);
@@ -39,6 +40,7 @@ export default function EditCatering() {
       setPhotoRequired(catering.photoRequired);
       setDressCodeNotes(catering.dressCodeNotes);
       setSlots(catering.slots);
+      setLimitSlots(catering.limitSlots || false);
       setInitialized(true);
     }
   }, [catering, initialized]);
@@ -86,6 +88,7 @@ export default function EditCatering() {
         specificTime,
         photoRequired,
         dressCodeNotes,
+        limitSlots,
         slots: finalSlots,
         token,
       });
@@ -206,6 +209,16 @@ export default function EditCatering() {
           <h3 className="font-bold text-[15px] text-stone-800 mb-5">
             {catering.isTwoDay ? "Roles & Pay (Day 1)" : "Roles & Pay"}
           </h3>
+          
+          <div className="mb-6 p-4 bg-stone-50 border border-cream-200 rounded-xl">
+            <Toggle 
+              label="Enable Slot Limits & Queue"
+              description="If off, anyone can register and get confirmed. If on, people after the limit go to waitlist."
+              checked={limitSlots}
+              onChange={setLimitSlots}
+            />
+          </div>
+
           <SlotEditor slots={day0Slots} allSlots={slots} updateSlot={updateSlot} />
 
           {catering.isTwoDay && day1Slots.length > 0 && (

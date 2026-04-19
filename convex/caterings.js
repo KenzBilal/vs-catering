@@ -68,6 +68,7 @@ export const createCatering = mutation({
     joinRule: v.union(v.literal("any_day"), v.literal("both_days")),
     photoRequired: v.boolean(),
     dressCodeNotes: v.string(),
+    limitSlots: v.boolean(),
     slots: v.array(v.object({
       day: v.number(),
       role: v.string(),
@@ -130,6 +131,7 @@ export const updateCatering = mutation({
       limit: v.number(),
       pay: v.number(),
     }))),
+    limitSlots: v.optional(v.boolean()),
     token: v.string(),
   },
   handler: async (ctx, { cateringId, token, ...updates }) => {
@@ -155,6 +157,7 @@ export const updateCatering = mutation({
     if (updates.timeOfDay !== undefined) sanitized.timeOfDay = updates.timeOfDay;
     if (updates.specificTime !== undefined) sanitized.specificTime = updates.specificTime;
     if (updates.photoRequired !== undefined) sanitized.photoRequired = updates.photoRequired;
+    if (updates.limitSlots !== undefined) sanitized.limitSlots = updates.limitSlots;
 
     await ctx.db.patch(cateringId, sanitized);
 

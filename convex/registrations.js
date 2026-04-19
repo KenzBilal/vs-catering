@@ -50,17 +50,20 @@ export const register = mutation({
     const primaryDay = args.days[0];
     const sameRoleRegs = await ctx.db
       .query("registrations")
-      .withIndex("by_catering_role", (q) => 
-        q.eq("cateringId", args.cateringId).eq("role", args.role)
-      )
+      .withIndex("by_catering", (q) => q.eq("cateringId", args.cateringId))
       .collect();
     
-    const sameRoleDayRegs = sameRoleRegs.filter((r) => r.days.includes(primaryDay));
+    const sameRoleDayRegs = sameRoleRegs.filter((r) => r.role === args.role && r.days.includes(primaryDay));
     const maxPos = sameRoleDayRegs.reduce((max, r) => Math.max(max, r.queuePosition || 0), 0);
     const queuePosition = maxPos + 1;
 
     const slot = catering.slots.find((s) => s.role === args.role && s.day === primaryDay);
-    const isConfirmed = true; // Always confirm — per admin request to handle no-shows
+    
+    // Conditional confirmation logic based on limitSlots toggle
+    let isConfirmed = true;
+    if (catering.limitSlots) {
+      isConfirmed = slot ? queuePosition <= slot.limit : false;
+    }
 
     // Gender-based role restrictions
     if (caller.gender === "male") {
@@ -256,6 +259,44 @@ export const cancelRegistration = mutation({
       throw new ConvexError(`Cannot cancel registration once you have been marked as ${reg.status}.`);
     }
 
+    const wasConfirmed = reg.isConfirmed;
     await ctx.db.delete(registrationId);
+
+    // #19: Waitlist promotion — only if limitSlots is true
+    if (catering?.limitSlots && wasConfirmed) {
+      const slot = catering?.slots.find((s) => s.role === reg.role && s.day === reg.days[0]);
+      if (slot) {
+        // Find all unconfirmed registrations for same role/day, order by queuePosition
+        const allRegs = await ctx.db
+          .query("registrations")
+          .withIndex("by_catering", (q) => q.eq("cateringId", reg.cateringId))
+          .collect();
+          
+        const waitlisted = allRegs
+          .filter((r) => r.role === reg.role && r.days.includes(reg.days[0]) && !r.isConfirmed)
+          .sort((a, b) => a.queuePosition - b.queuePosition);
+
+        const confirmedCount = allRegs.filter(
+          (r) => r.role === reg.role && r.days.includes(reg.days[0]) && r.isConfirmed
+        ).length;
+
+        if (waitlisted.length > 0 && confirmedCount < slot.limit) {
+          await ctx.db.patch(waitlisted[0]._id, { isConfirmed: true });
+          
+          // Notify the student they've been promoted
+          await ctx.db.insert("notifications", {
+            type: "catering",
+            category: "individual",
+            title: "Waitlist Promotion",
+            message: `You have been promoted from the waitlist for ${catering.place}. You are now confirmed!`,
+            targetUserId: waitlisted[0].userId,
+            cateringId: catering._id,
+            isRead: false,
+            createdAt: Date.now(),
+          });
+        }
+      }
+    }
   },
 });
+
