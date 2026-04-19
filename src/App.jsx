@@ -39,8 +39,8 @@ if (!convexUrl) {
 }
 const convex = new ConvexReactClient(convexUrl || "https://dummy.convex.cloud");
 
-function ProtectedRoute({ children, adminOnly, superAdminOnly }) {
-  const { user, loading } = useAuth();
+function ProtectedRoute({ children, adminOnly, superAdminOnly, permission }) {
+  const { user, permissions, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-cream-bg">
       <p className="text-stone-500 font-medium animate-pulse">Catering is loading...</p>
@@ -48,8 +48,16 @@ function ProtectedRoute({ children, adminOnly, superAdminOnly }) {
   );
   if (!user) return <Navigate to="/login" replace />;
   if (adminOnly && user.role === "student") return <Navigate to="/" replace />;
-  // #21: Some pages are admin-only, not accessible to sub_admin
+  
+  // Super Admin Only (explicitly for settings)
   if (superAdminOnly && user.role !== "admin") return <Navigate to="/admin" replace />;
+
+  // Dynamic Permission Check
+  if (permission) {
+    const hasPerm = permissions.some(p => p.permission === permission && p.enabled);
+    if (!hasPerm && user.role !== "admin") return <Navigate to="/admin" replace />;
+  }
+
   return children;
 }
 
@@ -78,9 +86,9 @@ function StudentPage({ page }) {
   );
 }
 
-function AdminPage({ page }) {
+function AdminPage({ page, permission }) {
   return (
-    <ProtectedRoute adminOnly>
+    <ProtectedRoute adminOnly permission={permission}>
       <AdminShell>{page}</AdminShell>
     </ProtectedRoute>
   );
@@ -121,15 +129,16 @@ function AppRoutes() {
 
       {/* ── Admin portal ─────────────────────────────── */}
       <Route path="/admin"                          element={<AdminPage page={<AdminDashboard />} />} />
-      <Route path="/admin/events"                   element={<AdminPage page={<AdminEvents />} />} />
-      <Route path="/admin/events/create"            element={<AdminPage page={<CreateCatering />} />} />
-      <Route path="/admin/catering/:id/edit"        element={<AdminPage page={<EditCatering />} />} />
-      <Route path="/admin/catering/:id/attendance"  element={<AdminPage page={<AttendancePage />} />} />
-      <Route path="/admin/catering/:id/payments"    element={<AdminPage page={<PaymentsPage />} />} />
-      {/* #21: Users and Settings are admin-only, not sub_admin */}
-      <Route path="/admin/users"    element={<ProtectedRoute superAdminOnly><AdminShell><AdminUsers /></AdminShell></ProtectedRoute>} />
+      <Route path="/admin/events"                   element={<AdminPage page={<AdminEvents />} permission="manage_caterings" />} />
+      <Route path="/admin/events/create"            element={<AdminPage page={<CreateCatering />} permission="manage_caterings" />} />
+      <Route path="/admin/catering/:id/edit"        element={<AdminPage page={<EditCatering />} permission="manage_caterings" />} />
+      <Route path="/admin/catering/:id/attendance"  element={<AdminPage page={<AttendancePage />} permission="mark_attendance" />} />
+      <Route path="/admin/catering/:id/payments"    element={<AdminPage page={<PaymentsPage />} permission="manage_payments" />} />
       
-      {/* Settings Sub-Routes */}
+      {/* Admin Pages with dynamic permissions */}
+      <Route path="/admin/users"    element={<ProtectedRoute permission="manage_users"><AdminShell><AdminUsers /></AdminShell></ProtectedRoute>} />
+      
+      {/* Settings Sub-Routes (Super Admin Only) */}
       <Route path="/admin/settings"             element={<ProtectedRoute superAdminOnly><AdminShell><SettingsMenu /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/drop-points" element={<ProtectedRoute superAdminOnly><AdminShell><ManageDropPoints /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/sub-admins"  element={<ProtectedRoute superAdminOnly><AdminShell><ManageSubAdmins /></AdminShell></ProtectedRoute>} />

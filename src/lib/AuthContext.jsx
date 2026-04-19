@@ -24,12 +24,17 @@ export function AuthProvider({ children }) {
     storedUser?.token ? { token: storedUser.token } : "skip"
   );
 
+  const permissions = useQuery(
+    api.adminSettings.getMyPermissions,
+    storedUser?.token ? { token: storedUser.token } : "skip"
+  );
+
   const logoutUserMutation = useMutation(api.users.logoutUser);
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (storedUser?.token && validUser === undefined) {
+    if (storedUser?.token && (validUser === undefined || permissions === undefined)) {
       setLoading(true);
       setServerValidated(false);
     } else {
@@ -79,7 +84,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token: storedUser?.token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token: storedUser?.token, permissions: permissions || [], login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

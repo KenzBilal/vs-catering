@@ -1,5 +1,8 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext";
+import { useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -14,14 +17,31 @@ import {
 
 const NAV_ITEMS = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/admin/events", label: "Events", icon: CalendarDays },
-  { to: "/admin/users", label: "Users", icon: Users },
-  { to: "/admin/settings", label: "Settings", icon: Settings },
+  { to: "/admin/events", label: "Events", icon: CalendarDays, permission: "manage_caterings" },
+  { to: "/admin/users", label: "Users", icon: Users, permission: "manage_users" },
+  { to: "/admin/settings", label: "Settings", icon: Settings, superAdminOnly: true },
 ];
 
 export default function AdminShell({ children }) {
-  const { user, logout } = useAuth();
+  const { user, permissions, logout } = useAuth();
   const navigate = useNavigate();
+  const settingsRaw = useQuery(api.adminSettings.getSettings, { token: user?.token || "" });
+  const initializeSettings = useMutation(api.adminSettings.initializeSettings);
+
+  useEffect(() => {
+    if (user?.role === "admin" && settingsRaw === null) {
+      initializeSettings({ token: user.token });
+    }
+  }, [user, settingsRaw, initializeSettings]);
+
+  const filteredNav = NAV_ITEMS.filter(item => {
+    if (item.superAdminOnly) return user?.role === "admin";
+    if (item.permission) {
+      if (user?.role === "admin") return true;
+      return permissions.some(p => p.permission === item.permission && p.enabled);
+    }
+    return true;
+  });
 
   const handleLogout = () => {
     logout();
@@ -53,7 +73,7 @@ export default function AdminShell({ children }) {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-2 overflow-y-auto">
-          {NAV_ITEMS.map(({ to, label, icon: Icon, exact }) => (
+          {filteredNav.map(({ to, label, icon: Icon, exact }) => (
             <NavLink
               key={to}
               to={to}
@@ -106,7 +126,7 @@ export default function AdminShell({ children }) {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-cream-200 z-40 flex">
-        {NAV_ITEMS.map(({ to, label, icon: Icon, exact }) => (
+        {filteredNav.map(({ to, label, icon: Icon, exact }) => (
           <NavLink
             key={to}
             to={to}
