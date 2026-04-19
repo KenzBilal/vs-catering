@@ -37,13 +37,23 @@ export const getUnreadCount = query({
     const user = await getUserFromToken(ctx, token);
     if (!user) return 0;
 
-    const unread = await ctx.db
+    const lastRead = user.lastReadNotificationsAt || 0;
+
+    // Count unread individual notifications
+    const unreadIndividual = await ctx.db
       .query("notifications")
       .withIndex("by_targetUser", (q) => q.eq("targetUserId", user._id))
       .filter((q) => q.eq(q.field("isRead"), false))
       .collect();
 
-    return unread.length;
+    // Count unread global notifications (created after lastRead)
+    const unreadGlobal = await ctx.db
+      .query("notifications")
+      .withIndex("by_category", (q) => q.eq("category", "global"))
+      .filter((q) => q.gt(q.field("createdAt"), lastRead))
+      .collect();
+
+    return unreadIndividual.length + unreadGlobal.length;
   },
 });
 
@@ -84,6 +94,7 @@ export const markAllAsRead = mutation({
     const user = await getUserFromToken(ctx, token);
     if (!user) return;
 
+    // Mark individual as read
     const unread = await ctx.db
       .query("notifications")
       .withIndex("by_targetUser", (q) => q.eq("targetUserId", user._id))
@@ -93,6 +104,9 @@ export const markAllAsRead = mutation({
     for (const n of unread) {
       await ctx.db.patch(n._id, { isRead: true });
     }
+
+    // Update user's last read timestamp for global notifications
+    await ctx.db.patch(user._id, { lastReadNotificationsAt: Date.now() });
   },
 });
 

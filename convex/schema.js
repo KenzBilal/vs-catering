@@ -12,6 +12,7 @@ export default defineSchema({
     photoStorageId: v.optional(v.id("_storage")),
     registrationNumber: v.optional(v.string()),
     role: v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student")),
+    lastReadNotificationsAt: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index("by_email", ["email"])

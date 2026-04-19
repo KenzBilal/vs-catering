@@ -29,6 +29,7 @@ import PaymentsPage   from "./pages/admin/PaymentsPage";
 import SettingsMenu   from "./pages/admin/SettingsMenu";
 import ManageDropPoints from "./pages/admin/ManageDropPoints";
 import ManageSubAdmins  from "./pages/admin/ManageSubAdmins";
+import ManagePayouts    from "./pages/admin/ManagePayouts";
 import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 
 // Auth pages
@@ -135,6 +136,7 @@ function AppRoutes() {
       <Route path="/admin/settings"             element={<ProtectedRoute superAdminOnly><AdminShell><SettingsMenu /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/drop-points" element={<ProtectedRoute superAdminOnly><AdminShell><ManageDropPoints /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/sub-admins"  element={<ProtectedRoute superAdminOnly><AdminShell><ManageSubAdmins /></AdminShell></ProtectedRoute>} />
+      <Route path="/admin/settings/payouts"     element={<ProtectedRoute superAdminOnly><AdminShell><ManagePayouts /></AdminShell></ProtectedRoute>} />
 
       {/* Legacy admin redirect */}
       <Route path="/admin/create-catering" element={<Navigate to="/admin/events/create" replace />} />

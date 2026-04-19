@@ -9,6 +9,7 @@ import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
 import LoadingState from "../../components/shared/LoadingState";
 import EmptyState from "../../components/shared/EmptyState";
+import NotificationBell from "../../components/shared/NotificationBell";
 
 // Sub-components
 import CateringHeader from "./components/CateringHeader";
@@ -77,12 +78,15 @@ export default function CateringDetail() {
 
   return (
     <div className="page-container" style={{ maxWidth: 720 }}>
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors mb-6"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors"
+        >
+          <ArrowLeft size={16} /> Back
+        </button>
+        <NotificationBell />
+      </div>
 
       <CateringHeader catering={catering} />
       

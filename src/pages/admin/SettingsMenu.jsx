@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, ShieldCheck, ChevronRight } from "lucide-react";
+import { MapPin, ShieldCheck, ChevronRight, IndianRupee } from "lucide-react";
 
 export default function SettingsMenu() {
   const options = [
@@ -18,6 +18,14 @@ export default function SettingsMenu() {
       icon: <ShieldCheck size={22} className="text-stone-400" />,
       href: "/admin/settings/sub-admins",
       color: "bg-blue-50",
+    },
+    {
+      id: "payouts",
+      title: "Payout Schedule",
+      description: "Set the next expected payout date for students.",
+      icon: <IndianRupee size={22} className="text-stone-400" />,
+      href: "/admin/settings/payouts",
+      color: "bg-stone-100",
     },
   ];
 

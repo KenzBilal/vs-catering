@@ -8,6 +8,7 @@ import CustomSelect from "../../components/ui/CustomSelect";
 import { ArrowLeft, MapPin, UserCheck } from "lucide-react";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
+import NotificationBell from "../../components/shared/NotificationBell";
 import toast from "react-hot-toast";
 
 // Sub-components
@@ -159,12 +160,15 @@ export default function Register() {
 
   return (
     <div className="page-container" style={{ maxWidth: 500 }}>
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors mb-6"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors"
+        >
+          <ArrowLeft size={16} /> Back
+        </button>
+        <NotificationBell />
+      </div>
 
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-stone-900 tracking-tight mb-2">Register</h2>
