@@ -114,6 +114,9 @@ export default defineSchema({
     subAdminPermissions: v.array(v.object({
       permission: v.string(),
       enabled: v.boolean(),
+      label: v.optional(v.string()),
+      description: v.optional(v.string()),
+      category: v.optional(v.string()),
     })),
     createdAt: v.number(),
   }).index("by_key", ["key"]),

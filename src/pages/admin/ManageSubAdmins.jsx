@@ -64,13 +64,6 @@ export default function ManageSubAdmins() {
     }
   };
 
-  const PERMISSION_LABELS = {
-    manage_caterings: "Manage Caterings & Events",
-    mark_attendance: "Mark Attendance & Role Changes",
-    manage_payments: "Manage & Clear Payments",
-    manage_users: "View & Filter User Data",
-  };
-
   return (
     <div className="max-w-4xl">
       <div className="mb-8">
@@ -100,20 +93,28 @@ export default function ManageSubAdmins() {
 
             <div className="space-y-3">
               {(settings?.subAdminPermissions || []).map((p) => (
-                <button
-                  key={p.permission}
-                  onClick={() => handleToggle(p.permission, p.enabled)}
-                  className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all active:scale-[0.98] ${
-                    p.enabled 
-                      ? "bg-stone-900 border-stone-900 text-cream-50" 
-                      : "bg-white border-cream-200 text-stone-600 hover:border-stone-300"
-                  }`}
-                >
-                  <span className="text-[13.5px] font-bold">{PERMISSION_LABELS[p.permission] || p.permission}</span>
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center ${p.enabled ? "bg-white text-stone-900" : "bg-cream-100 text-stone-300"}`}>
-                    {p.enabled ? <Check size={14} strokeWidth={3} /> : <div className="w-1.5 h-1.5 rounded-full bg-stone-300" />}
-                  </div>
-                </button>
+                <div key={p.permission} className="flex flex-col gap-1">
+                  <button
+                    onClick={() => handleToggle(p.permission, p.enabled)}
+                    className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.98] ${
+                      p.enabled 
+                        ? "bg-stone-900 border-stone-900 text-cream-50 shadow-md" 
+                        : "bg-white border-cream-200 text-stone-600 hover:border-stone-300"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <span className="text-[14px] font-bold block">{p.label || p.permission}</span>
+                      {p.description && (
+                        <span className={`text-[11px] font-medium block mt-0.5 ${p.enabled ? "text-cream-200" : "text-stone-400"}`}>
+                          {p.description}
+                        </span>
+                      )}
+                    </div>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${p.enabled ? "bg-white text-stone-900" : "bg-cream-100 text-stone-300"}`}>
+                      {p.enabled ? <Check size={14} strokeWidth={3} /> : <div className="w-1.5 h-1.5 rounded-full bg-stone-300" />}
+                    </div>
+                  </button>
+                </div>
               ))}
             </div>
           </div>

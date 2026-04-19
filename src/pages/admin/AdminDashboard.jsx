@@ -15,15 +15,19 @@ import LoadingState from "../../components/shared/LoadingState";
 import EmptyState from "../../components/shared/EmptyState";
 
 export default function AdminDashboard() {
-  const { user, token } = useAuth();
+  const { user, token, permissions } = useAuth();
   const navigate = useNavigate();
-  const cateringsRaw = useQuery(api.caterings.listCaterings, { token });
-  const pendingPaymentsRaw = useQuery(api.payments.getPendingPayments, { token });
+
+  const canManageCaterings = user?.role === "admin" || permissions.some(p => p.permission === "manage_caterings" && p.enabled);
+  const canManagePayments = user?.role === "admin" || permissions.some(p => p.permission === "manage_payments" && p.enabled);
+
+  const cateringsRaw = useQuery(api.caterings.listCaterings, canManageCaterings ? { token } : "skip");
+  const pendingPaymentsRaw = useQuery(api.payments.getPendingPayments, canManagePayments ? { token } : "skip");
 
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
-  const analyticsRaw = useQuery(api.payments.getMonthlyAnalytics, { month, year, token });
+  const analyticsRaw = useQuery(api.payments.getMonthlyAnalytics, canManagePayments ? { month, year, token } : "skip");
 
   const { data: caterings, timedOut: catTimeout } = useQueryWithTimeout(cateringsRaw);
   const { data: pendingPayments, timedOut: payTimeout } = useQueryWithTimeout(pendingPaymentsRaw);
@@ -60,152 +64,158 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      {/* Analytics Strip */}
-      <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">
-          Monthly Overview
-        </h2>
-        <div className="flex bg-white border border-cream-200 rounded-2xl p-1 shadow-sm gap-1">
-          <CustomSelect
-            options={monthNames.map((m, i) => ({ label: m, value: i + 1 }))}
-            value={month}
-            onChange={setMonth}
-            className="w-[90px]"
-          />
-          <div className="w-px h-6 bg-cream-200 self-center" />
-          <CustomSelect
-            options={[2024, 2025, 2026].map(y => ({ label: y.toString(), value: y }))}
-            value={year}
-            onChange={setYear}
-            className="w-[90px]"
-          />
-        </div>
-      </div>
+      {canManagePayments && (
+        <>
+          <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">
+              Monthly Overview
+            </h2>
+            <div className="flex bg-white border border-cream-200 rounded-2xl p-1 shadow-sm gap-1">
+              <CustomSelect
+                options={monthNames.map((m, i) => ({ label: m, value: i + 1 }))}
+                value={month}
+                onChange={setMonth}
+                className="w-[90px]"
+              />
+              <div className="w-px h-6 bg-cream-200 self-center" />
+              <CustomSelect
+                options={[2024, 2025, 2026].map(y => ({ label: y.toString(), value: y }))}
+                value={year}
+                onChange={setYear}
+                className="w-[90px]"
+              />
+            </div>
+          </div>
 
-      {analytics ? (
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          <StatCard icon={<CalendarDays size={14}/>} label="Events" value={analytics.totalCaterings} />
-          <StatCard icon={<IndianRupee size={14}/>} label="Total Paid Out" value={formatCurrency(analytics.totalPayout)} />
-          <StatCard icon={<Clock size={14}/>} label="Pending" value={analytics.paymentsPending} highlight />
-          <StatCard icon={<TrendingUp size={14}/>} label="Amt Pending" value={formatCurrency(analytics.pendingPayout)} highlight />
-        </div>
-      ) : (
-        <LoadingState rows={2} />
+          {analytics ? (
+            <div className="grid grid-cols-2 gap-3 mb-8">
+              <StatCard icon={<CalendarDays size={14}/>} label="Events" value={analytics.totalCaterings} />
+              <StatCard icon={<IndianRupee size={14}/>} label="Total Paid Out" value={formatCurrency(analytics.totalPayout)} />
+              <StatCard icon={<Clock size={14}/>} label="Pending" value={analytics.paymentsPending} highlight />
+              <StatCard icon={<TrendingUp size={14}/>} label="Amt Pending" value={formatCurrency(analytics.pendingPayout)} highlight />
+            </div>
+          ) : (
+            <LoadingState rows={2} />
+          )}
+        </>
       )}
 
-      {/* Two columns: active events + pending payments */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className={`grid grid-cols-1 ${canManageCaterings && canManagePayments ? "lg:grid-cols-2" : ""} gap-6`}>
         {/* Active Events */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">Active Events</h2>
-            <button
-              className="text-[12px] font-semibold text-stone-500 hover:text-stone-900 flex items-center gap-1 transition-colors"
-              onClick={() => navigate("/admin/events")}
-            >
-              View all <ArrowRight size={13} />
-            </button>
-          </div>
-
-          {activeCaterings.length === 0 && (
-            <EmptyState 
-              icon={CalendarDays} 
-              title="No active events" 
-              description="There are no events currently today, tomorrow, or upcoming."
-            />
-          )}
-
-          <div className="flex flex-col gap-2">
-            {activeCaterings.map((c) => (
-              <div 
-                key={c._id} 
-                className="bg-white border border-cream-200 rounded-xl p-4 hover:border-stone-300 hover:shadow-sm transition-all cursor-pointer group"
-                onClick={() => navigate(`/catering/${c._id}`)}
+        {canManageCaterings && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">Active Events</h2>
+              <button
+                className="text-[12px] font-semibold text-stone-500 hover:text-stone-900 flex items-center gap-1 transition-colors"
+                onClick={() => navigate("/admin/events")}
               >
-                <div className="flex justify-between items-start gap-3">
-                  <div className="min-w-0">
-                    <p className="font-bold text-[14.5px] text-stone-900 truncate group-hover:text-stone-800 transition-colors">{c.place}</p>
-                    <p className="text-[12.5px] font-medium text-stone-500 mt-0.5">
-                      {c.isTwoDay
-                        ? `${formatDate(c.dates[0])} – ${formatDate(c.dates[1])}`
-                        : formatDate(c.dates[0])}
-                      <span className="mx-1.5">·</span>{formatTime12h(c.specificTime)}
-                    </p>
-                  </div>
-                  <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="p-1.5 rounded-lg bg-cream-50 border border-cream-200 text-stone-500 hover:text-stone-900 hover:bg-cream-100 transition-colors"
-                      onClick={() => navigate(`/admin/catering/${c._id}/attendance`)}
-                      title="Attendance"
-                    >
-                      <UserCheck size={14} />
-                    </button>
-                    <button
-                      className="p-1.5 rounded-lg bg-cream-50 border border-cream-200 text-stone-500 hover:text-stone-900 hover:bg-cream-100 transition-colors"
-                      onClick={() => navigate(`/admin/catering/${c._id}/payments`)}
-                      title="Payments"
-                    >
-                      <CreditCard size={14} />
-                    </button>
+                View all <ArrowRight size={13} />
+              </button>
+            </div>
+
+            {activeCaterings.length === 0 && (
+              <EmptyState 
+                icon={CalendarDays} 
+                title="No active events" 
+                description="There are no events currently today, tomorrow, or upcoming."
+              />
+            )}
+
+            <div className="flex flex-col gap-2">
+              {activeCaterings.map((c) => (
+                <div 
+                  key={c._id} 
+                  className="bg-white border border-cream-200 rounded-xl p-4 hover:border-stone-300 hover:shadow-sm transition-all cursor-pointer group"
+                  onClick={() => navigate(`/catering/${c._id}`)}
+                >
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="min-w-0">
+                      <p className="font-bold text-[14.5px] text-stone-900 truncate group-hover:text-stone-800 transition-colors">{c.place}</p>
+                      <p className="text-[12.5px] font-medium text-stone-500 mt-0.5">
+                        {c.isTwoDay
+                          ? `${formatDate(c.dates[0])} – ${formatDate(c.dates[1])}`
+                          : formatDate(c.dates[0])}
+                        <span className="mx-1.5">·</span>{formatTime12h(c.specificTime)}
+                      </p>
+                    </div>
+                    <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        className="p-1.5 rounded-lg bg-cream-50 border border-cream-200 text-stone-500 hover:text-stone-900 hover:bg-cream-100 transition-colors"
+                        onClick={() => navigate(`/admin/catering/${c._id}/attendance`)}
+                        title="Attendance"
+                      >
+                        <UserCheck size={14} />
+                      </button>
+                      <button
+                        className="p-1.5 rounded-lg bg-cream-50 border border-cream-200 text-stone-500 hover:text-stone-900 hover:bg-cream-100 transition-colors"
+                        onClick={() => navigate(`/admin/catering/${c._id}/payments`)}
+                        title="Payments"
+                      >
+                        <CreditCard size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Pending Payments */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">Pending Payments</h2>
-            {pendingPayments && pendingPayments.length > 0 && (
-              <span className="bg-[#fdf0e6] text-[#8b3a00] border border-[#f5d0aa] text-[10px] font-bold px-2 py-0.5 rounded-full">
-                {pendingPayments.length}
-              </span>
+        {canManagePayments && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">Pending Payments</h2>
+              {pendingPayments && pendingPayments.length > 0 && (
+                <span className="bg-[#fdf0e6] text-[#8b3a00] border border-[#f5d0aa] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {pendingPayments.length}
+                </span>
+              )}
+            </div>
+
+            {pendingPayments?.length === 0 && (
+              <EmptyState 
+                icon={UserCheck} 
+                title="All clear" 
+                description="There are no pending payments to be resolved."
+              />
             )}
-          </div>
 
-          {pendingPayments?.length === 0 && (
-            <EmptyState 
-              icon={UserCheck} 
-              title="All clear" 
-              description="There are no pending payments to be resolved."
-            />
-          )}
-
-          <div className="flex flex-col gap-2">
-            {Object.values(byUser).map(({ user: u, payments }) => {
-              const total = payments.reduce((sum, p) => sum + p.amount, 0);
-              return (
-                <div key={u?._id} className="bg-[#fdf8f3] border border-[#f5d0aa] rounded-xl p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <div>
-                      <p className="font-bold text-[14.5px] text-stone-900">{u?.name}</p>
-                      <p className="text-[12px] font-medium text-stone-500">{u?.phone}</p>
+            <div className="flex flex-col gap-2">
+              {Object.values(byUser).map(({ user: u, payments }) => {
+                const total = payments.reduce((sum, p) => sum + p.amount, 0);
+                return (
+                  <div key={u?._id} className="bg-[#fdf8f3] border border-[#f5d0aa] rounded-xl p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <div>
+                        <p className="font-bold text-[14.5px] text-stone-900">{u?.name}</p>
+                        <p className="text-[12px] font-medium text-stone-500">{u?.phone}</p>
+                      </div>
+                      <p className="font-black text-[16px] text-[#8b3a00]">{formatCurrency(total)}</p>
                     </div>
-                    <p className="font-black text-[16px] text-[#8b3a00]">{formatCurrency(total)}</p>
+                    {payments.map((p) => (
+                      <div key={p._id} className="flex justify-between text-[12px] text-stone-500 pt-1.5 border-t border-[#f5d0aa]/60 mt-1.5">
+                        <span className="font-medium">{p.catering?.place} · {getRoleLabel(p.role)}</span>
+                        <span className="font-bold text-stone-700">{formatCurrency(p.amount)}</span>
+                      </div>
+                    ))}
+                    <button
+                      className="mt-3 w-full py-1.5 text-[12px] font-semibold text-[#8b3a00] bg-white border border-[#f5d0aa] rounded-lg hover:bg-[#fdf0e6] transition-colors"
+                      onClick={() => {
+                        if (payments && payments.length > 0) {
+                          navigate(`/admin/catering/${payments[0].cateringId}/payments`);
+                        }
+                      }}
+                    >
+                      Resolve
+                    </button>
                   </div>
-                  {payments.map((p) => (
-                    <div key={p._id} className="flex justify-between text-[12px] text-stone-500 pt-1.5 border-t border-[#f5d0aa]/60 mt-1.5">
-                      <span className="font-medium">{p.catering?.place} · {getRoleLabel(p.role)}</span>
-                      <span className="font-bold text-stone-700">{formatCurrency(p.amount)}</span>
-                    </div>
-                  ))}
-                  <button
-                    className="mt-3 w-full py-1.5 text-[12px] font-semibold text-[#8b3a00] bg-white border border-[#f5d0aa] rounded-lg hover:bg-[#fdf0e6] transition-colors"
-                    onClick={() => {
-                      if (payments && payments.length > 0) {
-                        navigate(`/admin/catering/${payments[0].cateringId}/payments`);
-                      }
-                    }}
-                  >
-                    Resolve
-                  </button>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

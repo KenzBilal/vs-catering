@@ -28,6 +28,7 @@ import PaymentsPage   from "./pages/admin/PaymentsPage";
 import SettingsMenu   from "./pages/admin/SettingsMenu";
 import ManageDropPoints from "./pages/admin/ManageDropPoints";
 import ManageSubAdmins  from "./pages/admin/ManageSubAdmins";
+import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 
 // Auth pages
 import Login  from "./pages/auth/Login";
@@ -86,14 +87,6 @@ function StudentPage({ page }) {
   );
 }
 
-function AdminPage({ page, permission }) {
-  return (
-    <ProtectedRoute adminOnly permission={permission}>
-      <AdminShell>{page}</AdminShell>
-    </ProtectedRoute>
-  );
-}
-
 function AppRoutes() {
   const { user, loading } = useAuth();
   if (loading) return (
@@ -128,15 +121,13 @@ function AppRoutes() {
       <Route path="/profile"      element={<Navigate to="/settings"  replace />} />
 
       {/* ── Admin portal ─────────────────────────────── */}
-      <Route path="/admin"                          element={<AdminPage page={<AdminDashboard />} />} />
-      <Route path="/admin/events"                   element={<AdminPage page={<AdminEvents />} permission="manage_caterings" />} />
-      <Route path="/admin/events/create"            element={<AdminPage page={<CreateCatering />} permission="manage_caterings" />} />
-      <Route path="/admin/catering/:id/edit"        element={<AdminPage page={<EditCatering />} permission="manage_caterings" />} />
-      <Route path="/admin/catering/:id/attendance"  element={<AdminPage page={<AttendancePage />} permission="mark_attendance" />} />
-      <Route path="/admin/catering/:id/payments"    element={<AdminPage page={<PaymentsPage />} permission="manage_payments" />} />
-      
-      {/* Admin Pages with dynamic permissions */}
-      <Route path="/admin/users"    element={<ProtectedRoute permission="manage_users"><AdminShell><AdminUsers /></AdminShell></ProtectedRoute>} />
+      <Route path="/admin"                          element={<ProtectedRoute adminOnly><AdminShell><AdminDashboard /></AdminShell></ProtectedRoute>} />
+      <Route path="/admin/events"                   element={<ProtectedAdminRoute permission="manage_caterings"><AdminEvents /></ProtectedAdminRoute>} />
+      <Route path="/admin/events/create"            element={<ProtectedAdminRoute permission="manage_caterings"><CreateCatering /></ProtectedAdminRoute>} />
+      <Route path="/admin/catering/:id/edit"        element={<ProtectedAdminRoute permission="manage_caterings"><EditCatering /></ProtectedAdminRoute>} />
+      <Route path="/admin/catering/:id/attendance"  element={<ProtectedAdminRoute permission="mark_attendance"><AttendancePage /></ProtectedAdminRoute>} />
+      <Route path="/admin/catering/:id/payments"    element={<ProtectedAdminRoute permission="manage_payments"><PaymentsPage /></ProtectedAdminRoute>} />
+      <Route path="/admin/users"                    element={<ProtectedAdminRoute permission="manage_users"><AdminUsers /></ProtectedAdminRoute>} />
       
       {/* Settings Sub-Routes (Super Admin Only) */}
       <Route path="/admin/settings"             element={<ProtectedRoute superAdminOnly><AdminShell><SettingsMenu /></AdminShell></ProtectedRoute>} />

@@ -14,8 +14,12 @@ import toast from "react-hot-toast";
 const STATUS_FILTERS = ["All", "Upcoming", "Today", "Tomorrow", "Ended"];
 
 export default function AdminEvents() {
-  const { user, token } = useAuth();
+  const { user, token, permissions } = useAuth();
   const navigate = useNavigate();
+
+  const canManageCaterings = user?.role === "admin" || permissions.some(p => p.permission === "manage_caterings" && p.enabled);
+  const canMarkAttendance = user?.role === "admin" || permissions.some(p => p.permission === "mark_attendance" && p.enabled);
+  const canManagePayments = user?.role === "admin" || permissions.some(p => p.permission === "manage_payments" && p.enabled);
   const cateringsRaw = useQuery(api.caterings.listCaterings, { token });
   const { data: caterings, timedOut } = useQueryWithTimeout(cateringsRaw);
   const cancelCatering = useMutation(api.caterings.cancelCatering);
@@ -60,7 +64,7 @@ export default function AdminEvents() {
             {caterings?.length ?? "—"} total events
           </p>
         </div>
-        {user?.role === "admin" && (
+        {canManageCaterings && (
           <button
             className="btn-primary py-2.5 px-4 text-[14px] self-start sm:self-auto"
             onClick={() => navigate("/admin/events/create")}
@@ -163,7 +167,7 @@ export default function AdminEvents() {
 
                 {/* Actions */}
                 <div className="flex gap-2 flex-wrap sm:flex-nowrap shrink-0">
-                  {c.status !== "cancelled" && c.status !== "ended" && user?.role === "admin" && (
+                  {c.status !== "cancelled" && c.status !== "ended" && canManageCaterings && (
                     <button
                       className="btn-secondary py-1.5 px-3 text-[12px]"
                       onClick={() => navigate(`/admin/catering/${c._id}/edit`)}
@@ -171,19 +175,23 @@ export default function AdminEvents() {
                       <Edit size={14} /> Edit
                     </button>
                   )}
-                  <button
-                    className="btn-secondary py-1.5 px-3 text-[12px]"
-                    onClick={() => navigate(`/admin/catering/${c._id}/attendance`)}
-                  >
-                    <UserCheck size={14} /> Attendance
-                  </button>
-                  <button
-                    className="btn-secondary py-1.5 px-3 text-[12px]"
-                    onClick={() => navigate(`/admin/catering/${c._id}/payments`)}
-                  >
-                    <CreditCard size={14} /> Payments
-                  </button>
-                  {c.status !== "cancelled" && c.status !== "ended" && user?.role === "admin" && (
+                  {canMarkAttendance && (
+                    <button
+                      className="btn-secondary py-1.5 px-3 text-[12px]"
+                      onClick={() => navigate(`/admin/catering/${c._id}/attendance`)}
+                    >
+                      <UserCheck size={14} /> Attendance
+                    </button>
+                  )}
+                  {canManagePayments && (
+                    <button
+                      className="btn-secondary py-1.5 px-3 text-[12px]"
+                      onClick={() => navigate(`/admin/catering/${c._id}/payments`)}
+                    >
+                      <CreditCard size={14} /> Payments
+                    </button>
+                  )}
+                  {c.status !== "cancelled" && c.status !== "ended" && canManageCaterings && (
                     <button
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-red-600 border border-red-100 bg-white hover:bg-red-50 transition-all active:scale-95"
                       onClick={() => { setConfirmCancel(c._id); setCancelError(""); }}

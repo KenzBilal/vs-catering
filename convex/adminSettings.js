@@ -4,10 +4,34 @@ import { requireAdmin, getUserFromToken } from "./auth";
 import { sanitizeString } from "./utils";
 
 const DEFAULT_PERMISSIONS = [
-  { permission: "manage_caterings", enabled: false },
-  { permission: "mark_attendance", enabled: false },
-  { permission: "manage_payments", enabled: false },
-  { permission: "manage_users", enabled: false },
+  { 
+    permission: "manage_caterings", 
+    enabled: false,
+    label: "Manage Caterings & Events",
+    description: "Create, edit, and cancel events",
+    category: "events"
+  },
+  { 
+    permission: "mark_attendance", 
+    enabled: false,
+    label: "Mark Attendance",
+    description: "Check-in students and change roles",
+    category: "attendance"
+  },
+  { 
+    permission: "manage_payments", 
+    enabled: false,
+    label: "Manage & Clear Payments",
+    description: "Create payments and clear payouts",
+    category: "payments"
+  },
+  { 
+    permission: "manage_users", 
+    enabled: false,
+    label: "View User Data",
+    description: "Access registered student records",
+    category: "users"
+  },
 ];
 
 // ─── QUERIES ────────────────────────────────────────────────────────────────
@@ -67,6 +91,23 @@ export const getMyPermissions = query({
     }
 
     return DEFAULT_PERMISSIONS.map(p => ({ ...p, enabled: false }));
+  },
+});
+
+export const getPermissionConfig = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const user = await getUserFromToken(ctx, token);
+    if (!user || (user.role !== "admin" && user.role !== "sub_admin")) {
+      throw new ConvexError("Unauthorized.");
+    }
+
+    const settings = await ctx.db
+      .query("adminSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    
+    return settings?.subAdminPermissions || DEFAULT_PERMISSIONS;
   },
 });
 
