@@ -32,12 +32,33 @@ export const createPayment = mutation({
     if (duplicate) throw new ConvexError("A payment record already exists for this registration.");
 
     const { token, ...dataToInsert } = args;
-    return await ctx.db.insert("payments", {
+    const paymentId = await ctx.db.insert("payments", {
       ...dataToInsert,
       userId,
       status: "pending",
       createdAt: Date.now(),
     });
+
+    // Create notification
+    const settings = await ctx.db
+      .query("adminSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+
+    await ctx.db.insert("notifications", {
+      type: "payment",
+      category: "individual",
+      title: "Payment Pending",
+      message: `Payment of ₹${args.amount} is pending for your attendance.`,
+      targetUserId: userId,
+      paymentId,
+      amount: args.amount,
+      payoutDate: settings?.payoutSettings?.nextPayoutDate,
+      isRead: false,
+      createdAt: Date.now(),
+    });
+
+    return paymentId;
   },
 });
 
@@ -61,6 +82,19 @@ export const clearPayment = mutation({
       clearedBy: adminUser._id,
       clearedAt: Date.now(),
       ...(upiRef ? { upiRef: sanitizeString(upiRef).slice(0, 100) } : {}),
+    });
+
+    // Create notification
+    await ctx.db.insert("notifications", {
+      type: "payment",
+      category: "individual",
+      title: "Payment Cleared",
+      message: `Your payment of ₹${payment.amount} has been cleared!`,
+      targetUserId: payment.userId,
+      paymentId: paymentId,
+      amount: payment.amount,
+      isRead: false,
+      createdAt: Date.now(),
     });
   },
 });

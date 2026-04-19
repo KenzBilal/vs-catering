@@ -8,6 +8,7 @@ import {
   UtensilsCrossed,
   History,
 } from "lucide-react";
+import NotificationBell from "../shared/NotificationBell";
 
 const NAV_ITEMS = [
   { to: "/",         label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -35,6 +36,11 @@ export default function StudentShell({ children }) {
             <UtensilsCrossed size={14} className="text-cream-50" />
           </div>
           <span className="font-bold text-[15px] text-stone-900 tracking-tight">Catering</span>
+        </div>
+        
+        <div className="px-5 py-3 flex items-center justify-between">
+          <span className="text-[12px] font-bold text-stone-400 uppercase tracking-widest">Alerts</span>
+          <NotificationBell />
         </div>
 
         {/* User badge */}
@@ -93,12 +99,15 @@ export default function StudentShell({ children }) {
           </div>
           <span className="font-bold text-[15px] text-stone-900">Catering</span>
         </div>
-        <button
-          onClick={handleLogout}
-          className="p-2 rounded-lg text-stone-500 hover:text-red-600 hover:bg-red-50 transition-all"
-        >
-          <LogOut size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-lg text-stone-500 hover:text-red-600 hover:bg-red-50 transition-all"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </header>
 
       {/* Mobile bottom nav */}

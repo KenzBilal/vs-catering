@@ -16,6 +16,7 @@ import History      from "./pages/history/History";
 import Settings     from "./pages/settings/Settings";
 import CateringDetail from "./pages/catering_detail/CateringDetail";
 import Register     from "./pages/register/Register";
+import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -111,6 +112,7 @@ function AppRoutes() {
       <Route path="/my-events"  element={<StudentPage page={<MyEvents />} />} />
       <Route path="/history"    element={<StudentPage page={<History />} />} />
       <Route path="/settings"   element={<StudentPage page={<Settings />} />} />
+      <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
       {/* These stay outside shell (full-page detail views) */}
       <Route path="/catering/:id"          element={<ProtectedRoute><CateringDetail /></ProtectedRoute>} />

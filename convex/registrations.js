@@ -219,6 +219,18 @@ export const changeRole = mutation({
     }
 
     await ctx.db.patch(registrationId, { role });
+
+    // Create notification
+    await ctx.db.insert("notifications", {
+      type: "role",
+      category: "individual",
+      title: "Role Updated",
+      message: `Your role for the event has been changed to ${role.replace("_", " ")}`,
+      targetUserId: reg.userId,
+      targetUserName: user.name,
+      isRead: false,
+      createdAt: Date.now(),
+    });
   },
 });
 

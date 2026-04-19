@@ -90,7 +90,7 @@ export const createCatering = mutation({
     const { token, place: _p, dressCodeNotes: _d, ...rest } = args;
     const status = computeStatus(args.dates);
 
-    return await ctx.db.insert("caterings", {
+    const cateringId = await ctx.db.insert("caterings", {
       ...rest,
       place,
       dressCodeNotes,
@@ -98,6 +98,21 @@ export const createCatering = mutation({
       status,
       createdAt: Date.now(),
     });
+
+    // Create notification
+    await ctx.db.insert("notifications", {
+      type: "catering",
+      category: "global",
+      title: "New Event",
+      message: `New event at ${place}`,
+      cateringId,
+      cateringTitle: place,
+      cateringDate: args.dates[0],
+      isRead: false,
+      createdAt: Date.now(),
+    });
+
+    return cateringId;
   },
 });
 
@@ -157,6 +172,19 @@ export const cancelCatering = mutation({
     if (existing.status === "cancelled") throw new ConvexError("Event is already cancelled.");
     if (existing.status === "ended") throw new ConvexError("Cannot cancel an event that has already ended.");
     await ctx.db.patch(cateringId, { status: "cancelled" });
+
+    // Create notification
+    await ctx.db.insert("notifications", {
+      type: "catering",
+      category: "global",
+      title: "Event Cancelled",
+      message: `Event at "${existing.place}" has been cancelled`,
+      cateringId,
+      cateringTitle: existing.place,
+      cateringDate: existing.dates[0],
+      isRead: false,
+      createdAt: Date.now(),
+    });
   },
 });
 

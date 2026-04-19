@@ -118,6 +118,46 @@ export default defineSchema({
       description: v.optional(v.string()),
       category: v.optional(v.string()),
     })),
+    payoutSettings: v.optional(v.object({
+      nextPayoutDate: v.optional(v.string()),
+      payoutNote: v.optional(v.string()),
+      lastUpdatedBy: v.optional(v.id("users")),
+    })),
     createdAt: v.number(),
   }).index("by_key", ["key"]),
+
+  notifications: defineTable({
+    type: v.union(
+      v.literal("catering"),      // New, Cancelled, Updated
+      v.literal("payment"),       // Pending, Cleared, Payout
+      v.literal("role"),         // Role changes
+      v.literal("system")       // General alerts
+    ),
+    category: v.string(),         // "global" | "individual"
+    title: v.string(),
+    message: v.string(),
+    
+    // For individual notifications
+    targetUserId: v.optional(v.id("users")),
+    
+    // For catering-related
+    cateringId: v.optional(v.id("caterings")),
+    cateringTitle: v.optional(v.string()),
+    cateringDate: v.optional(v.string()),
+    
+    // For payment-related
+    paymentId: v.optional(v.id("payments")),
+    amount: v.optional(v.number()),
+    payoutDate: v.optional(v.string()),
+    
+    // For role-related
+    targetUserName: v.optional(v.string()),
+    
+    isRead: v.boolean(),
+    createdAt: v.number(),
+  })
+  .index("by_targetUser", ["targetUserId"])
+  .index("by_created", ["createdAt"])
+  .index("by_category", ["category"])
+  .index("by_type", ["type"]),
 });
