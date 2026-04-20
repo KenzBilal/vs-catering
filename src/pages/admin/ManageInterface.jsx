@@ -71,19 +71,10 @@ export default function ManageInterface() {
         />
       </div>
 
-      <div className="mt-10 p-6 bg-cream-50 border border-cream-200 rounded-2xl">
-        <div className="flex gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white border border-cream-200 flex items-center justify-center shrink-0">
-            <Check size={20} className="text-green-600" />
-          </div>
-          <div>
-            <h4 className="font-bold text-stone-900 text-[15px]">Changes are instant</h4>
-            <p className="text-[13px] text-stone-500 font-medium leading-relaxed mt-1">
-              Your preferences are saved to your account and will be applied across all your devices.
-            </p>
-          </div>
-        </div>
-      </div>
+      <p className="mt-8 text-[12px] text-stone-400 font-medium text-center">
+        Changes are saved automatically to your profile.
+      </p>
+
     </div>
   );
 }

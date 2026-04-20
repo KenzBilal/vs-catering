@@ -4,7 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { formatCurrency, getRoleLabel, formatDate } from "../../lib/helpers";
 import { useState } from "react";
-import { ArrowLeft, MapPin, CalendarDays, CheckCircle2, Clock, IndianRupee, HandCoins, Users2, UserPlus, X, Trash2, ShieldCheck, Search } from "lucide-react";
+import { ArrowLeft, MapPin, CalendarDays, CheckCircle2, Clock, IndianRupee, HandCoins, Users, UserPlus, X, Trash2, ShieldCheck, Search } from "lucide-react";
+
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
 import LoadingState from "../../components/shared/LoadingState";
@@ -170,8 +171,9 @@ export default function PaymentsPage() {
       <div className="flex flex-wrap gap-2 mb-6">
         <div className="flex-1 min-w-[120px] bg-white border border-cream-200 rounded-xl p-3 shadow-sm flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-cream-50 flex items-center justify-center text-stone-400">
-            <Users2 size={16} />
+            <Users size={16} />
           </div>
+
 
 
           <div>
@@ -271,16 +273,18 @@ export default function PaymentsPage() {
                   {isMember ? (
                     <div className="flex items-center justify-between">
                        <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-stone-400 bg-stone-50 border border-stone-100 rounded-full px-2.5 py-1">
-                        <Users2 size={12} /> Part of {payment.groupHead?.name}'s Team
+                        <Users size={12} /> Part of {payment.groupHead?.name}'s Team
                       </span>
+
                       <p className="text-[11px] font-medium text-stone-400">Paid to Head</p>
                     </div>
                   ) : isGroupHead ? (
                     <div className="flex flex-col gap-3">
                        <div className="flex items-center justify-between">
                         <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#8b3a00] bg-[#fdf0e6] border border-[#f5d0aa] rounded-full px-2.5 py-1">
-                          <Users2 size={12} /> TEAM PENDING (Total: {formatCurrency(payment.group.totalAmount)})
+                          <Users size={12} /> TEAM PENDING (Total: {formatCurrency(payment.group.totalAmount)})
                         </span>
+
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleDisbandGroup(payment.group._id); }}
                           className="text-stone-400 hover:text-red-500 transition-colors p-1"
@@ -387,8 +391,9 @@ export default function PaymentsPage() {
                     <p className="font-bold text-stone-900 text-[14px]">Create Team</p>
                     <p className="text-[12px] text-stone-500">Pay multiple students via {selectedReg.user?.name}.</p>
                   </div>
-                  <Users2 className="text-stone-400" size={20} />
+                  <Users className="text-stone-400" size={20} />
                 </button>
+
               </div>
 
               <button className="w-full mt-4 text-[13px] font-bold text-stone-400 py-2" onClick={() => setSelectedReg(null)}>Cancel</button>
