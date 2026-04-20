@@ -80,7 +80,15 @@ export const register = mutation({
 
     // Persistent photo: save new upload to profile or reuse existing
     let finalPhotoStorageId = args.photoStorageId;
-    if (finalPhotoStorageId && !caller.photoStorageId) {
+    if (finalPhotoStorageId && finalPhotoStorageId !== caller.photoStorageId) {
+      // If user had an old photo, delete it to save space
+      if (caller.photoStorageId) {
+        try {
+          await ctx.storage.delete(caller.photoStorageId);
+        } catch (e) {
+          console.error("Failed to delete old photo during registration:", e);
+        }
+      }
       await ctx.db.patch(caller._id, { photoStorageId: finalPhotoStorageId });
     } else if (!finalPhotoStorageId && caller.photoStorageId) {
       finalPhotoStorageId = caller.photoStorageId;

@@ -267,6 +267,16 @@ export const updatePreferences = mutation({
       throw new ConvexError("Enter a valid 8-digit registration number.");
     }
 
+    // If new photo provided, delete the old one to save space
+    if (photoStorageId && caller.photoStorageId && photoStorageId !== caller.photoStorageId) {
+      try {
+        await ctx.storage.delete(caller.photoStorageId);
+      } catch (e) {
+        // Ignore errors if the file was already gone
+        console.error("Failed to delete old photo:", e);
+      }
+    }
+
     await ctx.db.patch(caller._id, {
       defaultDropPoint: sanitizeString(defaultDropPoint).slice(0, 100),
       stayType,
@@ -275,6 +285,7 @@ export const updatePreferences = mutation({
     });
   },
 });
+
 
 // ─── setUserRole ─────────────────────────────────────────────────────────────
 
