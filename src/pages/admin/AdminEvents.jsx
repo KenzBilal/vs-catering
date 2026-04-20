@@ -9,7 +9,9 @@ import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
 import LoadingState from "../../components/shared/LoadingState";
 import EmptyState from "../../components/shared/EmptyState";
+import ConfirmModal from "../../components/shared/ConfirmModal";
 import toast from "react-hot-toast";
+
 
 const STATUS_FILTERS = ["All", "Upcoming", "Today", "Tomorrow", "Ended"];
 
@@ -206,43 +208,15 @@ export default function AdminEvents() {
         })}
       </div>
 
-      {/* Cancel confirmation modal */}
-      {confirmCancel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl border border-cream-200 p-6 max-w-sm w-full">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center shrink-0">
-                <AlertTriangle size={20} className="text-red-600" />
-              </div>
-              <div>
-                <p className="font-bold text-[15px] text-stone-900">Cancel Event</p>
-                <p className="text-[13px] text-stone-500 mt-0.5">This action cannot be undone.</p>
-              </div>
-            </div>
-            <p className="text-[14px] text-stone-600 mb-5">
-              Are you sure you want to cancel this event? Students will still see it as cancelled in their registrations.
-            </p>
-            {cancelError && (
-              <p className="text-[13px] text-red-600 font-medium mb-3">{cancelError}</p>
-            )}
-            <div className="flex gap-2">
-              <button
-                className="flex-1 py-2.5 rounded-xl bg-red-700 text-white text-[13px] font-bold hover:bg-red-800 transition-colors active:scale-[0.98] disabled:opacity-60"
-                disabled={cancelling}
-                onClick={() => handleCancel(confirmCancel)}
-              >
-                {cancelling ? "Cancelling..." : "Yes, Cancel Event"}
-              </button>
-              <button
-                className="flex-1 btn-secondary py-2.5 text-[13px]"
-                onClick={() => setConfirmCancel(null)}
-              >
-                Keep Event
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal 
+        isOpen={!!confirmCancel}
+        onClose={() => setConfirmCancel(null)}
+        onConfirm={() => handleCancel(confirmCancel)}
+        title="Cancel Event"
+        message="Are you sure you want to cancel this event? This action cannot be undone and students will be notified."
+        variant="danger"
+      />
     </div>
   );
 }
+

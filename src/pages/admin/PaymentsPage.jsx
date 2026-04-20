@@ -10,7 +10,9 @@ import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
 import LoadingState from "../../components/shared/LoadingState";
 import EmptyState from "../../components/shared/EmptyState";
+import ConfirmModal from "../../components/shared/ConfirmModal";
 import toast from "react-hot-toast";
+
 
 export default function PaymentsPage() {
   const { id } = useParams();
@@ -41,6 +43,8 @@ export default function PaymentsPage() {
   const [groupHead, setGroupHead] = useState(null); // The student being clicked to start a group
   const [selectedMembers, setSelectedMembers] = useState([]); // Array of registration IDs
   const [memberSearchQuery, setMemberSearchQuery] = useState("");
+  const [confirmDisband, setConfirmDisband] = useState(null); // GroupID to disband
+
 
   if (catTimeout || regTimeout || payTimeout) {
     return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
@@ -135,7 +139,6 @@ export default function PaymentsPage() {
   };
 
   const handleDisbandGroup = async (groupId) => {
-    if (!window.confirm("Are you sure you want to disband this team?")) return;
     try {
       await disbandGroup({ groupId, token });
       toast.success("Team disbanded");
@@ -143,6 +146,7 @@ export default function PaymentsPage() {
       toast.error(e.message || "Failed to disband team");
     }
   };
+
 
   const totalPaid = (payments || []).filter((p) => p.status === "cleared").reduce((sum, p) => sum + p.amount, 0);
   const totalPending = (payments || []).filter((p) => p.status === "pending").reduce((sum, p) => sum + p.amount, 0);
@@ -286,11 +290,12 @@ export default function PaymentsPage() {
                         </span>
 
                         <button 
-                          onClick={(e) => { e.stopPropagation(); handleDisbandGroup(payment.group._id); }}
+                          onClick={(e) => { e.stopPropagation(); setConfirmDisband(payment.group._id); }}
                           className="text-stone-400 hover:text-red-500 transition-colors p-1"
                         >
                           <Trash2 size={16} />
                         </button>
+
                       </div>
 
                       {confirmClearGroup === payment.group._id ? (
@@ -481,6 +486,14 @@ export default function PaymentsPage() {
           </div>
         </div>
       )}
+      <ConfirmModal 
+        isOpen={!!confirmDisband}
+        onClose={() => setConfirmDisband(null)}
+        onConfirm={() => handleDisbandGroup(confirmDisband)}
+        title="Disband Team"
+        message="Are you sure you want to disband this team? All members will need to be paid individually."
+      />
     </div>
   );
 }
+

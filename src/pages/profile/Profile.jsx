@@ -3,8 +3,10 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Save, CheckCircle2 } from "lucide-react";
 import SegmentedControl from "../../components/ui/SegmentedControl";
+import ConfirmModal from "../../components/shared/ConfirmModal";
+import { LogOut, Save, CheckCircle2 } from "lucide-react";
+
 
 const ROLE_LABEL = {
   student: "Student",
@@ -22,6 +24,8 @@ export default function Profile() {
   const [stayType, setStayType] = useState(user?.stayType || "hostel");
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
 
   const handleSave = async () => {
     setLoading(true);
@@ -112,12 +116,23 @@ export default function Profile() {
         </div>
       </div>
 
-      <button
-        onClick={handleLogout}
+       <button
+        onClick={() => setShowLogoutConfirm(true)}
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-cream-200 bg-white text-[14px] font-semibold text-stone-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all active:scale-[0.98]"
       >
         <LogOut size={16} /> Sign Out
       </button>
+
+      <ConfirmModal 
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Sign Out"
+        message="Are you sure you want to sign out of your account?"
+        confirmText="Sign Out"
+        variant="danger"
+      />
+
     </div>
   );
 }

@@ -7,7 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
 import LoadingState from "../../components/shared/LoadingState";
+import ConfirmModal from "../../components/shared/ConfirmModal";
 import toast from "react-hot-toast";
+
 
 export default function ManageDropPoints() {
   const { token } = useAuth();
@@ -21,6 +23,8 @@ export default function ManageDropPoints() {
 
   const [newDrop, setNewDrop] = useState("");
   const [adding, setAdding] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
 
   if (timedOut) return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
   if (dropPoints === undefined) return <LoadingState rows={5} />;
@@ -40,7 +44,6 @@ export default function ManageDropPoints() {
   };
 
   const handleRemove = async (id) => {
-    if (!confirm("Are you sure you want to delete this drop point?")) return;
     try {
       await removeDropPoint({ dropPointId: id, token });
       toast.success("Deleted successfully");
@@ -48,6 +51,7 @@ export default function ManageDropPoints() {
       toast.error("Failed to delete");
     }
   };
+
 
   const handleToggle = async (id, current) => {
     try {
@@ -123,17 +127,26 @@ export default function ManageDropPoints() {
                     <Power size={17} />
                   </button>
                   <button
-                    onClick={() => handleRemove(dp._id)}
+                    onClick={() => setConfirmDelete(dp._id)}
                     className="p-2 rounded-xl text-stone-300 hover:text-red-600 hover:bg-red-50 transition-all active:scale-90"
                   >
                     <Trash2 size={17} />
                   </button>
+
                 </div>
               </div>
             ))
           )}
         </div>
       </div>
+      <ConfirmModal 
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => handleRemove(confirmDelete)}
+        title="Delete Drop Point"
+        message="Are you sure you want to remove this drop point? This cannot be undone."
+      />
     </div>
   );
 }
+

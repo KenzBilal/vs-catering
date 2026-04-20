@@ -7,7 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
 import LoadingState from "../../components/shared/LoadingState";
+import ConfirmModal from "../../components/shared/ConfirmModal";
 import toast from "react-hot-toast";
+
 
 export default function ManageSubAdmins() {
   const { token } = useAuth();
@@ -26,6 +28,8 @@ export default function ManageSubAdmins() {
 
   const [search, setSearch] = useState("");
   const [promoting, setPromoting] = useState({});
+  const [confirmRevoke, setConfirmRevoke] = useState(null); // userId to revoke
+
 
   useEffect(() => {
     if (settings === null) {
@@ -178,7 +182,7 @@ export default function ManageSubAdmins() {
                       <p className="text-[12.5px] font-medium text-stone-400">{u.phone}</p>
                     </div>
                     <button
-                      onClick={() => handleSetRole(u._id, "student")}
+                      onClick={() => setConfirmRevoke(u._id)}
                       disabled={promoting[u._id]}
                       className="p-2.5 rounded-xl text-stone-300 hover:text-red-600 hover:bg-red-50 transition-all active:scale-90"
                       title="Revoke access"
@@ -192,6 +196,15 @@ export default function ManageSubAdmins() {
           </div>
         </div>
       </div>
+       <ConfirmModal 
+        isOpen={!!confirmRevoke}
+        onClose={() => setConfirmRevoke(null)}
+        onConfirm={() => handleSetRole(confirmRevoke, "student")}
+        title="Revoke Access"
+        message="Are you sure you want to revoke this user's sub-admin permissions? They will be demoted to student role."
+        variant="danger"
+      />
     </div>
   );
 }
+
