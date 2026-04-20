@@ -7,8 +7,6 @@ export default function FinancialSummary({ data }) {
 
   return (
     <div className="flex flex-col lg:flex-row gap-5 mb-8 animate-fade-in">
-  return (
-    <div className="flex flex-col lg:flex-row gap-5 mb-8 animate-fade-in">
       {/* Financial Overview Card */}
       <div className="flex-[1.2]">
         <div className="card bg-stone-900 border-stone-800 p-8 flex flex-col justify-center h-full min-h-[180px] relative overflow-hidden">
@@ -24,13 +22,11 @@ export default function FinancialSummary({ data }) {
                 <Clock className="text-stone-400" size={14} />
                 <span className="text-cream-50 text-[12px] font-bold">₹{pendingAmount.toLocaleString()} Pending</span>
               </div>
-              <p className="text-[11px] text-stone-500 font-medium">From {history.length} events</p>
+              <p className="text-[11px] text-stone-500 font-medium">From {recentPayments.length} events</p>
             </div>
           </div>
         </div>
       </div>
-
-      {/* History Section */}
 
       {/* Right Column: Recent History */}
       <div className="flex-1 card bg-white border-cream-200 p-6 shadow-sm overflow-hidden flex flex-col">
@@ -52,7 +48,7 @@ export default function FinancialSummary({ data }) {
               <p className="text-[13px] font-medium text-stone-400">No payout history yet.</p>
             </div>
           ) : (
-            recentPayments.map((p, i) => (
+            recentPayments.map((p) => (
               <div 
                 key={p._id} 
                 className={`flex items-center justify-between p-3 rounded-xl border ${p.status === 'cleared' ? 'bg-stone-50 border-stone-100' : 'bg-orange-50/30 border-orange-100/50'}`}
