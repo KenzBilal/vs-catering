@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { MapPin, ShieldCheck, ChevronRight, IndianRupee } from "lucide-react";
+import { MapPin, ShieldCheck, ChevronRight, IndianRupee, Layout } from "lucide-react";
+
 
 export default function SettingsMenu() {
   const options = [
