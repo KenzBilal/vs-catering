@@ -192,8 +192,50 @@ export const markAttendance = mutation({
         ? { rejectionReason: sanitizeString(rejectionReason).slice(0, 300) }
         : {}),
     });
+
+    // AUTO-PAYMENT: Create pending payment when marked as attended
+    if (status === "attended") {
+      const existingPayment = await ctx.db
+        .query("payments")
+        .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
+        .first();
+
+      if (!existingPayment) {
+        const reg = await ctx.db.get(registrationId);
+        const catering = await ctx.db.get(reg.cateringId);
+        const slot = catering.slots.find(s => s.role === reg.role && s.day === reg.days[0]);
+        const amount = slot?.pay || 0;
+
+        const paymentId = await ctx.db.insert("payments", {
+          userId: reg.userId,
+          cateringId: reg.cateringId,
+          registrationId: reg._id,
+          day: reg.days[0],
+          role: reg.role,
+          amount: amount,
+          method: "cash", // Default to cash, admin can change later
+          status: "pending",
+          createdAt: Date.now(),
+        });
+
+        // Notify student
+        await ctx.db.insert("notifications", {
+          type: "payment",
+          category: "individual",
+          title: "Payment Pending",
+          message: `₹${amount} is pending for your attendance at ${catering.place}.`,
+          targetUserId: reg.userId,
+          paymentId,
+          amount: amount,
+          payoutDate: catering?.payoutDate,
+          isRead: false,
+          createdAt: Date.now(),
+        });
+      }
+    }
   },
 });
+
 
 // ─── changeRole ───────────────────────────────────────────────────────────────
 
@@ -223,7 +265,42 @@ export const changeRole = mutation({
 
     await ctx.db.patch(registrationId, { role });
 
-    // Create notification
+    // AUTO-PAYMENT ADJUSTMENT: If student is attended and has a pending payment, update the amount
+    const updatedReg = await ctx.db.get(registrationId);
+    if (updatedReg.status === "attended") {
+      const payment = await ctx.db
+        .query("payments")
+        .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
+        .first();
+      
+      if (payment && payment.status === "pending") {
+        const catering = await ctx.db.get(updatedReg.cateringId);
+        const slot = catering.slots.find(s => s.role === role && s.day === updatedReg.days[0]);
+        const newAmount = slot?.pay || 0;
+
+        if (payment.amount !== newAmount) {
+          await ctx.db.patch(payment._id, { 
+            amount: newAmount,
+            role: role 
+          });
+
+          // Notify student of adjustment
+          await ctx.db.insert("notifications", {
+            type: "payment",
+            category: "individual",
+            title: "Payment Adjusted",
+            message: `Your payment for ${catering.place} was adjusted to ₹${newAmount} due to role change.`,
+            targetUserId: updatedReg.userId,
+            paymentId: payment._id,
+            amount: newAmount,
+            isRead: false,
+            createdAt: Date.now(),
+          });
+        }
+      }
+    }
+
+    // Create notification for role change itself
     await ctx.db.insert("notifications", {
       type: "role",
       category: "individual",
@@ -236,6 +313,7 @@ export const changeRole = mutation({
     });
   },
 });
+
 
 // ─── cancelRegistration — with waitlist promotion (fixes #19) ─────────────────
 
