@@ -108,7 +108,7 @@ export default function AttendancePage() {
             <select 
               value={roleFilter} 
               onChange={(e) => setRoleFilter(e.target.value)} 
-              className="w-auto px-3 py-2 text-[13px] font-bold"
+              className="w-auto pl-3 pr-10 py-2 text-[13px] font-bold"
             >
               <option value="all">All Roles</option>
               {roles.map((r) => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
@@ -117,7 +117,7 @@ export default function AttendancePage() {
           <select 
             value={statusFilter} 
             onChange={(e) => setStatusFilter(e.target.value)} 
-            className="w-auto px-3 py-2 text-[13px] font-bold"
+            className="w-auto pl-3 pr-10 py-2 text-[13px] font-bold"
           >
             <option value="all">All Status</option>
             <option value="registered">Not Marked</option>
@@ -180,7 +180,7 @@ export default function AttendancePage() {
                 <select
                   value={reg.role}
                   onChange={(e) => handleRoleChange(reg._id, e.target.value)}
-                  className="w-auto px-3 py-1.5 text-[12px] font-bold"
+                  className="w-auto pl-3 pr-10 py-1.5 text-[12px] font-bold"
                 >
                   {["service_boy", "service_girl", "captain_male", "captain_female"].filter(r => {
                     if (reg.user?.gender === "male") return r === "service_boy" || r === "captain_male";

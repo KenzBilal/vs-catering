@@ -54,8 +54,8 @@ export default function UserList({ filtered, allUsers, search, isAdmin, currentU
                   value={u.role}
                   onChange={(e) => handleRoleChange(u._id, e.target.value)}
                   disabled={savingRole[u._id] || u._id === currentUser._id}
-                  className={`bg-cream-50 border border-cream-200 text-stone-700 text-[12px] font-medium rounded-lg px-2 py-1.5 w-auto outline-none transition-all ${
-                    savingRole[u._id] ? "opacity-50 cursor-not-allowed pr-8" : "focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
+                  className={`bg-cream-50 border border-cream-200 text-stone-700 text-[12px] font-medium rounded-lg pl-2 pr-8 py-1.5 w-auto outline-none transition-all ${
+                    savingRole[u._id] ? "opacity-50 cursor-not-allowed" : "focus:ring-2 focus:ring-stone-800/10 cursor-pointer"
                   }`}
                 >
                   <option value="student">Student</option>
