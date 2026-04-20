@@ -7,36 +7,30 @@ export default function FinancialSummary({ data }) {
 
   return (
     <div className="flex flex-col lg:flex-row gap-5 mb-8 animate-fade-in">
-      {/* Left Column: Totals */}
-      <div className="flex-[1.5] grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Total Earned Card */}
-        <div className="card bg-stone-900 border-stone-800 p-6 flex flex-col justify-between overflow-hidden relative">
-          <div>
-            <div className="w-10 h-10 rounded-xl bg-stone-800 flex items-center justify-center mb-4 border border-stone-700">
-              <IndianRupee className="text-cream-50" size={20} />
+  return (
+    <div className="flex flex-col lg:flex-row gap-5 mb-8 animate-fade-in">
+      {/* Financial Overview Card */}
+      <div className="flex-[1.2]">
+        <div className="card bg-stone-900 border-stone-800 p-8 flex flex-col justify-center h-full min-h-[180px] relative overflow-hidden">
+          <div className="relative z-10">
+            <p className="text-stone-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-2">Total Career Earnings</p>
+            <h2 className="text-5xl font-bold text-cream-50 tracking-tight flex items-baseline gap-2">
+              <span className="text-2xl font-medium opacity-50">₹</span>
+              {totalEarned.toLocaleString()}
+            </h2>
+            
+            <div className="mt-6 flex items-center gap-4">
+              <div className="flex items-center gap-2 bg-stone-800 border border-stone-700 px-3 py-1.5 rounded-full">
+                <Clock className="text-stone-400" size={14} />
+                <span className="text-cream-50 text-[12px] font-bold">₹{pendingAmount.toLocaleString()} Pending</span>
+              </div>
+              <p className="text-[11px] text-stone-500 font-medium">From {history.length} events</p>
             </div>
-            <p className="text-stone-400 text-[11px] font-bold uppercase tracking-widest">Total Earned</p>
-            <h2 className="text-3xl font-bold text-cream-50 mt-1 tracking-tight">₹{totalEarned.toLocaleString()}</h2>
-          </div>
-          <div className="mt-4 pt-4 border-t border-stone-800">
-             <p className="text-[11px] text-stone-500 font-medium tracking-tight">All cleared payments</p>
-          </div>
-        </div>
-
-        {/* Pending Payout Card */}
-        <div className="card bg-white border-cream-200 p-6 flex flex-col justify-between overflow-hidden relative shadow-sm">
-          <div>
-            <div className="w-10 h-10 rounded-xl bg-stone-50 flex items-center justify-center mb-4 border border-cream-200">
-              <Clock className="text-stone-900" size={20} />
-            </div>
-            <p className="text-stone-500 text-[11px] font-bold uppercase tracking-widest">Pending Payout</p>
-            <h2 className="text-3xl font-bold text-stone-900 mt-1 tracking-tight">₹{pendingAmount.toLocaleString()}</h2>
-          </div>
-          <div className="mt-4 pt-4 border-t border-cream-100">
-             <p className="text-[11px] text-stone-400 font-medium tracking-tight">Estimated from attended events</p>
           </div>
         </div>
       </div>
+
+      {/* History Section */}
 
       {/* Right Column: Recent History */}
       <div className="flex-1 card bg-white border-cream-200 p-6 shadow-sm overflow-hidden flex flex-col">
