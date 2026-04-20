@@ -102,6 +102,7 @@ export default defineSchema({
     amount: v.number(),
     method: v.union(v.literal("cash"), v.literal("upi")),
     status: v.union(v.literal("pending"), v.literal("cleared")),
+    groupId: v.optional(v.id("paymentGroups")),
     clearedBy: v.optional(v.id("users")),
     clearedAt: v.optional(v.number()),
     upiRef: v.optional(v.string()),
@@ -111,7 +112,21 @@ export default defineSchema({
     .index("by_catering", ["cateringId"])
     .index("by_registration", ["registrationId"])
     .index("by_status", ["status"])
+    .index("by_group", ["groupId"])
     .index("by_created", ["createdAt"]),
+
+  paymentGroups: defineTable({
+    cateringId: v.id("caterings"),
+    headUserId: v.id("users"),
+    memberRegIds: v.array(v.id("registrations")),
+    totalAmount: v.number(),
+    status: v.union(v.literal("pending"), v.literal("cleared")),
+    clearedAt: v.optional(v.number()),
+    clearedBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+  })
+    .index("by_catering", ["cateringId"])
+    .index("by_head", ["headUserId"]),
 
   adminSettings: defineTable({
     key: v.string(), // singleton "global"

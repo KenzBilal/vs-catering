@@ -134,12 +134,140 @@ export const getPaymentsByCatering = query({
     const withUsers = await Promise.all(
       payments.map(async (p) => {
         const user = await ctx.db.get(p.userId);
-        return { ...p, user };
+        const group = p.groupId ? await ctx.db.get(p.groupId) : null;
+        let groupHead = null;
+        if (group) {
+          groupHead = await ctx.db.get(group.headUserId);
+        }
+        return { ...p, user, group, groupHead };
       })
     );
     return withUsers;
   },
 });
+
+export const createPaymentGroup = mutation({
+  args: {
+    cateringId: v.id("caterings"),
+    headUserId: v.id("users"),
+    memberRegIds: v.array(v.id("registrations")),
+    token: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const admin = await checkPermission(ctx, args.token, "manage_payments");
+
+    // 1. Calculate total amount and verify payments exist
+    let totalAmount = 0;
+    const paymentIds = [];
+    
+    for (const regId of args.memberRegIds) {
+      const payment = await ctx.db
+        .query("payments")
+        .withIndex("by_registration", (q) => q.eq("registrationId", regId))
+        .first();
+      
+      if (!payment) throw new ConvexError(`Payment record not found for registration ${regId}`);
+      if (payment.status === "cleared") throw new ConvexError("Cannot group a payment that is already cleared.");
+      if (payment.groupId) throw new ConvexError("One or more members are already in another group.");
+      
+      totalAmount += payment.amount;
+      paymentIds.push(payment._id);
+    }
+
+    // 2. Create the group
+    const groupId = await ctx.db.insert("paymentGroups", {
+      cateringId: args.cateringId,
+      headUserId: args.headUserId,
+      memberRegIds: args.memberRegIds,
+      totalAmount,
+      status: "pending",
+      createdAt: Date.now(),
+    });
+
+    // 3. Link payments to group
+    for (const pid of paymentIds) {
+      await ctx.db.patch(pid, { groupId });
+    }
+
+    return groupId;
+  },
+});
+
+export const clearPaymentGroup = mutation({
+  args: {
+    groupId: v.id("paymentGroups"),
+    token: v.string(),
+  },
+  handler: async (ctx, { groupId, token }) => {
+    const admin = await checkPermission(ctx, token, "manage_payments");
+    const group = await ctx.db.get(groupId);
+    if (!group) throw new ConvexError("Group not found.");
+    if (group.status === "cleared") throw new ConvexError("Group already cleared.");
+
+    const now = Date.now();
+
+    // 1. Clear the group
+    await ctx.db.patch(groupId, {
+      status: "cleared",
+      clearedAt: now,
+      clearedBy: admin._id,
+    });
+
+    // 2. Clear all linked payments
+    const payments = await ctx.db
+      .query("payments")
+      .withIndex("by_group", (q) => q.eq("groupId", groupId))
+      .collect();
+
+    const catering = await ctx.db.get(group.cateringId);
+    const headUser = await ctx.db.get(group.headUserId);
+
+    for (const p of payments) {
+      await ctx.db.patch(p._id, {
+        status: "cleared",
+        clearedAt: now,
+        clearedBy: admin._id,
+      });
+
+      // Notify member
+      const isHead = p.userId === group.headUserId;
+      await ctx.db.insert("notifications", {
+        type: "payment",
+        category: "individual",
+        title: isHead ? "Group Payment Cleared" : "Payment Sent to Head",
+        message: isHead 
+          ? `₹${group.totalAmount} has been paid to you for your team's work at ${catering.place}.`
+          : `₹${p.amount} for ${catering.place} has been paid to your group head (${headUser.name}).`,
+        targetUserId: p.userId,
+        paymentId: p._id,
+        amount: p.amount,
+        isRead: false,
+        createdAt: now,
+      });
+    }
+  },
+});
+
+export const disbandGroup = mutation({
+  args: { groupId: v.id("paymentGroups"), token: v.string() },
+  handler: async (ctx, { groupId, token }) => {
+    await checkPermission(ctx, token, "manage_payments");
+    const group = await ctx.db.get(groupId);
+    if (!group || group.status === "cleared") throw new ConvexError("Cannot disband.");
+
+    const payments = await ctx.db
+      .query("payments")
+      .withIndex("by_group", (q) => q.eq("groupId", groupId))
+      .collect();
+
+    for (const p of payments) {
+      await ctx.db.patch(p._id, { groupId: undefined });
+    }
+
+    await ctx.db.delete(groupId);
+  },
+});
+
 
 export const getPendingPayments = query({
   args: { token: v.string() },
