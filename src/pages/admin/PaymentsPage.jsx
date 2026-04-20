@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { formatCurrency, getRoleLabel, formatDate } from "../../lib/helpers";
 import { useState } from "react";
-import { ArrowLeft, MapPin, CalendarDays, CheckCircle2, Clock, IndianRupee, HandCoins, Users2, UserPlus, X, Trash2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, MapPin, CalendarDays, CheckCircle2, Clock, IndianRupee, HandCoins, Users2, UserPlus, X, Trash2, ShieldCheck, Search } from "lucide-react";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
 import LoadingState from "../../components/shared/LoadingState";
@@ -39,6 +39,7 @@ export default function PaymentsPage() {
   const [selectedReg, setSelectedReg] = useState(null); // For the initial options modal
   const [groupHead, setGroupHead] = useState(null); // The student being clicked to start a group
   const [selectedMembers, setSelectedMembers] = useState([]); // Array of registration IDs
+  const [memberSearchQuery, setMemberSearchQuery] = useState("");
 
   if (catTimeout || regTimeout || payTimeout) {
     return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
@@ -399,10 +400,26 @@ export default function PaymentsPage() {
             </div>
             
             <div className="flex-1 overflow-y-auto p-6 bg-cream-50/30">
-              <p className="text-[11px] font-black text-stone-400 uppercase tracking-widest mb-4">Available Members (Marked Attended)</p>
+              <div className="mb-6 relative">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
+                 <input 
+                  type="text" 
+                  placeholder="Search by name or phone..."
+                  value={memberSearchQuery}
+                  onChange={(e) => setMemberSearchQuery(e.target.value)}
+                  className="pl-10 bg-white border-cream-200 focus:border-stone-400 py-2.5 text-[14px]"
+                 />
+              </div>
+
+              <p className="text-[11px] font-black text-stone-400 uppercase tracking-widest mb-4">Available Members</p>
               <div className="flex flex-col gap-2">
                 {attendedRegs
                   .filter(r => r._id !== groupHead._id && !getPaymentForReg(r._id)?.groupId && getPaymentForReg(r._id)?.status !== 'cleared')
+                  .filter(r => {
+                    if (!memberSearchQuery.trim()) return true;
+                    const q = memberSearchQuery.toLowerCase().trim();
+                    return (r.user?.name?.toLowerCase().includes(q)) || (r.user?.phone?.includes(q));
+                  })
                   .map(r => {
                     const isSelected = selectedMembers.includes(r._id);
                     return (
