@@ -316,6 +316,19 @@ export const getMonthlyAnalytics = query({
 
     const uniqueStudents = new Set(monthPayments.map((p) => p.userId.toString())).size;
 
+    // Weekly trends for graphing
+    const weeklyTrends = [];
+    for (let i = 0; i < 4; i++) {
+      const weekStart = start + (i * 7 * 24 * 60 * 60 * 1000);
+      const weekEnd = weekStart + (7 * 24 * 60 * 60 * 1000);
+      const weekPayments = monthPayments.filter(p => p.createdAt >= weekStart && p.createdAt < weekEnd);
+      weeklyTrends.push({
+        week: i + 1,
+        payout: weekPayments.filter(p => p.status === "cleared").reduce((s, p) => s + p.amount, 0),
+        pending: weekPayments.filter(p => p.status === "pending").reduce((s, p) => s + p.amount, 0),
+      });
+    }
+
     return {
       totalCaterings: monthCaterings.length,
       totalPayout,
@@ -323,9 +336,11 @@ export const getMonthlyAnalytics = query({
       uniqueStudents,
       paymentsCleared: monthPayments.filter((p) => p.status === "cleared").length,
       paymentsPending: monthPayments.filter((p) => p.status === "pending").length,
+      weeklyTrends,
     };
   },
 });
+
 
 export const getStudentFinancialSummary = query({
   args: { token: v.string() },
