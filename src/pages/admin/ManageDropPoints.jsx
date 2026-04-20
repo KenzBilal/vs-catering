@@ -79,7 +79,8 @@ export default function ManageDropPoints() {
             <MapPin size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
-              placeholder="e.g. New Girls Hostel"
+              placeholder="e.g. Main Entrance"
+
               value={newDrop}
               onChange={(e) => setNewDrop(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
