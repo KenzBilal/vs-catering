@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
-import { Save, CheckCircle2, User, MapPin, Camera, Hash } from "lucide-react";
+import { Save, CheckCircle2, User, MapPin, Camera, Hash, Loader2 } from "lucide-react";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import CustomSelect from "../../components/ui/CustomSelect";
 import ConvexImage from "../../components/shared/ConvexImage";
@@ -96,19 +96,28 @@ export default function Settings() {
           <p className="text-[14px] font-medium text-stone-500 mt-1">Your account and preferences.</p>
         </div>
 
-        {/* Profile Photo */}
         <div className="flex items-center gap-4">
-          <div className="relative w-16 h-16 shrink-0">
-            {user?.photoStorageId ? (
-              <ConvexImage storageId={user.photoStorageId} className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md" />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-cream-200 border-2 border-white shadow-sm flex items-center justify-center">
-                <User size={28} className="text-stone-400" />
-              </div>
-            )}
-            <label className="absolute -bottom-1 -right-1 w-7 h-7 bg-stone-900 text-cream-50 rounded-full flex items-center justify-center cursor-pointer hover:bg-stone-800 transition-colors shadow-lg border-2 border-white">
+          <div className="relative w-16 h-16 shrink-0 group">
+            <div className={`relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-md transition-all ${uploading ? 'opacity-50 grayscale-[0.5]' : ''}`}>
+              {user?.photoStorageId ? (
+                <ConvexImage storageId={user.photoStorageId} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-cream-200 flex items-center justify-center">
+                  <User size={28} className="text-stone-400" />
+                </div>
+              )}
+
+              {/* Uploading Overlay */}
+              {uploading && (
+                <div className="absolute inset-0 bg-stone-900/40 flex items-center justify-center backdrop-blur-[1px]">
+                  <Loader2 size={20} className="text-cream-50 animate-spin" />
+                </div>
+              )}
+            </div>
+
+            <label className={`absolute -bottom-1 -right-1 w-7 h-7 bg-stone-900 text-cream-50 rounded-full flex items-center justify-center cursor-pointer hover:bg-stone-800 transition-colors shadow-lg border-2 border-white ${uploading ? 'pointer-events-none opacity-50' : ''}`}>
               <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
-              <Camera size={14} className={uploading ? "animate-pulse" : ""} />
+              <Camera size={14} />
             </label>
           </div>
           <div>
