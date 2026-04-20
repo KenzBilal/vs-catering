@@ -4,8 +4,11 @@ import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRol
 
 export default function EventCard({ c, isRegistered }) {
   return (
-    <Link to={`/catering/${c._id}`} className="block">
-      <div className={`card p-5 bg-white hover:border-stone-300 transition-all duration-150 ${isRegistered ? "border-stone-300" : ""}`}>
+    <Link to={`/catering/${c._id}`} className={`block transition-opacity ${c.status === 'ended' ? 'opacity-70' : ''}`}>
+      <div className={`card p-5 hover:border-stone-300 transition-all duration-150 ${
+        c.status === 'ended' ? 'bg-stone-50 border-cream-100 shadow-none' : 'bg-white'
+      } ${isRegistered ? "border-stone-300" : ""}`}>
+
         <div className="flex justify-between items-start gap-4 mb-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">

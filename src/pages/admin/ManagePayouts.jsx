@@ -96,9 +96,10 @@ export default function ManagePayouts() {
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 min-w-0">
-                  <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 ${event.payoutDate ? 'bg-green-50 border-green-100 text-green-600' : 'bg-orange-50 border-orange-100 text-orange-600'}`}>
-                    {event.payoutDate ? <CheckCircle2 size={24} /> : <Clock size={24} />}
+                  <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 ${event.payoutDate ? 'bg-cream-100 border-cream-200 text-stone-600' : 'bg-orange-50 border-orange-100 text-orange-600'}`}>
+                    <Clock size={24} />
                   </div>
+
                   <div className="min-w-0">
                     <h3 className="font-bold text-[16px] text-stone-900 truncate">{event.place}</h3>
                     <p className="text-[12px] font-medium text-stone-400">
@@ -110,7 +111,8 @@ export default function ManagePayouts() {
                 <div className="text-right shrink-0">
                   {event.payoutDate ? (
                     <div className="bg-stone-900 text-cream-50 text-[10px] font-bold px-2 py-1 rounded-lg">
-                      PAID: {event.payoutDate}
+                      SCHEDULED: {event.payoutDate}
+
                     </div>
                   ) : (
                     <div className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider">

@@ -45,12 +45,26 @@ export default function Login() {
     }
 
     // If it looks like a phone, we need an email to pass to Firebase
-    const firebaseEmail = isPhone ? resolvedEmail : identifier.toLowerCase().trim();
+    let firebaseEmail = identifier.toLowerCase().trim();
 
-    if (isPhone && resolvedEmail === undefined) {
-      toast.error("Looking up your account... please try again.");
-      return;
+    if (isPhone) {
+      if (resolvedEmail === undefined) {
+        setLoading(true);
+        // We'll wait a brief moment for the query to resolve
+        const start = Date.now();
+        while (Date.now() - start < 1500) {
+          if (resolvedEmail !== undefined) break;
+          await new Promise(r => setTimeout(r, 100));
+        }
+        setLoading(false);
+        if (resolvedEmail === undefined) {
+          toast.error("Lookup timeout. Please click Sign In again.");
+          return;
+        }
+      }
+      firebaseEmail = resolvedEmail;
     }
+
     if (isPhone && resolvedEmail === null) {
       setErrors({ identifier: "No account found with this phone number." });
       return;
