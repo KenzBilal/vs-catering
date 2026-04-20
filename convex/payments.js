@@ -199,9 +199,42 @@ export const getMonthlyAnalytics = query({
   },
 });
 
-export const debugTest = query({
-  args: {},
-  handler: async (ctx) => {
-    return "ok";
-  }
+export const getStudentFinancialSummary = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const user = await getUserFromToken(ctx, token);
+    if (!user) throw new ConvexError("Not authenticated.");
+
+    const payments = await ctx.db
+      .query("payments")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .order("desc")
+      .collect();
+
+    const totalEarned = payments
+      .filter((p) => p.status === "cleared")
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    const pendingAmount = payments
+      .filter((p) => p.status === "pending")
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    const recentPayments = await Promise.all(
+      payments.slice(0, 5).map(async (p) => {
+        const catering = await ctx.db.get(p.cateringId);
+        return {
+          ...p,
+          cateringTitle: catering?.place || "Unknown Event",
+          payoutDate: catering?.payoutDate,
+        };
+      })
+    );
+
+    return {
+      totalEarned,
+      pendingAmount,
+      recentPayments,
+    };
+  },
 });
+

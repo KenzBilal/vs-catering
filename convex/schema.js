@@ -63,7 +63,7 @@ export default defineSchema({
     ),
     payoutDate: v.optional(v.string()),
     payoutNote: v.optional(v.string()),
-    limitSlots: v.boolean(),
+    limitSlots: v.optional(v.boolean()),
     createdBy: v.id("users"),
     createdAt: v.number(),
   })

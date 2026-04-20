@@ -12,6 +12,7 @@ import LoadingState from "../../components/shared/LoadingState";
 import HomeStats from "./components/HomeStats";
 import HomeFilters from "./components/HomeFilters";
 import EventCard from "./components/EventCard";
+import FinancialSummary from "./components/FinancialSummary";
 
 export default function Dashboard() {
   const { user, token } = useAuth();
@@ -19,6 +20,8 @@ export default function Dashboard() {
   const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, 
     user ? { userId: user._id, token } : "skip"
   );
+  const financialSummary = useQuery(api.payments.getStudentFinancialSummary, { token: token || "" });
+
   const { data: caterings, timedOut: cateringTimeout } = useQueryWithTimeout(cateringsRaw);
   const { data: registrations } = useQueryWithTimeout(registrationsRaw);
   const [filter, setFilter] = useState("All");
@@ -52,6 +55,8 @@ export default function Dashboard() {
           Welcome back, {user?.name?.split(" ")[0] || "User"}.
         </p>
       </div>
+
+      <FinancialSummary data={financialSummary} />
 
       <HomeStats activeCount={activeCaterings.length} registeredCount={registeredIds.size} />
 
