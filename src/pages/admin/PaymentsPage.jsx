@@ -232,7 +232,7 @@ export default function PaymentsPage() {
                     <p className="font-bold text-[16px] text-stone-900 flex items-center gap-2">
                       {reg.user?.name}
                       {isGroupHead && (
-                        <span className="bg-stone-900 text-cream-50 text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-full">TEAM HEAD</span>
+                        <span className="bg-stone-900 text-cream-50 text-[9px] font-bold uppercase tracking-tight px-2 py-0.5 rounded-full">Team Head</span>
                       )}
                     </p>
                     <p className="text-[13px] text-stone-500 mt-0.5 font-medium">
@@ -243,7 +243,7 @@ export default function PaymentsPage() {
                 <div className="bg-cream-100 border border-cream-200 px-3 py-1.5 rounded-lg flex flex-col items-end">
                   <p className="font-bold text-[16px] text-stone-900">{formatCurrency(pay)}</p>
                   {isGroupHead && (
-                    <p className="text-[10px] font-black text-stone-500 uppercase mt-0.5 tracking-tighter">+ Team Total: {formatCurrency(payment.group.totalAmount)}</p>
+                    <p className="text-[10px] font-bold text-stone-500 uppercase mt-0.5">Team Total: {formatCurrency(payment.group.totalAmount)}</p>
                   )}
                 </div>
               </div>
@@ -373,8 +373,8 @@ export default function PaymentsPage() {
                   className="w-full flex items-center justify-between p-4 bg-cream-50 border border-cream-100 rounded-xl hover:bg-cream-100 transition-all text-left"
                 >
                   <div>
-                    <p className="font-bold text-stone-900 text-[14px]">Create Team / Group</p>
-                    <p className="text-[12px] text-stone-500">Add members and pay through {selectedReg.user?.name.split(" ")[0]}.</p>
+                    <p className="font-bold text-stone-900 text-[14px]">Create Team</p>
+                    <p className="text-[12px] text-stone-500">Pay multiple students via {selectedReg.user?.name}.</p>
                   </div>
                   <Users2 className="text-stone-400" size={20} />
                 </button>
