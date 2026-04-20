@@ -43,9 +43,14 @@ export default function Dashboard() {
     ended:    filtered.filter((c) => c.status === "ended"),
   };
 
-  const activeCaterings = (caterings || []).filter(
-    (c) => c.status === "today" || c.status === "tomorrow" || c.status === "upcoming"
+  const openCaterings = (caterings || []).filter(
+    (c) => c.status === "upcoming"
   );
+
+  const registeredUpcomingCount = (registrations || []).filter((r) => {
+    const catering = (caterings || []).find(c => c._id === r.cateringId);
+    return r.status !== "cancelled" && catering?.status === "upcoming";
+  }).length;
 
   return (
     <div>
@@ -58,7 +63,7 @@ export default function Dashboard() {
 
       <FinancialSummary data={financialSummary} />
 
-      <HomeStats activeCount={activeCaterings.length} registeredCount={registeredIds.size} />
+      <HomeStats activeCount={openCaterings.length} registeredCount={registeredUpcomingCount} />
 
       <HomeFilters filter={filter} setFilter={setFilter} />
 
