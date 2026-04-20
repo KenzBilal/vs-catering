@@ -27,7 +27,16 @@ export default function SettingsMenu() {
       href: "/admin/settings/payouts",
       color: "bg-stone-100",
     },
+    {
+      id: "interface",
+      title: "Dashboard Settings",
+      description: "Personalize your layout by toggling graphs and data sections.",
+      icon: <Layout size={22} className="text-stone-400" />,
+      href: "/admin/settings/interface",
+      color: "bg-green-50",
+    },
   ];
+
 
   return (
     <div>

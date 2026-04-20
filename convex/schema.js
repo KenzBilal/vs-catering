@@ -13,8 +13,14 @@ export default defineSchema({
     registrationNumber: v.optional(v.string()),
     role: v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student")),
     lastReadNotificationsAt: v.optional(v.number()),
+    adminPreferences: v.optional(v.object({
+      showAnalytics: v.boolean(),
+      showPendingPayments: v.boolean(),
+      showActiveEvents: v.boolean(),
+    })),
     createdAt: v.number(),
   })
+
     .index("by_email", ["email"])
     .index("by_phone", ["phone"]),
 

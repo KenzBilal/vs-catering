@@ -301,7 +301,26 @@ export const setUserRole = mutation({
   },
 });
 
+export const updateAdminPreferences = mutation({
+  args: {
+    token: v.string(),
+    preferences: v.object({
+      showAnalytics: v.boolean(),
+      showPendingPayments: v.boolean(),
+      showActiveEvents: v.boolean(),
+    }),
+  },
+  handler: async (ctx, { token, preferences }) => {
+    const caller = await getUserFromToken(ctx, token);
+    if (!caller || (caller.role !== "admin" && caller.role !== "sub_admin")) {
+      throw new ConvexError("Unauthorized");
+    }
+    await ctx.db.patch(caller._id, { adminPreferences: preferences });
+  },
+});
+
 // ─── getAllStudents — authenticated + students only (fixes #1 #22) ─────────────
+
 
 export const getAllStudents = query({
   args: { token: v.string() },

@@ -41,6 +41,12 @@ export default function AdminDashboard() {
     (c) => c.status === "today" || c.status === "tomorrow" || c.status === "upcoming"
   );
 
+  const prefs = user?.adminPreferences || {
+    showAnalytics: true,
+    showPendingPayments: true,
+    showActiveEvents: true,
+  };
+
   const byUser = {};
   (pendingPayments || []).forEach((p) => {
     const key = p.userId;
@@ -97,85 +103,86 @@ export default function AdminDashboard() {
               </div>
 
               {/* Graph Version (Visual Insights) */}
-              <div className="bg-white border border-cream-200 rounded-2xl p-5 shadow-sm mb-8 animate-fade-in">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-[13px] font-bold text-stone-800 flex items-center gap-2">
-                    <BarChart3 size={16} className="text-stone-400" /> Visual Performance Analysis
-                  </h3>
-                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest bg-cream-50 px-2 py-1 rounded-md">Live Trends</span>
-                </div>
+              {prefs.showAnalytics && (
+                <div className="bg-white border border-cream-200 rounded-2xl p-5 shadow-sm mb-8 animate-fade-in">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-[13px] font-bold text-stone-800 flex items-center gap-2">
+                      <BarChart3 size={16} className="text-stone-400" /> Data Insights
+                    </h3>
+                    <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest bg-cream-50 px-2 py-1 rounded-md">Live Trends</span>
+                  </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Payout Trend Graph (CSS Bars) */}
-                  <div>
-                    <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-                      <TrendingUp size={12} /> Weekly Payout Volume
-                    </p>
-                    <div className="flex items-end justify-between h-[120px] gap-2 px-2 border-b border-cream-100">
-                      {analytics.weeklyTrends.map((t, i) => {
-                        const max = Math.max(...analytics.weeklyTrends.map(x => x.payout + x.pending), 1000);
-                        const payoutHeight = (t.payout / max) * 100;
-                        const pendingHeight = (t.pending / max) * 100;
-                        return (
-                          <div key={i} className="flex-1 flex flex-col justify-end gap-0.5 group relative">
-                            {/* Tooltip */}
-                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-xl font-bold">
-                              ₹{t.payout + t.pending} (Week {t.week})
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Payout Trend Graph (CSS Bars) */}
+                    <div>
+                      <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                        <TrendingUp size={12} /> Weekly Payout Volume
+                      </p>
+                      <div className="flex items-end justify-between h-[120px] gap-2 px-2 border-b border-cream-100">
+                        {analytics.weeklyTrends.map((t, i) => {
+                          const max = Math.max(...analytics.weeklyTrends.map(x => x.payout + x.pending), 1000);
+                          const payoutHeight = (t.payout / max) * 100;
+                          const pendingHeight = (t.pending / max) * 100;
+                          return (
+                            <div key={i} className="flex-1 flex flex-col justify-end gap-0.5 group relative">
+                              {/* Tooltip */}
+                              <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-xl font-bold">
+                                ₹{t.payout + t.pending} (Week {t.week})
+                              </div>
+                              <div className="w-full bg-[#f5d0aa] rounded-t-sm transition-all duration-500 hover:brightness-95" style={{ height: `${pendingHeight}%` }} />
+                              <div className="w-full bg-[#1a5c3a] rounded-t-sm transition-all duration-500 hover:brightness-110" style={{ height: `${payoutHeight}%` }} />
+                              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-bold text-stone-400">W{t.week}</span>
                             </div>
-                            <div className="w-full bg-[#f5d0aa] rounded-t-sm transition-all duration-500 hover:brightness-95" style={{ height: `${pendingHeight}%` }} />
-                            <div className="w-full bg-[#1a5c3a] rounded-t-sm transition-all duration-500 hover:brightness-110" style={{ height: `${payoutHeight}%` }} />
-                            <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-bold text-stone-400">W{t.week}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Payment Health (Donut / Progress) */}
-                  <div>
-                    <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-                      <CreditCard size={12} /> Payment Completion
-                    </p>
-                    <div className="flex flex-col gap-4">
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between text-[11px] font-bold">
-                          <span className="text-[#1a5c3a]">Cleared</span>
-                          <span className="text-stone-400">{Math.round((analytics.totalPayout / (analytics.totalPayout + analytics.pendingPayout || 1)) * 100)}%</span>
-                        </div>
-                        <div className="h-2 bg-cream-100 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-[#1a5c3a] transition-all duration-1000" 
-                            style={{ width: `${(analytics.totalPayout / (analytics.totalPayout + analytics.pendingPayout || 1)) * 100}%` }}
-                          />
-                        </div>
+                          );
+                        })}
                       </div>
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between text-[11px] font-bold">
-                          <span className="text-[#8b3a00]">Pending</span>
-                          <span className="text-stone-400">{Math.round((analytics.pendingPayout / (analytics.totalPayout + analytics.pendingPayout || 1)) * 100)}%</span>
+                    </div>
+
+                    {/* Payment Health (Donut / Progress) */}
+                    <div>
+                      <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                        <CreditCard size={12} /> Payment Completion
+                      </p>
+                      <div className="flex flex-col gap-4">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] font-bold">
+                            <span className="text-[#1a5c3a]">Cleared</span>
+                            <span className="text-stone-400">{Math.round((analytics.totalPayout / (analytics.totalPayout + analytics.pendingPayout || 1)) * 100)}%</span>
+                          </div>
+                          <div className="h-2 bg-cream-100 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-[#1a5c3a] transition-all duration-1000" 
+                              style={{ width: `${(analytics.totalPayout / (analytics.totalPayout + analytics.pendingPayout || 1)) * 100}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="h-2 bg-cream-100 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-[#f5d0aa] transition-all duration-1000" 
-                            style={{ width: `${(analytics.pendingPayout / (analytics.totalPayout + analytics.pendingPayout || 1)) * 100}%` }}
-                          />
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] font-bold">
+                            <span className="text-[#8b3a00]">Pending</span>
+                            <span className="text-stone-400">{Math.round((analytics.pendingPayout / (analytics.totalPayout + analytics.pendingPayout || 1)) * 100)}%</span>
+                          </div>
+                          <div className="h-2 bg-cream-100 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-[#f5d0aa] transition-all duration-1000" 
+                              style={{ width: `${(analytics.pendingPayout / (analytics.totalPayout + analytics.pendingPayout || 1)) * 100}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </>
           ) : (
             <LoadingState rows={2} />
           )}
-
         </>
       )}
 
       <div className={`grid grid-cols-1 ${canManageCaterings && canManagePayments ? "lg:grid-cols-2" : ""} gap-6`}>
         {/* Active Events */}
-        {canManageCaterings && (
+        {canManageCaterings && prefs.showActiveEvents && (
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">Active Events</h2>
@@ -236,7 +243,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Pending Payments */}
-        {canManagePayments && (
+        {canManagePayments && prefs.showPendingPayments && (
           <div>
             <div className="flex items-center gap-2 mb-3">
               <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest">Pending Payments</h2>
