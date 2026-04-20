@@ -293,7 +293,6 @@ export default function AttendancePage() {
           </div>
         </div>
       )}
-    </div>
 
       {/* Registration Summary Modal */}
       {showSummaryModal && (
@@ -337,4 +336,3 @@ export default function AttendancePage() {
     </div>
   );
 }
-
