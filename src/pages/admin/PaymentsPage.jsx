@@ -166,25 +166,34 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white border border-cream-200 rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-1">
-            <CheckCircle2 size={14} /> Attended
+      {/* Summary Bar */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex-1 min-w-[120px] bg-white border border-cream-200 rounded-xl p-3 shadow-sm flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-cream-50 flex items-center justify-center text-stone-400">
+            <Users size={16} />
           </div>
-          <p className="text-3xl font-black text-stone-800">{attendedRegs.length}</p>
+          <div>
+            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider leading-none mb-1">Attended</p>
+            <p className="text-[16px] font-bold text-stone-800 leading-none">{attendedRegs.length}</p>
+          </div>
         </div>
-        <div className="bg-[#e8f5ee] border border-[#b8dfc8] rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#2d7a52] uppercase tracking-widest mb-1">
-            <IndianRupee size={14} /> Paid Out
+        <div className="flex-1 min-w-[120px] bg-[#e8f5ee]/50 border border-[#b8dfc8]/50 rounded-xl p-3 shadow-sm flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#e8f5ee] flex items-center justify-center text-[#1a5c3a]">
+            <IndianRupee size={16} />
           </div>
-          <p className="text-3xl font-black text-[#1a5c3a]">{formatCurrency(totalPaid)}</p>
+          <div>
+            <p className="text-[10px] font-bold text-[#2d7a52] uppercase tracking-wider leading-none mb-1">Paid Out</p>
+            <p className="text-[16px] font-bold text-[#1a5c3a] leading-none">{formatCurrency(totalPaid)}</p>
+          </div>
         </div>
-        <div className="bg-[#fdf0e6] border border-[#f5d0aa] rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#a05020] uppercase tracking-widest mb-1">
-            <Clock size={14} /> Pending
+        <div className="flex-1 min-w-[120px] bg-[#fdf0e6]/50 border border-[#f5d0aa]/50 rounded-xl p-3 shadow-sm flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#fdf0e6] flex items-center justify-center text-[#8b3a00]">
+            <Clock size={16} />
           </div>
-          <p className="text-3xl font-black text-[#8b3a00]">{formatCurrency(totalPending)}</p>
+          <div>
+            <p className="text-[10px] font-bold text-[#a05020] uppercase tracking-wider leading-none mb-1">Pending</p>
+            <p className="text-[16px] font-bold text-[#8b3a00] leading-none">{formatCurrency(totalPending)}</p>
+          </div>
         </div>
       </div>
 

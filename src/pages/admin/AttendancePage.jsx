@@ -33,6 +33,7 @@ export default function AttendancePage() {
   const [saving, setSaving] = useState({});
   const [viewPhoto, setViewPhoto] = useState(null); // { storageId, photoUrl }
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
 
   const handleMark = async (regId, status, reason) => {
     setSaving((s) => ({ ...s, [regId]: true }));
@@ -125,10 +126,13 @@ export default function AttendancePage() {
             <option value="absent">Absent</option>
             <option value="rejected">Rejected</option>
           </select>
-          <div className="ml-auto text-[13px] font-semibold text-stone-500 bg-cream-200/50 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+          <button 
+            onClick={() => setShowSummaryModal(true)}
+            className="ml-auto text-[13px] font-semibold text-stone-500 bg-cream-200/50 hover:bg-cream-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors active:scale-95 border border-cream-300/30"
+          >
             <Users size={14} />
             {filtered.length} student{filtered.length !== 1 ? "s" : ""}
-          </div>
+          </button>
         </div>
       </div>
 
@@ -290,5 +294,47 @@ export default function AttendancePage() {
         </div>
       )}
     </div>
+
+      {/* Registration Summary Modal */}
+      {showSummaryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowSummaryModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-up" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-cream-100 flex justify-between items-center bg-white">
+              <h3 className="font-bold text-stone-900">Registration Summary</h3>
+              <button onClick={() => setShowSummaryModal(false)} className="p-2 hover:bg-cream-100 rounded-full transition-colors">
+                <XCircle size={20} className="text-stone-400" />
+              </button>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto p-4 flex flex-col gap-2 bg-cream-50/30">
+              {filtered.map((r, i) => (
+                <div key={r._id} className="flex items-center justify-between p-3 bg-white border border-cream-100 rounded-xl shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 flex items-center justify-center bg-stone-100 text-stone-400 text-[10px] font-bold rounded-full">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <p className="text-[14px] font-bold text-stone-900 leading-tight">{r.user?.name}</p>
+                      <p className="text-[12px] text-stone-500 font-medium">{r.user?.phone}</p>
+                    </div>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                    r.status === 'attended' ? 'bg-green-100 text-green-700' :
+                    r.status === 'absent' ? 'bg-stone-100 text-stone-500' :
+                    r.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                    'bg-cream-200 text-stone-600'
+                  }`}>
+                    {r.status === 'registered' ? 'Wait' : r.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="p-4 bg-white border-t border-cream-100 text-center">
+               <p className="text-[11px] text-stone-400 font-medium tracking-tight">Viewing {filtered.length} students based on your filters.</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
+
