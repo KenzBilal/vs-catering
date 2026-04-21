@@ -24,10 +24,19 @@ export const getMyNotifications = query({
       .order("desc")
       .take(50);
 
-    // Merge and sort
-    return [...individual, ...global]
+    // Merge and filter for admins (they don't need to see "New Event" global alerts)
+    let merged = [...individual, ...global];
+    if (user.role === "admin" || user.role === "sub_admin") {
+      merged = merged.filter(n => 
+        n.category !== "global" || 
+        (n.title !== "New Event" && n.title !== "Event Update" && n.title !== "Event Cancelled")
+      );
+    }
+
+    return merged
       .sort((a, b) => b.createdAt - a.createdAt)
       .slice(0, 50);
+
   },
 });
 

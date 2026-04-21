@@ -63,8 +63,20 @@ export async function checkPermission(ctx, token, permissionKey) {
   throw new ConvexError("Unauthorized access.");
 }
 
+// Helper to get all admins and sub-admins for notification targeting
+export async function getAllAdmins(ctx) {
+  return await ctx.db
+    .query("users")
+    .filter((q) => q.or(
+      q.eq(q.field("role"), "admin"),
+      q.eq(q.field("role"), "sub_admin")
+    ))
+    .collect();
+}
+
 // Query to validate current session from frontend
 export const validateSession = query({
+
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);

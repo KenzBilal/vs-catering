@@ -1,6 +1,6 @@
 import { v, ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireSubAdmin, getUserFromToken, checkPermission } from "./auth";
+import { requireSubAdmin, getUserFromToken, checkPermission, getAllAdmins } from "./auth";
 
 import { sanitizeString } from "./utils";
 
@@ -94,7 +94,7 @@ export const register = mutation({
       finalPhotoStorageId = caller.photoStorageId;
     }
 
-    return await ctx.db.insert("registrations", {
+    const registrationId = await ctx.db.insert("registrations", {
       userId: caller._id,
       cateringId: args.cateringId,
       days: args.days,
@@ -107,6 +107,26 @@ export const register = mutation({
       status: "registered",
       createdAt: Date.now(),
     });
+
+    // Notify Admins
+    if (caller.role !== "admin" && caller.role !== "sub_admin") {
+      const admins = await getAllAdmins(ctx);
+      for (const admin of admins) {
+        await ctx.db.insert("notifications", {
+          type: "catering",
+          category: "individual",
+          title: "New Registration",
+          message: `${caller.name} registered for ${catering.place} as ${args.role.replace("_", " ")}.`,
+          targetUserId: admin._id,
+          cateringId: args.cateringId,
+          isRead: false,
+          createdAt: Date.now(),
+        });
+      }
+    }
+
+    return registrationId;
+
   },
 });
 
@@ -367,6 +387,21 @@ export const cancelRegistration = mutation({
     const wasConfirmed = reg.isConfirmed;
     await ctx.db.delete(registrationId);
 
+    // Notify Admins of Cancellation
+    const admins = await getAllAdmins(ctx);
+    for (const admin of admins) {
+      await ctx.db.insert("notifications", {
+        type: "catering",
+        category: "individual",
+        title: "Registration Cancelled",
+        message: `${caller.name} cancelled their registration for ${catering?.place || "an event"}.`,
+        targetUserId: admin._id,
+        cateringId: reg.cateringId,
+        isRead: false,
+        createdAt: Date.now(),
+      });
+    }
+
     // #19: Waitlist promotion — only if limitSlots is true
     if (catering?.limitSlots && wasConfirmed) {
       const slot = catering?.slots.find((s) => s.role === reg.role && s.day === reg.days[0]);
@@ -386,6 +421,7 @@ export const cancelRegistration = mutation({
         ).length;
 
         if (waitlisted.length > 0 && confirmedCount < slot.limit) {
+          const promotedUser = await ctx.db.get(waitlisted[0].userId);
           await ctx.db.patch(waitlisted[0]._id, { isConfirmed: true });
           
           // Notify the student they've been promoted
@@ -399,6 +435,20 @@ export const cancelRegistration = mutation({
             isRead: false,
             createdAt: Date.now(),
           });
+
+          // Notify Admins of Promotion
+          for (const admin of admins) {
+            await ctx.db.insert("notifications", {
+              type: "catering",
+              category: "individual",
+              title: "Waitlist Promotion",
+              message: `${promotedUser?.name || "A student"} was promoted to ${reg.role.replace("_", " ")} for ${catering.place}.`,
+              targetUserId: admin._id,
+              cateringId: catering._id,
+              isRead: false,
+              createdAt: Date.now(),
+            });
+          }
         }
       }
     }
