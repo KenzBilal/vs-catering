@@ -22,7 +22,7 @@ export default defineSchema({
     createdAt: v.number(),
 
     // Email Verification
-    emailVerified: v.boolean(),
+    emailVerified: v.optional(v.boolean()),
   })
 
     .index("by_email", ["email"])
