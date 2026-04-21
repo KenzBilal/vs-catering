@@ -34,7 +34,7 @@ export default function AdminEvents() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [confirmCancel, setConfirmCancel] = useState(null); // cateringId
   const [cancelling, setCancelling] = useState(false);
-  const [cancelError, setCancelError] = useState("");
+
 
   const filtered = (caterings || []).filter((c) => {
     const matchesSearch = c.place.toLowerCase().includes(search.toLowerCase());
@@ -45,17 +45,17 @@ export default function AdminEvents() {
 
   const handleCancel = async (cateringId) => {
     setCancelling(true);
-    setCancelError("");
     try {
       await cancelCatering({ cateringId, token });
       setConfirmCancel(null);
-      toast.success("Event cancelled successfully");
+      toast.success("Cancelled");
     } catch (e) {
-      setCancelError(e.message || "Failed to cancel event.");
+      toast.error(e.message || "Failed to cancel");
     } finally {
       setCancelling(false);
     }
   };
+
 
   return (
     <div>
