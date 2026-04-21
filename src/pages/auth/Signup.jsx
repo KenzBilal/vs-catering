@@ -7,7 +7,7 @@ import { UserPlus, Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import { isValidEmail, isValidPhone } from "../../lib/helpers";
 import { auth } from "../../lib/firebase";
-import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser, sendEmailVerification } from "firebase/auth";
 import toast from "react-hot-toast";
 import { useQuery } from "convex/react";
 import ConvexImage from "../../components/shared/ConvexImage";
@@ -83,10 +83,18 @@ export default function Signup() {
         try { await deleteUser(firebaseUserCred.user); } catch (_) {}
         throw convexErr;
       }
-      
       toast.success("Account created successfully!");
-      login(result, form.rememberMe);
-      navigate("/", { replace: true });
+      
+      // 3. Send Verification Link via Firebase
+      try {
+        if (firebaseUserCred.user) {
+          await sendEmailVerification(firebaseUserCred.user);
+        }
+      } catch (emailErr) {
+        console.error("Failed to send verification email:", emailErr);
+      }
+
+      navigate(`/verify-email?email=${encodeURIComponent(form.email.toLowerCase().trim())}`, { replace: true });
     } catch (e) {
       console.error("Signup Error Object:", e);
       const errorCode = e.code || "";

@@ -20,6 +20,9 @@ export default defineSchema({
       showActiveEvents: v.boolean(),
     })),
     createdAt: v.number(),
+
+    // Email Verification
+    emailVerified: v.boolean(),
   })
 
     .index("by_email", ["email"])
@@ -203,5 +206,3 @@ export default defineSchema({
   }).index("by_key", ["key"]),
 
 });
-
-

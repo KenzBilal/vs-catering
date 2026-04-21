@@ -74,8 +74,6 @@ export async function getAllAdmins(ctx) {
     .collect();
 }
 
-// Query to validate current session from frontend
-export const validateSession = query({
 
   args: { token: v.string() },
   handler: async (ctx, { token }) => {

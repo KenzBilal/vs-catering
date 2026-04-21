@@ -77,11 +77,18 @@ export default function Login() {
       // 1. Authenticate with Firebase using the resolved email
       await signInWithEmailAndPassword(auth, firebaseEmail, password);
 
-      // 2. Create a session in Convex
-      const result = await loginUserMutation({ email: firebaseEmail, rememberMe });
+      // 2. Create a session in Convex — pass verification status
+      const result = await loginUserMutation({ 
+        email: firebaseEmail, 
+        rememberMe,
+        firebaseVerified: auth.currentUser?.emailVerified 
+      });
 
       if (result === null) {
         setErrors({ identifier: "Account not found. Please sign up first." });
+      } else if (result.emailVerified === false) {
+        toast.error("Please verify your email first.");
+        navigate(`/verify-email?email=${encodeURIComponent(firebaseEmail)}`, { replace: true });
       } else {
         toast.success("Welcome back!");
         login(result, rememberMe);

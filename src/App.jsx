@@ -43,6 +43,7 @@ import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 // Auth pages
 import Login  from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import VerifyEmail from "./pages/auth/VerifyEmail";
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
 if (!convexUrl) {
@@ -144,6 +145,7 @@ function AppRoutes() {
       {/* ── Auth ─────────────────────────────────────── */}
       <Route path="/login"  element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Login />} />
       <Route path="/signup" element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Signup />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
 
       {/* ── Student portal ───────────────────────────── */}
       <Route path="/"           element={isAdmin ? <Navigate to="/admin" replace /> : <StudentPage page={<Dashboard />} />} />

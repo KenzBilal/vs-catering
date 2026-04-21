@@ -59,22 +59,19 @@ export const createUser = mutation({
       registrationNumber: args.registrationNumber,
       role: "student",
       createdAt: Date.now(),
+      emailVerified: false, // New field
     });
 
     const user = await ctx.db.get(userId);
-    const token = makeToken();
-    // #8: Flexible session expiry
-    const duration = args.rememberMe ? 1000 * 60 * 60 * 24 * 30 : 1000 * 60 * 60 * 24;
-    const expiresAt = Date.now() + duration;
-    await ctx.db.insert("sessions", { userId, token, expiresAt });
-    return { ...user, token };
+    // DO NOT create session here. User must verify email first.
+    return { ...user };
   },
 });
 
 // ─── loginUser ───────────────────────────────────────────────────────────────
 
 export const loginUser = mutation({
-  args: { email: v.string(), rememberMe: v.optional(v.boolean()) },
+  args: { email: v.string(), rememberMe: v.optional(v.boolean()), firebaseVerified: v.optional(v.boolean()) },
   handler: async (ctx, { email, rememberMe }) => {
     const cleanEmail = email.toLowerCase().trim();
     if (!validateEmail(cleanEmail)) throw new ConvexError("Enter a valid email address.");
@@ -125,6 +122,17 @@ export const loginUser = mutation({
       await ctx.db.patch(attemptRecord._id, { attempts: 0, windowStart: now });
     }
 
+    // Sync verification status from Firebase
+    if (firebaseVerified === true && user.emailVerified === false) {
+      await ctx.db.patch(user._id, { emailVerified: true });
+      user.emailVerified = true;
+    }
+
+    // Check if email is verified
+    if (user.emailVerified === false) {
+      return { _id: user._id, email: user.email, emailVerified: false };
+    }
+
     // #25: Delete old sessions for this user to prevent session pile-up
     const oldSessions = await ctx.db
       .query("sessions")
@@ -139,7 +147,7 @@ export const loginUser = mutation({
     const duration = rememberMe ? 1000 * 60 * 60 * 24 * 30 : 1000 * 60 * 60 * 24;
     const expiresAt = Date.now() + duration;
     await ctx.db.insert("sessions", { userId: user._id, token, expiresAt });
-    return { ...user, token };
+    return { ...user, token, emailVerified: true };
   },
 });
 
