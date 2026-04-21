@@ -77,7 +77,7 @@ export async function getAllAdmins(ctx) {
 }
 
 
-export const getCurrentUser = query({
+export const validateSession = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
     return await getUserFromToken(ctx, token);
