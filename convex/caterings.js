@@ -189,7 +189,20 @@ export const cancelCatering = mutation({
     if (!existing) throw new ConvexError("Event not found.");
     if (existing.status === "cancelled") throw new ConvexError("Event is already cancelled.");
     if (existing.status === "ended") throw new ConvexError("Cannot cancel an event that has already ended.");
+
+    // Prevent cancellation if attendance has already been marked for anyone
+    const attendanceTaken = await ctx.db
+      .query("registrations")
+      .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
+      .filter((q) => q.neq(q.field("status"), "registered"))
+      .first();
+
+    if (attendanceTaken) {
+      throw new ConvexError("Cannot cancel an event once attendance has been started.");
+    }
+
     await ctx.db.patch(cateringId, { status: "cancelled" });
+
 
     // Create notification
     await ctx.db.insert("notifications", {

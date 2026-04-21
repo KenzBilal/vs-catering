@@ -5,10 +5,11 @@ import { requireSubAdmin, getUserFromToken, checkPermission, getAllAdmins } from
 import { sanitizeString } from "./utils";
 
 const VALID_ROLES = ["service_boy", "service_girl", "captain_male", "captain_female"];
-
 // ─── register — userId derived from token (fixes #4) ──────────────────────────
 
 export const register = mutation({
+
+
   args: {
     token: v.string(),
     cateringId: v.id("caterings"),
