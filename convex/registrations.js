@@ -240,9 +240,24 @@ export const markAttendance = mutation({
           createdAt: Date.now(),
         });
       }
+      
+      // Explicit Attendance Notification
+      const reg = await ctx.db.get(registrationId);
+      const catering = await ctx.db.get(reg.cateringId);
+      await ctx.db.insert("notifications", {
+        type: "catering",
+        category: "individual",
+        title: "Attendance Marked",
+        message: `You have been marked as ${status} for the event at ${catering.place}.`,
+        targetUserId: reg.userId,
+        cateringId: reg.cateringId,
+        isRead: false,
+        createdAt: Date.now(),
+      });
     }
   },
 });
+
 
 
 // ─── changeRole ───────────────────────────────────────────────────────────────

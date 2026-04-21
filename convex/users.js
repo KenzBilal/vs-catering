@@ -298,8 +298,22 @@ export const setUserRole = mutation({
   handler: async (ctx, { token, userId, role }) => {
     await requireAdmin(ctx, token);
     await ctx.db.patch(userId, { role });
+    
+    // Notify the user about the role change
+    const user = await ctx.db.get(userId);
+    await ctx.db.insert("notifications", {
+      type: "role",
+      category: "individual",
+      title: "Account Updated",
+      message: `Your account role has been updated to ${role.replace("_", " ")}.`,
+      targetUserId: userId,
+      targetUserName: user.name,
+      isRead: false,
+      createdAt: Date.now(),
+    });
   },
 });
+
 
 export const updateAdminPreferences = mutation({
   args: {

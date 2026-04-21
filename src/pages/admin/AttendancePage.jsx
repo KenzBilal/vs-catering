@@ -194,11 +194,9 @@ export default function AttendancePage() {
                   ))}
                 </select>
                 <span className="text-[12px] font-medium text-stone-400">→</span>
-                <span className="text-[12px] font-medium text-stone-600 bg-cream-100 px-2 py-1.5 rounded-md border border-cream-200">
-                  {reg.dropPoint}
-                </span>
               </div>
             </div>
+
 
             {/* Status buttons */}
             <div className="flex flex-wrap gap-2">

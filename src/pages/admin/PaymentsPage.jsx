@@ -11,7 +11,9 @@ import ErrorState from "../../components/shared/ErrorState";
 import LoadingState from "../../components/shared/LoadingState";
 import EmptyState from "../../components/shared/EmptyState";
 import ConfirmModal from "../../components/shared/ConfirmModal";
+import ConvexImage from "../../components/shared/ConvexImage";
 import toast from "react-hot-toast";
+
 
 
 export default function PaymentsPage() {
@@ -242,9 +244,14 @@ export default function PaymentsPage() {
             >
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
                 <div className="flex items-start gap-3">
-                  <div className={`mt-1 w-10 h-10 rounded-xl flex items-center justify-center border ${isGroupHead ? 'bg-stone-900 border-stone-800 text-cream-50' : isMember ? 'bg-cream-100 border-cream-200 text-stone-400' : 'bg-stone-50 border-stone-100 text-stone-400'}`}>
-                    {isGroupHead ? <ShieldCheck size={20} /> : <HandCoins size={20} />}
+                  <div className="mt-1 w-10 h-10 rounded-xl overflow-hidden border border-cream-200 bg-stone-50 flex items-center justify-center shrink-0">
+                    {reg.user?.photoStorageId ? (
+                      <ConvexImage storageId={reg.user.photoStorageId} className="w-full h-full object-cover" />
+                    ) : (
+                      <Users size={18} className="text-stone-300" />
+                    )}
                   </div>
+
                   <div>
                     <p className="font-bold text-[16px] text-stone-900 flex items-center gap-2">
                       {reg.user?.name}
@@ -385,23 +392,29 @@ export default function PaymentsPage() {
                   <IndianRupee className="text-stone-400" size={20} />
                 </button>
 
-                <button 
-                  onClick={() => {
-                    setGroupHead(selectedReg);
-                    setSelectedReg(null);
-                  }}
-                  className="w-full flex items-center justify-between p-4 bg-cream-50 border border-cream-100 rounded-xl hover:bg-cream-100 transition-all text-left"
-                >
-                  <div>
-                    <p className="font-bold text-stone-900 text-[14px]">Create Team</p>
-                    <p className="text-[12px] text-stone-500">Pay multiple students via {selectedReg.user?.name}.</p>
-                  </div>
-                  <Users className="text-stone-400" size={20} />
-                </button>
-
+                {attendedRegs.filter(r => 
+                  r._id !== selectedReg._id && 
+                  !getPaymentForReg(r._id)?.groupId && 
+                  getPaymentForReg(r._id)?.status !== 'cleared'
+                ).length > 0 && (
+                  <button 
+                    onClick={() => {
+                      setGroupHead(selectedReg);
+                      setSelectedReg(null);
+                    }}
+                    className="w-full flex items-center justify-between p-4 bg-cream-50 border border-cream-100 rounded-xl hover:bg-cream-100 transition-all text-left"
+                  >
+                    <div>
+                      <p className="font-bold text-stone-900 text-[14px]">Create Team</p>
+                      <p className="text-[12px] text-stone-500">Pay multiple students via {selectedReg.user?.name}.</p>
+                    </div>
+                    <Users className="text-stone-400" size={20} />
+                  </button>
+                )}
               </div>
 
-              <button className="w-full mt-4 text-[13px] font-bold text-stone-400 py-2" onClick={() => setSelectedReg(null)}>Cancel</button>
+
+
            </div>
         </div>
       )}
