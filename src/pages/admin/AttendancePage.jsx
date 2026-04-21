@@ -168,43 +168,57 @@ export default function AttendancePage() {
           )}
 
           <div className="flex flex-col gap-4">
-        {filtered.map((reg) => (
-          <div key={reg._id} className="card bg-white hover:border-cream-300 transition-colors animate-fade-in p-5">
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-              <div>
-                <p className="font-semibold text-[15px] text-stone-900 flex items-center gap-2">
-                  {reg.user?.name}
-                  {!reg.isConfirmed && (
-                    <span className="bg-orange-100 text-orange-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider">
-                      Waitlist #{reg.queuePosition}
-                    </span>
+        {filtered.map((reg) => {
+          const isLocked = reg.status !== "registered" || reg.paymentStatus === "cleared";
+          
+          return (
+            <div 
+              key={reg._id} 
+              className={`card bg-white transition-all animate-fade-in p-5 ${
+                isLocked 
+                  ? "border-stone-100 bg-stone-50/40 opacity-[0.85] grayscale-[0.3]" 
+                  : "hover:border-cream-300"
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                <div>
+                  <p className={`font-semibold text-[15px] flex items-center gap-2 ${isLocked ? "text-stone-600" : "text-stone-900"}`}>
+                    {reg.user?.name}
+                    {!reg.isConfirmed && (
+                      <span className="bg-orange-100 text-orange-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider">
+                        Waitlist #{reg.queuePosition}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-[13px] text-stone-500 mt-0.5">{reg.user?.phone}</p>
+                  {(reg.photoStorageId || reg.photoUrl) && (
+                    <button 
+                      onClick={() => setViewPhoto({ storageId: reg.photoStorageId, url: reg.photoUrl })}
+                      className="flex items-center gap-1.5 mt-2 text-[12px] font-bold text-stone-600 bg-cream-100 hover:bg-cream-200 px-2.5 py-1.5 rounded-lg transition-colors"
+                    >
+                      <Camera size={14} /> View Photo
+                    </button>
                   )}
-                </p>
-                <p className="text-[13px] text-stone-500 mt-0.5">{reg.user?.phone}</p>
-                {(reg.photoStorageId || reg.photoUrl) && (
-                  <button 
-                    onClick={() => setViewPhoto({ storageId: reg.photoStorageId, url: reg.photoUrl })}
-                    className="flex items-center gap-1.5 mt-2 text-[12px] font-bold text-stone-600 bg-cream-100 hover:bg-cream-200 px-2.5 py-1.5 rounded-lg transition-colors"
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={reg.role}
+                    disabled={isLocked}
+                    onChange={(e) => handleRoleChange(reg._id, e.target.value)}
+                    className={`w-auto pl-3 pr-10 py-1.5 text-[12px] font-bold ${
+                      isLocked ? "opacity-50 grayscale" : ""
+                    }`}
                   >
-                    <Camera size={14} /> View Photo
-                  </button>
-                )}
+                    {["service_boy", "service_girl", "captain_male", "captain_female"].filter(r => {
+                      if (reg.user?.gender === "male") return r === "service_boy" || r === "captain_male";
+                      return r === "service_girl" || r === "captain_female";
+                    }).map((r) => (
+                      <option key={r} value={r}>{getRoleLabel(r)}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={reg.role}
-                  onChange={(e) => handleRoleChange(reg._id, e.target.value)}
-                  className="w-auto pl-3 pr-10 py-1.5 text-[12px] font-bold"
-                >
-                  {["service_boy", "service_girl", "captain_male", "captain_female"].filter(r => {
-                    if (reg.user?.gender === "male") return r === "service_boy" || r === "captain_male";
-                    return r === "service_girl" || r === "captain_female";
-                  }).map((r) => (
-                    <option key={r} value={r}>{getRoleLabel(r)}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+
 
 
 

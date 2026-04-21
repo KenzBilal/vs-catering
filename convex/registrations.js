@@ -321,6 +321,18 @@ export const changeRole = mutation({
     const user = await ctx.db.get(reg.userId);
     if (!user) throw new ConvexError("User not found.");
 
+    // Prevent change if attendance has been marked OR payment cleared
+    const payment = await ctx.db
+      .query("payments")
+      .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
+      .filter((q) => q.eq(q.field("status"), "cleared"))
+      .first();
+
+    if (payment || reg.status !== "registered") {
+      throw new ConvexError("Cannot change role once attendance has been marked or payment cleared.");
+    }
+
+
     if (user.gender === "male") {
       if (role !== "service_boy" && role !== "captain_male") {
         throw new ConvexError("Male students can only be assigned to Service Boy or Captain roles.");
