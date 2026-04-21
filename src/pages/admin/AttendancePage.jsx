@@ -4,7 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getRoleLabel, formatDate } from "../../lib/helpers";
 import { useState } from "react";
 import { useAuth } from "../../lib/AuthContext";
-import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Users, MapPin, CalendarDays, Filter, Clock, Camera, ExternalLink, Search } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Users, MapPin, CalendarDays, Filter, Clock, Camera, ExternalLink, Search, IndianRupee } from "lucide-react";
+
 import ConvexImage from "../../components/shared/ConvexImage";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
