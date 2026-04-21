@@ -16,6 +16,11 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
   const totalRegistered = registrations?.filter(r => r.status === "registered").length || 0;
 
   const handleStartVerification = async () => {
+    if (totalRegistered === 0) {
+      toast.error("No students are registered for this event yet.");
+      return;
+    }
+
     const isReverify = catering.verificationStatus === "active";
     const msg = isReverify 
       ? "This will reset all current responses and send the verification popup to everyone again. Proceed?"
@@ -47,7 +52,7 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
           </div>
           <button 
             onClick={handleStartVerification}
-            disabled={loading || totalRegistered === 0}
+            disabled={loading}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95 disabled:opacity-50 ${
               catering.verificationStatus === "active" 
                 ? "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50" 
@@ -58,6 +63,7 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
             {loading ? "Processing..." : (catering.verificationStatus === "active" ? "Re-verify" : "Start Verify")}
           </button>
         </div>
+
 
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-cream-50/50 border border-cream-100 rounded-[20px] p-4 text-center">
