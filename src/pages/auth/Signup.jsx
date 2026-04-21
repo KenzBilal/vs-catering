@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useMutation, useConvex } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { useAuth } from "../../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { UserPlus, Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
 import SegmentedControl from "../../components/ui/SegmentedControl";
@@ -13,7 +12,6 @@ import { useQuery } from "convex/react";
 import ConvexImage from "../../components/shared/ConvexImage";
 
 export default function Signup() {
-  const { login } = useAuth();
   const navigate = useNavigate();
   const convex = useConvex();
   const siteSettings = useQuery(api.adminSettings.getSiteSettings);
@@ -70,8 +68,10 @@ export default function Signup() {
         return;
       }
 
+      const normalizedEmail = form.email.toLowerCase().trim();
+
       // 1. Create account in Firebase
-      const firebaseUserCred = await createUserWithEmailAndPassword(auth, form.email.toLowerCase().trim(), form.password);
+      const firebaseUserCred = await createUserWithEmailAndPassword(auth, normalizedEmail, form.password);
 
       // 2. Create user in Convex — if this fails, roll back Firebase account
       const { password, ...userData } = form;
@@ -85,16 +85,20 @@ export default function Signup() {
       }
       toast.success("Account created successfully!");
       
-      // 3. Send Verification Link via Firebase
+      // 3. Send verification link via Firebase (redirects to in-app verify page)
       try {
         if (firebaseUserCred.user) {
-          await sendEmailVerification(firebaseUserCred.user);
+          const actionCodeSettings = {
+            url: `${window.location.origin}/verify-email?email=${encodeURIComponent(normalizedEmail)}`,
+            handleCodeInApp: true,
+          };
+          await sendEmailVerification(firebaseUserCred.user, actionCodeSettings);
         }
       } catch (emailErr) {
         console.error("Failed to send verification email:", emailErr);
       }
 
-      navigate(`/verify-email?email=${encodeURIComponent(form.email.toLowerCase().trim())}`, { replace: true });
+      navigate(`/verify-email?email=${encodeURIComponent(normalizedEmail)}`, { replace: true });
     } catch (e) {
       console.error("Signup Error Object:", e);
       const errorCode = e.code || "";

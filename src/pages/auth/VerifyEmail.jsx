@@ -4,7 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Mail, ArrowLeft, RefreshCw, ExternalLink, CheckCircle2 } from "lucide-react";
 import { auth } from "../../lib/firebase";
-import { sendEmailVerification, reload } from "firebase/auth";
+import { sendEmailVerification, reload, applyActionCode } from "firebase/auth";
 import toast from "react-hot-toast";
 import { useAuth } from "../../lib/AuthContext";
 
@@ -12,14 +12,81 @@ export default function VerifyEmail() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const emailFromUrl = searchParams.get("email");
+  const oobCode = searchParams.get("oobCode");
+  const mode = searchParams.get("mode");
+  const continueUrl = searchParams.get("continueUrl");
+  const emailFromContinueUrl = (() => {
+    if (!continueUrl) return null;
+    try {
+      return new URL(continueUrl, window.location.origin).searchParams.get("email");
+    } catch {
+      return null;
+    }
+  })();
   const { login } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [verified, setVerified] = useState(false);
+  const [processingCode, setProcessingCode] = useState(false);
+  const [linkHandled, setLinkHandled] = useState(false);
 
   const loginUserMutation = useMutation(api.users.loginUser);
+
+  // Handle verification via link (Option B - direct verification)
+  useEffect(() => {
+    if (oobCode && mode === "verifyEmail" && !linkHandled) {
+      setLinkHandled(true);
+      const verifyDirectly = async () => {
+        setProcessingCode(true);
+        setLoading(true);
+        try {
+          await applyActionCode(auth, oobCode);
+          
+          // Reload user to get updated status
+          if (auth.currentUser) {
+            await reload(auth.currentUser);
+          }
+          
+          // If user is still signed in, sync with Convex and auto-login.
+          // Otherwise, verification succeeded and user can log in manually.
+          const userEmail = auth.currentUser?.email;
+          if (userEmail) {
+            const result = await loginUserMutation({ 
+              email: userEmail, 
+              firebaseVerified: true 
+            });
+            
+            if (result && result.token) {
+              setVerified(true);
+              toast.success("Email verified successfully!");
+              login(result, true);
+              setTimeout(() => navigate("/"), 2000);
+            } else {
+              toast.error("Failed to sync verification status.");
+            }
+          } else {
+            toast.success("Email verified successfully! Please sign in.");
+            setTimeout(() => navigate("/login"), 1500);
+          }
+        } catch (err) {
+          console.error("Verification Error:", err);
+          const errorMessage = err.message || "";
+          if (errorMessage.includes("invalid") || errorMessage.includes("expired")) {
+            toast.error("Invalid or expired verification link. Please request a new one.");
+          } else {
+            toast.error("Verification failed. Please try again.");
+          }
+        } finally {
+          setLoading(false);
+          setProcessingCode(false);
+        }
+      };
+      
+      verifyDirectly();
+    }
+  }, [oobCode, mode, linkHandled, loginUserMutation, login, navigate]);
 
   useEffect(() => {
     let timer;
@@ -74,7 +141,12 @@ export default function VerifyEmail() {
     setResending(true);
     try {
       if (auth.currentUser) {
-        await sendEmailVerification(auth.currentUser);
+        const resendEmail = auth.currentUser.email || emailFromUrl || emailFromContinueUrl;
+        const actionCodeSettings = {
+          url: `${window.location.origin}/verify-email${resendEmail ? `?email=${encodeURIComponent(resendEmail)}` : ""}`,
+          handleCodeInApp: true,
+        };
+        await sendEmailVerification(auth.currentUser, actionCodeSettings);
         toast.success("Verification link resent!");
         setCooldown(60);
       } else {
@@ -103,6 +175,19 @@ export default function VerifyEmail() {
     );
   }
 
+  // Show loading while processing verification code from email link
+  if (processingCode || (loading && oobCode)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 bg-cream-bg">
+        <div className="w-full max-w-md text-center animate-fade-in">
+          <div className="w-12 h-12 border-4 border-stone-200 border-t-stone-900 rounded-full animate-spin mx-auto mb-6" />
+          <h1 className="text-xl font-bold text-stone-900 mb-2">Verifying your email...</h1>
+          <p className="text-stone-500 font-medium">Please wait while we confirm your email address.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-cream-bg">
       <div className="w-full max-w-md animate-slide-up">
@@ -118,7 +203,7 @@ export default function VerifyEmail() {
           <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Verify Your Email</h1>
           <p className="text-[14.5px] text-stone-500 mt-1 font-medium text-center px-4">
             We've sent a verification link to <br />
-            <span className="text-stone-900 font-bold">{auth.currentUser?.email || emailFromUrl}</span>
+            <span className="text-stone-900 font-bold">{auth.currentUser?.email || emailFromUrl || emailFromContinueUrl || "your email"}</span>
           </p>
         </div>
 
