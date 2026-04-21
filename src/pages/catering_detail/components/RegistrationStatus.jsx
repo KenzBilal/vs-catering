@@ -9,7 +9,7 @@ export default function RegistrationStatus({ myReg, catering, isAdmin, navigate,
   const cancelReg = useMutation(api.registrations.cancelRegistration);
   const [cancelling, setCancelling] = useState(false);
 
-  if (isAdmin || catering.status === "ended") return null;
+  if (catering.status === "ended") return null;
 
   const handleCancel = async () => {
     if (!window.confirm("Are you sure you want to cancel your registration?")) return;
