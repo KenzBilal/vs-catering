@@ -299,7 +299,7 @@ export const setEventPayout = mutation({
         type: "payment",
         category: "individual",
         title: "Payout",
-        message: `${payoutDate} • ${catering.place}`,
+        message: `Payout for ${catering.place} scheduled for ${payoutDate}`,
         targetUserId: reg.userId,
         cateringId: cateringId,
         cateringTitle: catering.place,
