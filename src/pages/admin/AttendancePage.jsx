@@ -165,137 +165,128 @@ export default function AttendancePage() {
               title="No registrations found" 
               description={searchQuery || roleFilter !== 'all' || statusFilter !== 'all' ? "Try adjusting your filters or search term." : "No students have registered for this event yet."}
             />
-          )}
-
-          <div className="flex flex-col gap-4">
-        {filtered.map((reg) => {
-          const isLocked = reg.status !== "registered" || reg.paymentStatus === "cleared";
-          
-          return (
-            <div 
-              key={reg._id} 
-              className={`card bg-white transition-all animate-fade-in p-5 ${
-                isLocked 
-                  ? "border-stone-100 bg-stone-50/40 opacity-[0.85] grayscale-[0.3]" 
-                  : "hover:border-cream-300"
-              }`}
-            >
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-                <div>
-                  <p className={`font-semibold text-[15px] flex items-center gap-2 ${isLocked ? "text-stone-600" : "text-stone-900"}`}>
-                    {reg.user?.name}
-                    {!reg.isConfirmed && (
-                      <span className="bg-orange-100 text-orange-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider">
-                        Waitlist #{reg.queuePosition}
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-[13px] text-stone-500 mt-0.5">{reg.user?.phone}</p>
-                  {(reg.photoStorageId || reg.photoUrl) && (
-                    <button 
-                      onClick={() => setViewPhoto({ storageId: reg.photoStorageId, url: reg.photoUrl })}
-                      className="flex items-center gap-1.5 mt-2 text-[12px] font-bold text-stone-600 bg-cream-100 hover:bg-cream-200 px-2.5 py-1.5 rounded-lg transition-colors"
-                    >
-                      <Camera size={14} /> View Photo
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={reg.role}
-                    disabled={isLocked}
-                    onChange={(e) => handleRoleChange(reg._id, e.target.value)}
-                    className={`w-auto pl-3 pr-10 py-1.5 text-[12px] font-bold ${
-                      isLocked ? "opacity-50 grayscale" : ""
-                    }`}
-                  >
-                    {["service_boy", "service_girl", "captain_male", "captain_female"].filter(r => {
-                      if (reg.user?.gender === "male") return r === "service_boy" || r === "captain_male";
-                      return r === "service_girl" || r === "captain_female";
-                    }).map((r) => (
-                      <option key={r} value={r}>{getRoleLabel(r)}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-
-
-
-            {/* Status buttons */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                disabled={saving[reg._id] || reg.paymentStatus === "cleared"}
-                onClick={() => handleMark(reg._id, "attended")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] ${
-                  reg.status === "attended" 
-                    ? "bg-[#e8f5ee] text-[#1a5c3a] border border-[#b8dfc8] shadow-sm" 
-                    : "bg-white text-stone-500 border border-cream-200 hover:bg-cream-50"
-                }`}
-
-              >
-                <CheckCircle2 size={16} /> Attended
-              </button>
-              <button
-                disabled={saving[reg._id] || reg.paymentStatus === "cleared"}
-                onClick={() => handleMark(reg._id, "absent")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] ${
-                  reg.status === "absent" 
-                    ? "bg-[#f0ece8] text-[#5c524a] border border-[#d8cfc8] shadow-sm" 
-                    : "bg-white text-stone-500 border border-cream-200 hover:bg-cream-50"
-                }`}
-              >
-                <XCircle size={16} /> Absent
-              </button>
-            </div>
-
-            {/* Rejection */}
-            <div className="mt-4 pt-4 border-t border-cream-100">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  placeholder="Rejection reason (e.g., incomplete uniform)"
-                  value={rejectionInput[reg._id] || ""}
-                  disabled={reg.paymentStatus === "cleared"}
-                  onChange={(e) => setRejectionInput((prev) => ({ ...prev, [reg._id]: e.target.value }))}
-                  className="flex-1 bg-white border border-cream-200 text-stone-800 rounded-lg px-3 py-2 text-[13px] outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition-all disabled:opacity-50"
-                />
-                <button
-                  disabled={saving[reg._id] || reg.paymentStatus === "cleared"}
-                  onClick={() => handleMark(reg._id, "rejected", rejectionInput[reg._id])}
-                  className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] whitespace-nowrap ${
-                    reg.status === "rejected" 
-                      ? "bg-red-50 text-red-700 border border-red-200 shadow-sm" 
-                      : "bg-white text-red-600 border border-red-100 hover:bg-red-50"
+          )}          <div className="flex flex-col gap-4">
+            {filtered.map((reg) => {
+              const isLocked = reg.status !== "registered" || reg.paymentStatus === "cleared";
+              return (
+                <div 
+                  key={reg._id} 
+                  className={`card bg-white transition-all animate-fade-in p-5 ${
+                    isLocked 
+                      ? "border-stone-100 bg-stone-50/40 opacity-[0.85] grayscale-[0.3]" 
+                      : "hover:border-cream-300"
                   }`}
                 >
-                  <AlertCircle size={16} /> Mark Rejected
-                </button>
-              </div>
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                    <div>
+                      <p className={`font-semibold text-[15px] flex items-center gap-2 ${isLocked ? "text-stone-600" : "text-stone-900"}`}>
+                        {reg.user?.name}
+                        {!reg.isConfirmed && (
+                          <span className="bg-orange-100 text-orange-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider">
+                            Waitlist #{reg.queuePosition}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-[13px] text-stone-500 mt-0.5">{reg.user?.phone}</p>
+                      {(reg.photoStorageId || reg.photoUrl) && (
+                        <button 
+                          onClick={() => setViewPhoto({ storageId: reg.photoStorageId, url: reg.photoUrl })}
+                          className="flex items-center gap-1.5 mt-2 text-[12px] font-bold text-stone-600 bg-cream-100 hover:bg-cream-200 px-2.5 py-1.5 rounded-lg transition-colors"
+                        >
+                          <Camera size={14} /> View Photo
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={reg.role}
+                        disabled={isLocked}
+                        onChange={(e) => handleRoleChange(reg._id, e.target.value)}
+                        className={`w-auto pl-3 pr-10 py-1.5 text-[12px] font-bold ${
+                          isLocked ? "opacity-50 grayscale" : ""
+                        }`}
+                      >
+                        {["service_boy", "service_girl", "captain_male", "captain_female"].filter(r => {
+                          if (reg.user?.gender === "male") return r === "service_boy" || r === "captain_male";
+                          return r === "service_girl" || r === "captain_female";
+                        }).map((r) => (
+                          <option key={r} value={r}>{getRoleLabel(r)}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
+                  {/* Status buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      disabled={saving[reg._id] || reg.paymentStatus === "cleared"}
+                      onClick={() => handleMark(reg._id, "attended")}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] ${
+                        reg.status === "attended" 
+                          ? "bg-[#e8f5ee] text-[#1a5c3a] border border-[#b8dfc8] shadow-sm" 
+                          : "bg-white text-stone-500 border border-cream-200 hover:bg-cream-50"
+                      }`}
+                    >
+                      <CheckCircle2 size={16} /> Attended
+                    </button>
+                    <button
+                      disabled={saving[reg._id] || reg.paymentStatus === "cleared"}
+                      onClick={() => handleMark(reg._id, "absent")}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] ${
+                        reg.status === "absent" 
+                          ? "bg-[#f0ece8] text-[#5c524a] border border-[#d8cfc8] shadow-sm" 
+                          : "bg-white text-stone-500 border border-cream-200 hover:bg-cream-50"
+                      }`}
+                    >
+                      <XCircle size={16} /> Absent
+                    </button>
+                  </div>
 
-              {reg.paymentStatus === "cleared" && (
-                <div className="mt-3">
-                  <span className="text-[10px] font-black text-[#1a5c3a] bg-[#e8f5ee] px-2.5 py-1 rounded-lg uppercase tracking-widest inline-flex items-center gap-1.5">
-                    <CheckCircle2 size={12} strokeWidth={3} /> Payment Cleared
-                  </span>
+                  {/* Rejection */}
+                  <div className="mt-4 pt-4 border-t border-cream-100">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        placeholder="Rejection reason (e.g., incomplete uniform)"
+                        value={rejectionInput[reg._id] || ""}
+                        disabled={reg.paymentStatus === "cleared"}
+                        onChange={(e) => setRejectionInput((prev) => ({ ...prev, [reg._id]: e.target.value }))}
+                        className="flex-1 bg-white border border-cream-200 text-stone-800 rounded-lg px-3 py-2 text-[13px] outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition-all disabled:opacity-50"
+                      />
+                      <button
+                        disabled={saving[reg._id] || reg.paymentStatus === "cleared"}
+                        onClick={() => handleMark(reg._id, "rejected", rejectionInput[reg._id])}
+                        className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] whitespace-nowrap ${
+                          reg.status === "rejected" 
+                            ? "bg-red-50 text-red-700 border border-red-200 shadow-sm" 
+                            : "bg-white text-red-600 border border-red-100 hover:bg-red-50"
+                        }`}
+                      >
+                        <AlertCircle size={16} /> Mark Rejected
+                      </button>
+                    </div>
+
+                    {reg.paymentStatus === "cleared" && (
+                      <div className="mt-3">
+                        <span className="text-[10px] font-black text-[#1a5c3a] bg-[#e8f5ee] px-2.5 py-1 rounded-lg uppercase tracking-widest inline-flex items-center gap-1.5">
+                          <CheckCircle2 size={12} strokeWidth={3} /> Payment Cleared
+                        </span>
+                      </div>
+                    )}
+
+                    {reg.status === "rejected" && reg.rejectionReason && (
+                      <p className="flex items-center gap-1.5 text-[12px] font-medium text-red-600 mt-2 bg-red-50/50 p-2 rounded-md">
+                        <AlertCircle size={14} /> Reason: {reg.rejectionReason}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              )}
-
-
-              {reg.status === "rejected" && reg.rejectionReason && (
-                <p className="flex items-center gap-1.5 text-[12px] font-medium text-red-600 mt-2 bg-red-50/50 p-2 rounded-md">
-                  <AlertCircle size={14} /> Reason: {reg.rejectionReason}
-                </p>
-              )}
-            </div>
-
-            );
-          })}
-        </div>
-
+              );
+            })}
+          </div>
         </>
       )}
+
 
       {/* Photo View Modal */}
       {viewPhoto && (
