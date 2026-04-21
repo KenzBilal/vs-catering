@@ -10,6 +10,7 @@ import { createUserWithEmailAndPassword, deleteUser, sendEmailVerification } fro
 import toast from "react-hot-toast";
 import { useQuery } from "convex/react";
 import ConvexImage from "../../components/shared/ConvexImage";
+import { APP_BASE_URL } from "../../lib/appUrl";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -89,7 +90,7 @@ export default function Signup() {
       try {
         if (firebaseUserCred.user) {
           const actionCodeSettings = {
-            url: `${window.location.origin}/verify-email?email=${encodeURIComponent(normalizedEmail)}`,
+            url: `${APP_BASE_URL}/verify-email?email=${encodeURIComponent(normalizedEmail)}`,
             handleCodeInApp: true,
           };
           await sendEmailVerification(firebaseUserCred.user, actionCodeSettings);

@@ -7,6 +7,7 @@ import { auth } from "../../lib/firebase";
 import { sendEmailVerification, reload, applyActionCode } from "firebase/auth";
 import toast from "react-hot-toast";
 import { useAuth } from "../../lib/AuthContext";
+import { APP_BASE_URL } from "../../lib/appUrl";
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function VerifyEmail() {
   const emailFromContinueUrl = (() => {
     if (!continueUrl) return null;
     try {
-      return new URL(continueUrl, window.location.origin).searchParams.get("email");
+      return new URL(continueUrl, APP_BASE_URL).searchParams.get("email");
     } catch {
       return null;
     }
@@ -143,7 +144,7 @@ export default function VerifyEmail() {
       if (auth.currentUser) {
         const resendEmail = auth.currentUser.email || emailFromUrl || emailFromContinueUrl;
         const actionCodeSettings = {
-          url: `${window.location.origin}/verify-email${resendEmail ? `?email=${encodeURIComponent(resendEmail)}` : ""}`,
+          url: `${APP_BASE_URL}/verify-email${resendEmail ? `?email=${encodeURIComponent(resendEmail)}` : ""}`,
           handleCodeInApp: true,
         };
         await sendEmailVerification(auth.currentUser, actionCodeSettings);
