@@ -5,11 +5,13 @@ import { api } from "../../../../convex/_generated/api";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../../lib/AuthContext";
+import ConfirmModal from "../../../components/shared/ConfirmModal";
 
 export default function AdminSummary({ catering, registrations, dropCounts, handleCopyMessage, copied }) {
   const { token } = useAuth();
   const startVerification = useMutation(api.caterings.startVerification);
   const [loading, setLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const hasRegistrations = registrations && registrations.length > 0;
   const verifiedCount = registrations?.filter(r => r.verificationStatus === "verified").length || 0;
@@ -20,14 +22,11 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
       toast.error("No students are registered for this event yet.");
       return;
     }
+    setShowConfirm(true);
+  };
 
+  const onConfirm = async () => {
     const isReverify = catering.verificationStatus === "active";
-    const msg = isReverify 
-      ? "This will reset all current responses and send the verification popup to everyone again. Proceed?"
-      : "Send verification popup to all registered students?";
-      
-    if (!window.confirm(msg)) return;
-    
     setLoading(true);
     try {
       await startVerification({ cateringId: catering._id, token });
@@ -76,6 +75,20 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
           </div>
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={onConfirm}
+        title={catering.verificationStatus === "active" ? "Re-verify Attendance" : "Start Verification"}
+        message={catering.verificationStatus === "active" 
+          ? "This will reset all current responses and send the verification popup to everyone again. Proceed?"
+          : "Every registered student will receive a popup notification to confirm their attendance. Proceed?"
+        }
+        variant="primary"
+        confirmText="Yes, Proceed"
+      />
+
 
       {hasRegistrations && (
 

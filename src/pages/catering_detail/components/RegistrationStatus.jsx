@@ -4,17 +4,18 @@ import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import ConfirmModal from "../../../components/shared/ConfirmModal";
 
 export default function RegistrationStatus({ myReg, catering, isSuperAdmin, navigate, id, token }) {
   const cancelReg = useMutation(api.registrations.cancelRegistration);
   const verifyAttendance = useMutation(api.registrations.verifyAttendance);
   const [cancelling, setCancelling] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   if (isSuperAdmin || catering.status === "ended") return null;
 
   const handleCancel = async () => {
-    if (!window.confirm("Are you sure you want to cancel your registration?")) return;
     setCancelling(true);
     try {
       await cancelReg({ registrationId: myReg._id, token });
@@ -88,7 +89,7 @@ export default function RegistrationStatus({ myReg, catering, isSuperAdmin, navi
 
             {myReg.status === "registered" && (
               <button 
-                onClick={handleCancel}
+                onClick={() => setShowCancelConfirm(true)}
                 disabled={cancelling}
                 className="flex items-center gap-2 text-[13px] font-bold text-red-600 hover:text-red-700 hover:underline transition-all"
               >
@@ -103,8 +104,19 @@ export default function RegistrationStatus({ myReg, catering, isSuperAdmin, navi
           Register for Event
         </button>
       )}
+
+      <ConfirmModal 
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={handleCancel}
+        title="Cancel Registration?"
+        message="Are you sure you want to cancel your registration? This action cannot be undone."
+        variant="danger"
+        confirmText="Yes, Cancel"
+      />
     </div>
   );
 }
+
 
 
