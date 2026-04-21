@@ -9,7 +9,8 @@ export default defineSchema({
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     gender: v.union(v.literal("male"), v.literal("female")),
     defaultDropPoint: v.string(),
-    photoStorageId: v.optional(v.id("_storage")),
+    photoStorageId: v.optional(v.union(v.id("_storage"), v.null())),
+
     registrationNumber: v.optional(v.string()),
     role: v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student")),
     lastReadNotificationsAt: v.optional(v.number()),
@@ -197,9 +198,10 @@ export default defineSchema({
   siteSettings: defineTable({
     key: v.string(), // singleton "global"
     siteName: v.string(),
-    siteLogo: v.optional(v.id("_storage")),
+    siteLogo: v.optional(v.union(v.id("_storage"), v.null())),
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
+
 });
 
 
