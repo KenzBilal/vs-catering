@@ -442,3 +442,46 @@ export const cancelRegistration = mutation({
   },
 });
 
+export const verifyAttendance = mutation({
+  args: {
+    registrationId: v.id("registrations"),
+    verified: v.boolean(),
+    token: v.string(),
+  },
+  handler: async (ctx, { registrationId, verified, token }) => {
+    const user = await getUserFromToken(ctx, token);
+    const reg = await ctx.db.get(registrationId);
+    
+    if (!user || !reg || reg.userId !== user._id) {
+      throw new ConvexError("Unauthorized.");
+    }
+
+    if (verified) {
+      await ctx.db.patch(registrationId, { verificationStatus: "verified" });
+    } else {
+      await ctx.db.patch(registrationId, { verificationStatus: "withdrawn" });
+      
+      // Notify admins of withdrawal
+      const admins = await getAllAdmins(ctx);
+      const catering = await ctx.db.get(reg.cateringId);
+      
+      for (const admin of admins) {
+        await ctx.db.insert("notifications", {
+          type: "catering",
+          category: "individual",
+          title: "Withdrawal",
+          message: `${user.name} withdrew from ${catering?.place} during verification.`,
+          targetUserId: admin._id,
+          cateringId: reg.cateringId,
+          cateringTitle: catering?.place,
+          isRead: false,
+          createdAt: Date.now(),
+        });
+      }
+    }
+
+    return { success: true };
+  },
+});
+
+

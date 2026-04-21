@@ -70,6 +70,13 @@ export default defineSchema({
     payoutDate: v.optional(v.string()),
     payoutNote: v.optional(v.string()),
     limitSlots: v.optional(v.boolean()),
+    verificationStatus: v.optional(v.union(
+      v.literal("not_required"),
+      v.literal("required"),
+      v.literal("active"),
+      v.literal("completed")
+    )),
+    verificationDeadline: v.optional(v.number()),
     createdBy: v.id("users"),
     createdAt: v.number(),
   })
@@ -91,9 +98,15 @@ export default defineSchema({
       v.literal("rejected"),
       v.literal("absent")
     ),
+    verificationStatus: v.optional(v.union(
+      v.literal("pending"),
+      v.literal("verified"),
+      v.literal("withdrawn")
+    )),
     rejectionReason: v.optional(v.string()),
     createdAt: v.number(),
   })
+
     .index("by_user", ["userId"])
     .index("by_catering", ["cateringId"])
     .index("by_user_catering", ["userId", "cateringId"])

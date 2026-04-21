@@ -214,10 +214,57 @@ export const cancelCatering = mutation({
       cateringTitle: existing.place,
       cateringDate: existing.dates[0],
       isRead: false,
-      createdAt: Date.now(),
     });
   },
 });
+
+export const startVerification = mutation({
+  args: {
+    cateringId: v.id("caterings"),
+    token: v.string(),
+  },
+  handler: async (ctx, { cateringId, token }) => {
+    await checkPermission(ctx, token, "manage_caterings");
+    
+    const catering = await ctx.db.get(cateringId);
+    if (!catering) throw new ConvexError("Event not found.");
+    if (catering.status === "cancelled" || catering.status === "ended") {
+      throw new ConvexError("Cannot start verification for this event.");
+    }
+
+    // Set event verification status to active
+    await ctx.db.patch(cateringId, { 
+      verificationStatus: "active",
+      verificationDeadline: Date.now() + (24 * 60 * 60 * 1000) // 24 hour default deadline
+    });
+
+    // Notify all registered students
+    const registrations = await ctx.db
+      .query("registrations")
+      .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
+      .filter((q) => q.eq(q.field("status"), "registered"))
+      .collect();
+
+    for (const reg of registrations) {
+      await ctx.db.patch(reg._id, { verificationStatus: "pending" });
+      
+      await ctx.db.insert("notifications", {
+        type: "catering",
+        category: "individual",
+        title: "Verify Attendance",
+        message: `Please confirm your attendance for the event at ${catering.place}.`,
+        targetUserId: reg.userId,
+        cateringId: cateringId,
+        cateringTitle: catering.place,
+        isRead: false,
+        createdAt: Date.now(),
+      });
+    }
+
+    return { success: true };
+  },
+});
+
 
 export const listCaterings = query({
   args: { token: v.optional(v.string()) },

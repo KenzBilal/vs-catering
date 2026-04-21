@@ -1,4 +1,5 @@
-import { UserCheck, User } from "lucide-react";
+import { UserCheck, User, Check, X } from "lucide-react";
+
 import ConvexImage from "../../../components/shared/ConvexImage";
 import { getRoleLabel } from "../../../lib/helpers";
 
@@ -37,11 +38,24 @@ export default function RegistrationList({ registrations, isAdmin, setViewUser }
                     <User size={14} className="text-stone-400" />
                   )}
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[13.5px] font-bold text-stone-800 truncate group-hover:text-stone-900">{r.user?.name}</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[13.5px] font-bold text-stone-800 truncate group-hover:text-stone-900">{r.user?.name}</p>
+                    {r.verificationStatus === "verified" && (
+                      <span className="shrink-0 w-3.5 h-3.5 bg-[#1a5c3a] text-white rounded-full flex items-center justify-center">
+                        <Check size={8} />
+                      </span>
+                    )}
+                    {r.verificationStatus === "withdrawn" && (
+                      <span className="shrink-0 w-3.5 h-3.5 bg-red-600 text-white rounded-full flex items-center justify-center">
+                        <X size={8} />
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] font-medium text-stone-500 uppercase tracking-wide">{getRoleLabel(r.role)}</p>
                 </div>
               </button>
+
             ) : (
               <div 
                 key={r._id}
