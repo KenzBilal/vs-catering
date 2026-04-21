@@ -13,6 +13,7 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  const siteSettings = useQuery(api.adminSettings.getSiteSettings);
   const hasRegistrations = registrations && registrations.length > 0;
   const verifiedCount = registrations?.filter(r => r.verificationStatus === "verified").length || 0;
   const totalRegistered = registrations?.filter(r => r.status === "registered").length || 0;
@@ -38,6 +39,7 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
       setLoading(false);
     }
   };
+
 
   return (
     <>
@@ -65,7 +67,6 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
             </button>
           </div>
 
-
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-cream-50/50 border border-cream-100 rounded-[20px] p-4 text-center">
               <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">Registered</p>
@@ -78,7 +79,6 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
           </div>
         </div>
       )}
-
 
       <ConfirmModal 
         isOpen={showConfirm}
@@ -93,10 +93,7 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
         confirmText="Yes, Proceed"
       />
 
-
       {hasRegistrations && (
-
-
         <div className="card mb-6 p-6">
           <h3 className="section-title">Drop Point Summary</h3>
           <div className="flex flex-col gap-2 mt-4">
@@ -112,7 +109,6 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
         </div>
       )}
 
-
       <div className="card mb-6 p-6 border-stone-300">
         <div className="flex justify-between items-center mb-4">
           <h3 className="section-title !mb-0 flex items-center gap-2">
@@ -123,9 +119,15 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
           </button>
         </div>
         <div className="bg-cream-50 border border-cream-200 rounded-xl p-4 text-[13px] text-stone-600 whitespace-pre-wrap font-mono leading-relaxed max-h-[200px] overflow-y-auto">
-          {generateWhatsAppMessage(catering, `${window.location.origin}/catering/${catering._id}`)}
+          {generateWhatsAppMessage(
+            catering, 
+            `${window.location.origin}/catering/${catering._id}`,
+            siteSettings?.siteName
+          )}
         </div>
       </div>
     </>
   );
 }
+
+

@@ -50,7 +50,7 @@ export function formatCurrency(amount) {
   return `₹${amount}`;
 }
 
-export function generateWhatsAppMessage(catering, registrationUrl) {
+export function generateWhatsAppMessage(catering, registrationUrl, siteName = "Catering") {
   const activeSlots = catering.slots.filter(s => Number(s.limit) > 0);
   const roles = activeSlots.map((s) => {
     const label = getRoleLabel(s.role);
@@ -63,7 +63,7 @@ export function generateWhatsAppMessage(catering, registrationUrl) {
     ? `${formatDate(catering.dates[0])} and ${formatDate(catering.dates[1])}`
     : formatDate(catering.dates[0]);
 
-  return `Catering — New Work Posted
+  return `${siteName} — New Work Posted
 
 Place: ${catering.place}
 Date: ${dateStr}
@@ -83,6 +83,7 @@ Register here: ${registrationUrl}
 Register on the website to confirm your spot. First ${activeSlots.length > 0 ? Math.min(...activeSlots.map((s) => s.limit)) : 0} per role are confirmed. Others go on waiting list.`;
 
 }
+
 
 export function getStatusBadgeClass(status) {
   const map = {

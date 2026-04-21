@@ -1,4 +1,6 @@
 import { ConvexProvider, ConvexReactClient, useQuery } from "convex/react";
+import { api } from "../convex/_generated/api";
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
 import { useEffect } from "react";
