@@ -9,11 +9,17 @@ export const generateUploadUrl = mutation({
 });
 
 export const getImageUrl = query({
-  args: { storageId: v.id("_storage") },
+  args: { storageId: v.any() }, // Allow null/undefined to avoid crash, handle in handler
   handler: async (ctx, { storageId }) => {
-    return await ctx.storage.getUrl(storageId);
+    if (!storageId || typeof storageId !== "string") return null;
+    try {
+      return await ctx.storage.getUrl(storageId);
+    } catch (e) {
+      return null;
+    }
   },
 });
+
 export const deleteFile = mutation({
   args: { storageId: v.id("_storage") },
   handler: async (ctx, { storageId }) => {

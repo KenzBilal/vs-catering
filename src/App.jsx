@@ -52,7 +52,8 @@ const convex = new ConvexReactClient(convexUrl || "https://dummy.convex.cloud");
 
 function BrandingWrapper({ children }) {
   const siteSettings = useQuery(api.adminSettings.getSiteSettings);
-  const imageUrl = useQuery(api.files.getImageUrl, { storageId: siteSettings?.siteLogo });
+  const imageUrl = useQuery(api.files.getImageUrl, siteSettings?.siteLogo ? { storageId: siteSettings.siteLogo } : "skip");
+
 
   useEffect(() => {
     if (siteSettings?.siteName) {
