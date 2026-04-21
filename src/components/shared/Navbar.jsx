@@ -1,11 +1,15 @@
 import { useAuth } from "../../lib/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { LogOut, CalendarDays, User, UtensilsCrossed } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import ConvexImage from "./ConvexImage";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const siteSettings = useQuery(api.adminSettings.getSiteSettings);
 
   const handleLogout = () => {
     logout();
@@ -18,11 +22,18 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-cream-200">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-bold text-[16px] tracking-tight text-stone-900 hover:opacity-80 transition-opacity">
-          <div className="w-6 h-6 bg-stone-900 rounded-md flex items-center justify-center">
-            <UtensilsCrossed size={13} className="text-cream-50" />
-          </div>
-          Catering
+          {siteSettings?.siteLogo ? (
+            <div className="w-6 h-6 rounded-md overflow-hidden border border-stone-100">
+              <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-6 h-6 bg-stone-900 rounded-md flex items-center justify-center">
+              <UtensilsCrossed size={13} className="text-cream-50" />
+            </div>
+          )}
+          {siteSettings?.siteName || "Catering"}
         </Link>
+
 
         {user && (
           <div className="flex items-center gap-1">

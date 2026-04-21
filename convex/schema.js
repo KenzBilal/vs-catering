@@ -193,4 +193,13 @@ export default defineSchema({
   .index("by_created", ["createdAt"])
   .index("by_category", ["category"])
   .index("by_type", ["type"]),
+
+  siteSettings: defineTable({
+    key: v.string(), // singleton "global"
+    siteName: v.string(),
+    siteLogo: v.optional(v.id("_storage")),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
 });
+
+

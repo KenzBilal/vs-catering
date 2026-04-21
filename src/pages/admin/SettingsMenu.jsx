@@ -30,6 +30,14 @@ export default function SettingsMenu() {
 
   const options = [
     {
+      id: "branding",
+      title: "Branding",
+      description: "Customize site name and logo.",
+      icon: <Layout size={20} className="text-stone-400" />,
+      href: "/admin/settings/branding",
+      color: "bg-purple-50",
+    },
+    {
       id: "drop-points",
       title: "Drop Points",
       description: "Manage student pickup locations.",
@@ -37,6 +45,7 @@ export default function SettingsMenu() {
       href: "/admin/settings/drop-points",
       color: "bg-orange-50",
     },
+
     {
       id: "sub-admins",
       title: "Sub-Admins",

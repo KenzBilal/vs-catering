@@ -9,11 +9,14 @@ import { isValidEmail, isValidPhone } from "../../lib/helpers";
 import { auth } from "../../lib/firebase";
 import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
 import toast from "react-hot-toast";
+import { useQuery } from "convex/react";
+import ConvexImage from "../../components/shared/ConvexImage";
 
 export default function Signup() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const convex = useConvex();
+  const siteSettings = useQuery(api.adminSettings.getSiteSettings);
   const createUserMutation = useMutation(api.users.createUser);
 
   const [form, setForm] = useState({
@@ -105,16 +108,26 @@ export default function Signup() {
     }
   };
 
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-cream-bg">
       <div className="w-full max-w-md animate-slide-up">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-stone-900 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-stone-900/20">
-            <UserPlus className="text-cream-50" size={24} />
-          </div>
-          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Create Account</h1>
+          {siteSettings?.siteLogo ? (
+            <div className="w-12 h-12 rounded-2xl overflow-hidden mb-4 shadow-lg border border-stone-100">
+              <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-12 h-12 bg-stone-900 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-stone-900/20">
+              <UserPlus className="text-cream-50" size={24} />
+            </div>
+          )}
+          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
+            {siteSettings?.siteName ? `Join ${siteSettings.siteName}` : "Create Account"}
+          </h1>
           <p className="text-[14.5px] text-stone-500 mt-1 font-medium text-center">Join the catering team</p>
         </div>
+
 
         <div className="card p-6 sm:p-8 flex flex-col gap-5 shadow-xl shadow-stone-200/50">
           <form onSubmit={handleSignup} className="flex flex-col gap-5">

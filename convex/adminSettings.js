@@ -134,14 +134,31 @@ export const initializeSettings = mutation({
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .first();
     
-    if (existing) return existing._id;
+    if (!existing) {
+      await ctx.db.insert("adminSettings", {
+        key: "global",
+        subAdminPermissions: DEFAULT_PERMISSIONS,
+        createdAt: Date.now(),
+      });
+    }
 
-    return await ctx.db.insert("adminSettings", {
-      key: "global",
-      subAdminPermissions: DEFAULT_PERMISSIONS,
-      createdAt: Date.now(),
-    });
+    const existingSite = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    
+    if (!existingSite) {
+      await ctx.db.insert("siteSettings", {
+        key: "global",
+        siteName: "Catering",
+        siteLogo: null,
+        updatedAt: Date.now(),
+      });
+    }
+
+    return true;
   },
+
 });
 
 export const togglePermission = mutation({
@@ -197,5 +214,51 @@ export const toggleDropPointStatus = mutation({
   handler: async (ctx, { token, dropPointId, isActive }) => {
     await requireAdmin(ctx, token);
     await ctx.db.patch(dropPointId, { isActive });
+  },
+});
+// ─── SITE SETTINGS ──────────────────────────────────────────────────────────
+
+export const getSiteSettings = query({
+  args: {},
+  handler: async (ctx) => {
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    
+    return settings || { siteName: "Catering", siteLogo: null };
+  },
+});
+
+export const updateSiteSettings = mutation({
+  args: { 
+    token: v.string(), 
+    siteName: v.optional(v.string()), 
+    siteLogo: v.optional(v.union(v.id("_storage"), v.null())) 
+  },
+  handler: async (ctx, { token, siteName, siteLogo }) => {
+    await requireAdmin(ctx, token);
+    
+    const existing = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    
+    const update = {
+      updatedAt: Date.now(),
+      ...(siteName ? { siteName: sanitizeString(siteName).trim() } : {}),
+      ...(siteLogo !== undefined ? { siteLogo } : {}),
+    };
+
+    if (existing) {
+      await ctx.db.patch(existing._id, update);
+    } else {
+      await ctx.db.insert("siteSettings", {
+        key: "global",
+        siteName: siteName || "Catering",
+        siteLogo: siteLogo === undefined ? null : siteLogo,
+        updatedAt: Date.now(),
+      });
+    }
   },
 });

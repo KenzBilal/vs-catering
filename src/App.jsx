@@ -1,6 +1,8 @@
-import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { ConvexProvider, ConvexReactClient, useQuery } from "convex/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
+import { useEffect } from "react";
+
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import OfflineBanner from "./components/shared/OfflineBanner";
 import { Toaster } from "react-hot-toast";
@@ -33,8 +35,8 @@ import ManageDropPoints from "./pages/admin/ManageDropPoints";
 import ManageSubAdmins  from "./pages/admin/ManageSubAdmins";
 import ManagePayouts    from "./pages/admin/ManagePayouts";
 import ManageInterface  from "./pages/admin/ManageInterface";
+import ManageBranding   from "./pages/admin/ManageBranding";
 import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
-
 
 // Auth pages
 import Login  from "./pages/auth/Login";
@@ -45,6 +47,29 @@ if (!convexUrl) {
   console.error("VITE_CONVEX_URL is missing! The app will not be able to connect to the database.");
 }
 const convex = new ConvexReactClient(convexUrl || "https://dummy.convex.cloud");
+
+function BrandingWrapper({ children }) {
+  const siteSettings = useQuery(api.adminSettings.getSiteSettings);
+  const imageUrl = useQuery(api.files.getImageUrl, { storageId: siteSettings?.siteLogo });
+
+  useEffect(() => {
+    if (siteSettings?.siteName) {
+      document.title = siteSettings.siteName;
+    }
+    if (imageUrl) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = imageUrl;
+    }
+  }, [siteSettings, imageUrl]);
+
+  return children;
+}
+
 
 function ProtectedRoute({ children, adminOnly, superAdminOnly, permission }) {
   const { user, permissions, loading } = useAuth();
@@ -93,8 +118,8 @@ function StudentPage({ page }) {
   );
 }
 
-function AppRoutes() {
 
+function AppRoutes() {
   const { user, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-cream-bg">
@@ -105,7 +130,7 @@ function AppRoutes() {
   const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
 
   return (
-    <>
+    <BrandingWrapper>
       <VerificationPopup />
       {/* Global offline detector — renders everywhere */}
       <OfflineBanner />
@@ -145,6 +170,7 @@ function AppRoutes() {
       <Route path="/admin/settings/sub-admins"  element={<ProtectedRoute superAdminOnly><AdminShell><ManageSubAdmins /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/payouts"     element={<ProtectedRoute superAdminOnly><AdminShell><ManagePayouts /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/interface"   element={<ProtectedRoute adminOnly><AdminShell><ManageInterface /></AdminShell></ProtectedRoute>} />
+      <Route path="/admin/settings/branding"    element={<ProtectedRoute superAdminOnly><AdminShell><ManageBranding /></AdminShell></ProtectedRoute>} />
 
 
       {/* Legacy admin redirect */}
@@ -153,9 +179,10 @@ function AppRoutes() {
       {/* #30: 404 page */}
       <Route path="*" element={user ? <NotFound /> : <Navigate to="/login" replace />} />
       </Routes>
-    </>
+    </BrandingWrapper>
   );
 }
+
 
 export default function App() {
   // #11: Removed global right-click disable — it breaks legitimate browser UX
