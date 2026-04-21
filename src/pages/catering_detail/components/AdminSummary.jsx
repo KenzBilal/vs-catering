@@ -1,6 +1,7 @@
 import { Share2, CheckCircle2, AlertCircle, PlayCircle } from "lucide-react";
 import { generateWhatsAppMessage } from "../../../lib/helpers";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
+
 import { api } from "../../../../convex/_generated/api";
 import { useState } from "react";
 import toast from "react-hot-toast";
