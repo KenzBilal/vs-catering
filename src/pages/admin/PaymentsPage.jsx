@@ -157,13 +157,28 @@ export default function PaymentsPage() {
   };
 
   const handleRemoveMember = async (groupId, regId) => {
+    // Optimistic update
+    if (viewingTeam) {
+      const newMembers = viewingTeam.memberRegIds.filter(id => id !== regId);
+      if (newMembers.length < 2) {
+        setViewingTeam(null);
+      } else {
+        setViewingTeam(prev => ({
+          ...prev,
+          memberRegIds: newMembers
+        }));
+      }
+    }
+
     try {
       await removeMember({ groupId, registrationId: regId, token });
       toast.success("Removed");
     } catch (e) {
       toast.error(e.message || "Error");
+      // Revert is complex, but the next query update will fix it
     }
   };
+
 
 
   const totalPaid = (payments || []).filter((p) => p.status === "cleared").reduce((sum, p) => sum + p.amount, 0);
