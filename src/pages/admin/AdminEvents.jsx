@@ -50,9 +50,10 @@ export default function AdminEvents() {
       setConfirmCancel(null);
       toast.success("Cancelled");
     } catch (e) {
-      const msg = e.message.replace(/^ConvexError: \[.*?\] /, "").replace(/^ConvexError: /, "");
+      const msg = e.data || e.message.replace(/^ConvexError: \[.*?\] /, "").replace(/^ConvexError: /, "");
       toast.error(msg || "Failed to cancel");
     } finally {
+
       setCancelling(false);
     }
 
