@@ -5,7 +5,7 @@ import { useAuth } from "../../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Utensils, ArrowRight, Phone } from "lucide-react";
 import { auth } from "../../lib/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import toast from "react-hot-toast";
 import ConvexImage from "../../components/shared/ConvexImage";
 
@@ -17,6 +17,7 @@ export default function Login() {
   const [identifier, setIdentifier] = useState(""); // phone or email
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [rememberMe, setRememberMe] = useState(true);
 
@@ -115,6 +116,58 @@ export default function Login() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setErrors({});
+    setGoogleLoading(true);
+
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+
+      const credential = await signInWithPopup(auth, provider);
+      const email = credential.user?.email?.toLowerCase().trim();
+      const name = credential.user?.displayName?.trim() || "";
+
+      if (!email) {
+        throw new Error("No email found for selected Google account.");
+      }
+
+      const result = await loginUserMutation({
+        email,
+        rememberMe,
+        firebaseVerified: true,
+      });
+
+      if (result === null) {
+        toast.success("Google account verified. Complete your profile to continue.");
+        navigate(`/complete-profile?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`, { replace: true });
+        return;
+      }
+
+      if (result.emailVerified === false) {
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`, { replace: true });
+        return;
+      }
+
+      toast.success("Welcome back!");
+      login(result, rememberMe);
+      navigate("/", { replace: true });
+    } catch (e) {
+      console.error("Google Login Error:", e);
+      const code = e?.code || "";
+      let msg = e?.message || "Google sign-in failed.";
+
+      if (code === "auth/popup-closed-by-user") msg = "Google sign-in cancelled.";
+      if (code === "auth/popup-blocked") msg = "Popup blocked. Please allow popups and try again.";
+      if (code === "auth/unauthorized-domain") msg = "This domain is not authorized in Firebase settings.";
+      if (code === "auth/account-exists-with-different-credential") msg = "This email already exists with another sign-in method. Use your email/password first.";
+
+      toast.error(msg);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   const siteSettings = useQuery(api.adminSettings.getSiteSettings);
 
   return (
@@ -135,7 +188,7 @@ export default function Login() {
           </h1>
 
           <p className="text-[14.5px] text-stone-500 mt-1 font-medium text-center">
-            Sign in with your phone or email
+            Sign in with your phone, email, or Google
           </p>
         </div>
 
@@ -156,7 +209,7 @@ export default function Login() {
                   value={identifier}
                   className={`pl-11 ${errors.identifier ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
                   onChange={(e) => { setIdentifier(e.target.value); if(errors.identifier) setErrors(e=>({...e, identifier: ""})); }}
-                  disabled={loading}
+                  disabled={loading || googleLoading}
                   autoComplete="username"
                 />
               </div>
@@ -179,7 +232,7 @@ export default function Login() {
                   value={password}
                   className={`pl-11 ${errors.password ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
                   onChange={(e) => { setPassword(e.target.value); if(errors.password) setErrors(e=>({...e, password: ""})); }}
-                  disabled={loading}
+                  disabled={loading || googleLoading}
                   autoComplete="current-password"
                 />
               </div>
@@ -193,6 +246,7 @@ export default function Login() {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900/20 cursor-pointer"
+                disabled={loading || googleLoading}
               />
               <label htmlFor="remember" className="text-[13.5px] font-medium text-stone-600 cursor-pointer select-none">
                 Keep me signed in
@@ -202,13 +256,32 @@ export default function Login() {
             <button
               type="submit"
               className="btn-primary w-full py-3.5 mt-1 text-[15px]"
-              disabled={loading}
+              disabled={loading || googleLoading}
             >
               {loading ? "Signing in..." : (
                 <>
                   Sign In <ArrowRight size={18} />
                 </>
               )}
+            </button>
+
+            <div className="relative my-1">
+              <div className="h-px bg-stone-200" />
+              <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-cream-50 px-3 text-[11px] uppercase tracking-wide text-stone-400 font-semibold">
+                or
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              className="btn-secondary w-full py-3.5 text-[15px]"
+              disabled={loading || googleLoading}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 3.9 1.5l2.7-2.6C16.9 3.4 14.7 2.5 12 2.5A9.5 9.5 0 0 0 2.5 12 9.5 9.5 0 0 0 12 21.5c5.5 0 9.1-3.9 9.1-9.4 0-.6-.1-1.1-.2-1.9H12z"/>
+              </svg>
+              {googleLoading ? "Connecting Google..." : "Continue with Google"}
             </button>
           </form>
         </div>
