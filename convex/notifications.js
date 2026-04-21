@@ -57,13 +57,21 @@ export const getUnreadCount = query({
       .collect();
 
     // Count unread global notifications (created after lastRead)
-    const unreadGlobal = await ctx.db
+    let unreadGlobal = await ctx.db
       .query("notifications")
       .withIndex("by_category", (q) => q.eq("category", "global"))
       .filter((q) => q.gt(q.field("createdAt"), lastRead))
       .collect();
 
+    // Filter out redundant global notifications for admins so count matches inbox
+    if (user.role === "admin" || user.role === "sub_admin") {
+      unreadGlobal = unreadGlobal.filter(n => 
+        n.title !== "New Event" && n.title !== "Event Update" && n.title !== "Event Cancelled"
+      );
+    }
+
     return unreadIndividual.length + unreadGlobal.length;
+
   },
 });
 
