@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from "./lib/AuthContext";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import OfflineBanner from "./components/shared/OfflineBanner";
 import { Toaster } from "react-hot-toast";
+import VerificationPopup from "./components/shared/VerificationPopup";
+
 
 // Shells
 import StudentShell from "./components/student/StudentShell";
@@ -92,6 +94,7 @@ function StudentPage({ page }) {
 }
 
 function AppRoutes() {
+
   const { user, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-cream-bg">
@@ -103,8 +106,10 @@ function AppRoutes() {
 
   return (
     <>
+      <VerificationPopup />
       {/* Global offline detector — renders everywhere */}
       <OfflineBanner />
+
       <Routes>
       {/* ── Auth ─────────────────────────────────────── */}
       <Route path="/login"  element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Login />} />

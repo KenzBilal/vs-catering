@@ -235,10 +235,10 @@ export const startVerification = mutation({
     // Set event verification status to active
     await ctx.db.patch(cateringId, { 
       verificationStatus: "active",
-      verificationDeadline: Date.now() + (24 * 60 * 60 * 1000) // 24 hour default deadline
+      verificationDeadline: Date.now() + (48 * 60 * 60 * 1000)
     });
 
-    // Notify all registered students
+    // Reset all registered students to pending (for first-time or re-verification)
     const registrations = await ctx.db
       .query("registrations")
       .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
@@ -247,21 +247,10 @@ export const startVerification = mutation({
 
     for (const reg of registrations) {
       await ctx.db.patch(reg._id, { verificationStatus: "pending" });
-      
-      await ctx.db.insert("notifications", {
-        type: "catering",
-        category: "individual",
-        title: "Verify Attendance",
-        message: `Please confirm your attendance for the event at ${catering.place}.`,
-        targetUserId: reg.userId,
-        cateringId: cateringId,
-        cateringTitle: catering.place,
-        isRead: false,
-        createdAt: Date.now(),
-      });
     }
 
     return { success: true };
+
   },
 });
 
@@ -280,14 +269,32 @@ export const listCaterings = query({
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    return all.filter((c) => {
-      if (c.status === "cancelled") return true; // always show cancelled
+    const cateringsWithStats = [];
+    for (const c of all) {
       const lastDate = new Date(c.dates[c.dates.length - 1]);
       lastDate.setHours(0, 0, 0, 0);
-      return lastDate >= thirtyDaysAgo;
-    });
+      if (c.status !== "cancelled" && lastDate < thirtyDaysAgo) continue;
+
+      let stats = {};
+      if (isAdmin) {
+        const regs = await ctx.db
+          .query("registrations")
+          .withIndex("by_catering", (q) => q.eq("cateringId", c._id))
+          .collect();
+        
+        stats = {
+          registeredCount: regs.filter(r => r.status === "registered").length,
+          verifiedCount: regs.filter(r => r.verificationStatus === "verified").length
+        };
+      }
+
+      cateringsWithStats.push({ ...c, ...stats });
+    }
+
+    return cateringsWithStats;
   },
 });
+
 
 export const getCatering = query({
   args: { cateringId: v.id("caterings"), token: v.optional(v.string()) },

@@ -153,7 +153,18 @@ export default function AdminEvents() {
                     <span className="flex items-center gap-1.5">
                       <Users size={14} /> {totalSlots} slots
                     </span>
+                    <div className="flex gap-3 ml-2 border-l border-cream-200 pl-4">
+                      <span className="flex items-center gap-1">
+                        <span className="text-stone-400 font-bold uppercase text-[10px]">Reg:</span>
+                        <span className="text-stone-800 font-bold">{c.registeredCount || 0}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="text-[#1a5c3a] font-bold uppercase text-[10px]">Ver:</span>
+                        <span className="text-[#1a5c3a] font-black">{c.verifiedCount || 0}</span>
+                      </span>
+                    </div>
                   </div>
+
 
                   {/* Role pay summary */}
                   <div className="flex flex-wrap gap-2 mt-3">

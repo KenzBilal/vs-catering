@@ -16,14 +16,19 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
   const totalRegistered = registrations?.filter(r => r.status === "registered").length || 0;
 
   const handleStartVerification = async () => {
-    if (!window.confirm("Start verification for all registered students? They will receive notifications to confirm their attendance.")) return;
+    const isReverify = catering.verificationStatus === "active";
+    const msg = isReverify 
+      ? "This will reset all current responses and send the verification popup to everyone again. Proceed?"
+      : "Send verification popup to all registered students?";
+      
+    if (!window.confirm(msg)) return;
     
     setLoading(true);
     try {
       await startVerification({ cateringId: catering._id, token });
-      toast.success("Verification started");
+      toast.success(isReverify ? "Re-verification started" : "Verification started");
     } catch (e) {
-      toast.error(e.message || "Failed to start verification");
+      toast.error(e.message || "Failed to start");
     } finally {
       setLoading(false);
     }
@@ -33,51 +38,41 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
     <>
       {/* Verification Section */}
       <div className="card mb-6 p-6 border-stone-200">
-        <div className="flex justify-between items-start mb-4">
+        <div className="flex justify-between items-center mb-6">
           <div>
-            <h3 className="section-title !mb-1 flex items-center gap-2">
-              Verification Status
-            </h3>
+            <h3 className="section-title !mb-1">Event Verification</h3>
             <p className="text-[12.5px] font-medium text-stone-500">
-              Confirm student availability 24-48h before the event.
+              {catering.verificationStatus === "active" ? "Verification is currently active." : "Send popups to confirm attendance."}
             </p>
           </div>
-          {catering.verificationStatus === "active" ? (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#1a5c3a]/10 text-[#1a5c3a] text-[11px] font-bold rounded-lg uppercase tracking-wider">
-              <CheckCircle2 size={12} /> Active
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 text-stone-500 text-[11px] font-bold rounded-lg uppercase tracking-wider">
-              <AlertCircle size={12} /> Not Started
-            </span>
-          )}
-        </div>
-
-        {catering.verificationStatus === "active" ? (
-          <div className="space-y-4 mt-6">
-            <div className="flex justify-between items-end mb-1">
-              <span className="text-[13px] font-bold text-stone-900">{verifiedCount} of {totalRegistered} Verified</span>
-              <span className="text-[13px] font-bold text-[#1a5c3a]">{Math.round((verifiedCount / totalRegistered) * 100) || 0}%</span>
-            </div>
-            <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-[#1a5c3a] transition-all duration-500 ease-out"
-                style={{ width: `${(verifiedCount / totalRegistered) * 100 || 0}%` }}
-              />
-            </div>
-          </div>
-        ) : (
           <button 
             onClick={handleStartVerification}
             disabled={loading || totalRegistered === 0}
-            className="w-full mt-4 flex items-center justify-center gap-2 py-3 bg-stone-900 hover:bg-stone-800 text-white text-[13.5px] font-bold rounded-xl transition-all active:scale-[0.98] disabled:opacity-50"
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95 disabled:opacity-50 ${
+              catering.verificationStatus === "active" 
+                ? "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50" 
+                : "bg-stone-900 text-white hover:bg-stone-800"
+            }`}
           >
-            <PlayCircle size={18} /> {loading ? "Starting..." : "Start Verification Flow"}
+            <PlayCircle size={16} /> 
+            {loading ? "Processing..." : (catering.verificationStatus === "active" ? "Re-verify" : "Start Verify")}
           </button>
-        )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-cream-50/50 border border-cream-100 rounded-[20px] p-4 text-center">
+            <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">Registered</p>
+            <p className="text-[24px] font-black text-stone-900">{totalRegistered}</p>
+          </div>
+          <div className="bg-[#e8f5ee]/50 border border-[#1a5c3a]/10 rounded-[20px] p-4 text-center">
+            <p className="text-[11px] font-bold text-[#1a5c3a] uppercase tracking-wider mb-1">Verified</p>
+            <p className="text-[24px] font-black text-[#1a5c3a]">{verifiedCount}</p>
+          </div>
+        </div>
       </div>
 
       {hasRegistrations && (
+
 
         <div className="card mb-6 p-6">
           <h3 className="section-title">Drop Point Summary</h3>

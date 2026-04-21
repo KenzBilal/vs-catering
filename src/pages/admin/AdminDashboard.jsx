@@ -218,7 +218,16 @@ export default function AdminDashboard() {
                           : formatDate(c.dates[0])}
                         <span className="mx-1.5">·</span>{formatTime12h(c.specificTime)}
                       </p>
+                      <div className="flex gap-2.5 mt-2">
+                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider flex items-center gap-1">
+                          Reg: <span className="text-stone-700">{c.registeredCount || 0}</span>
+                        </span>
+                        <span className="text-[10px] font-bold text-[#1a5c3a] uppercase tracking-wider flex items-center gap-1">
+                          Ver: <span className="text-[#1a5c3a] font-black">{c.verifiedCount || 0}</span>
+                        </span>
+                      </div>
                     </div>
+
                     <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                       <button
                         className="p-1.5 rounded-lg bg-cream-50 border border-cream-200 text-stone-500 hover:text-stone-900 hover:bg-cream-100 transition-colors"

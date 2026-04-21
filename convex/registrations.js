@@ -484,4 +484,36 @@ export const verifyAttendance = mutation({
   },
 });
 
+export const getPendingVerification = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const user = await getUserFromToken(ctx, token);
+    if (!user) return null;
+
+    // Find a registration where verification is pending
+    const reg = await ctx.db
+      .query("registrations")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .filter((q) => 
+        q.and(
+          q.eq(q.field("verificationStatus"), "pending"),
+          q.eq(q.field("status"), "registered")
+        )
+      )
+      .first();
+    
+    if (!reg) return null;
+
+    const catering = await ctx.db.get(reg.cateringId);
+    if (!catering || catering.status === "cancelled" || catering.status === "ended") return null;
+
+    return {
+      registrationId: reg._id,
+      cateringPlace: catering.place,
+      cateringId: catering._id
+    };
+  },
+});
+
+
 
