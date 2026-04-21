@@ -136,7 +136,7 @@ export const loginUser = mutation({
     // #25: Delete old sessions for this user to prevent session pile-up
     const oldSessions = await ctx.db
       .query("sessions")
-      .filter((q) => q.eq(q.field("userId"), user._id))
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
     for (const s of oldSessions) {
       await ctx.db.delete(s._id);
@@ -395,13 +395,4 @@ export const resolveLoginEmail = query({
       .first();
     return user ? user.email : null;
   },
-});
-
-
-
-export const debugListUsers = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("users").collect();
-  }
 });

@@ -111,6 +111,7 @@ export default function VerifyEmail() {
       await reload(user);
       
       if (user.emailVerified) {
+        toast.loading("Email verified! Syncing your account...", { id: "sync" });
         // Sync with Convex
         const result = await loginUserMutation({ 
           email: user.email, 
@@ -119,14 +120,14 @@ export default function VerifyEmail() {
         
         if (result && result.token) {
           setVerified(true);
-          toast.success("Email verified!");
+          toast.success("Account synced successfully!", { id: "sync" });
           login(result, true);
           setTimeout(() => navigate("/"), 2000);
         } else {
-          toast.error("Failed to sync verification status.");
+          toast.error("Failed to sync verification status.", { id: "sync" });
         }
       } else {
-        toast.error("Email not yet verified. Please check your inbox.");
+        toast.error("Verification link not yet clicked. Please check your inbox.", { duration: 4000 });
       }
     } catch (err) {
       console.error("Check Status Error:", err);

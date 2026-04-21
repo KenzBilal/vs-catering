@@ -65,19 +65,21 @@ export async function checkPermission(ctx, token, permissionKey) {
 
 // Helper to get all admins and sub-admins for notification targeting
 export async function getAllAdmins(ctx) {
-  return await ctx.db
+  const admins = await ctx.db
     .query("users")
-    .filter((q) => q.or(
-      q.eq(q.field("role"), "admin"),
-      q.eq(q.field("role"), "sub_admin")
-    ))
+    .filter((q) => q.eq(q.field("role"), "admin"))
     .collect();
+  const subAdmins = await ctx.db
+    .query("users")
+    .filter((q) => q.eq(q.field("role"), "sub_admin"))
+    .collect();
+  return [...admins, ...subAdmins];
 }
 
 
+export const getCurrentUser = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
-    const user = await getUserFromToken(ctx, token);
-    return user;
+    return await getUserFromToken(ctx, token);
   },
 });

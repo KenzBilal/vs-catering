@@ -339,7 +339,7 @@ export default function AdminDashboard() {
 
 function StatCard({ label, value, highlight, icon }) {
   return (
-    <div className={`p-4 rounded-xl border flex flex-col justify-center shadow-sm ${
+    <div className={`p-4 rounded-xl border flex flex-col justify-center shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
       highlight ? "bg-[#fdf0e6] border-[#f5d0aa]" : "bg-white border-cream-200"
     }`}>
       <p className={`flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-widest mb-1.5 ${
@@ -347,7 +347,7 @@ function StatCard({ label, value, highlight, icon }) {
       }`}>
         {icon} {label}
       </p>
-      <p className={`text-[22px] font-black tracking-tight ${
+      <p className={`text-[22px] font-black tracking-tight transition-colors duration-300 ${
         highlight ? "text-[#8b3a00]" : "text-stone-800"
       }`}>
         {value ?? "—"}

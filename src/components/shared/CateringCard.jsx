@@ -6,8 +6,8 @@ export default function CateringCard({ catering }) {
   const badgeClass = getStatusBadgeClass(catering.status);
 
   return (
-    <Link to={`/catering/${catering._id}`} className="block outline-none">
-      <div className="card p-5 bg-white hover:border-stone-300 card-hover transition-all duration-200">
+    <Link to={`/catering/${catering._id}`} className="block outline-none group">
+      <div className="card p-5 bg-white hover:border-stone-300 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-stone-200/40 group-hover:-translate-y-1">
         <div className="flex justify-between items-start gap-4 mb-4">
           <div>
             <h3 className="font-bold text-[17px] text-stone-900 leading-tight mb-1">

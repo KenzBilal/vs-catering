@@ -95,6 +95,11 @@ export const register = mutation({
       finalPhotoStorageId = caller.photoStorageId;
     }
 
+    // #24: Strict photo requirement check
+    if (catering.photoRequired && !finalPhotoStorageId && !args.photoUrl) {
+      throw new ConvexError("This event requires a profile photo. Please upload one before registering.");
+    }
+
     const registrationId = await ctx.db.insert("registrations", {
       userId: caller._id,
       cateringId: args.cateringId,
@@ -546,6 +551,3 @@ export const getPendingVerification = query({
     };
   },
 });
-
-
-
