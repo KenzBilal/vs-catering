@@ -213,7 +213,7 @@ export const clearPaymentGroup = mutation({
       clearedBy: admin._id,
     });
 
-    // 2. Clear all linked payments
+    // 2. Clear all linked payments and collect member names
     const payments = await ctx.db
       .query("payments")
       .withIndex("by_group", (q) => q.eq("groupId", groupId))
@@ -221,22 +221,30 @@ export const clearPaymentGroup = mutation({
 
     const catering = await ctx.db.get(group.cateringId);
     const headUser = await ctx.db.get(group.headUserId);
-
+    
+    const memberNames = [];
     for (const p of payments) {
+      const u = await ctx.db.get(p.userId);
+      if (u) memberNames.push(u.name);
+      
       await ctx.db.patch(p._id, {
         status: "cleared",
         clearedAt: now,
         clearedBy: admin._id,
       });
+    }
 
+    const memberList = memberNames.join(", ");
+
+    for (const p of payments) {
       // Notify member
       const isHead = p.userId === group.headUserId;
       await ctx.db.insert("notifications", {
         type: "payment",
         category: "individual",
-        title: isHead ? "Group Payment Cleared" : "Payment Sent to Head",
+        title: isHead ? "Bulk Payment Received" : "Payment Sent to Head",
         message: isHead 
-          ? `₹${group.totalAmount} has been paid to you for your team's work at ${catering.place}.`
+          ? `₹${group.totalAmount} has been paid to you for: ${memberList}.`
           : `₹${p.amount} for ${catering.place} has been paid to your group head (${headUser.name}).`,
         targetUserId: p.userId,
         paymentId: p._id,
@@ -245,6 +253,7 @@ export const clearPaymentGroup = mutation({
         createdAt: now,
       });
     }
+
   },
 });
 
