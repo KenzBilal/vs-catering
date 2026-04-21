@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { auth } from "./firebase";
-import { signOut } from "firebase/auth";
+import { signOut, sendPasswordResetEmail } from "firebase/auth";
 
 const AuthContext = createContext(null);
 
@@ -83,8 +83,12 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem("vs_user");
   };
 
+  const resetPassword = async (email) => {
+    return await sendPasswordResetEmail(auth, email);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token: storedUser?.token, permissions: permissions || [], login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token: storedUser?.token, permissions: permissions || [], login, logout, resetPassword, loading }}>
       {children}
     </AuthContext.Provider>
   );

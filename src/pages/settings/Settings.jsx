@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
-import { Save, CheckCircle2, User, MapPin, Camera, Hash, Loader2 } from "lucide-react";
+import { Save, CheckCircle2, User, MapPin, Camera, Hash, Loader2, KeyRound, Mail } from "lucide-react";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import CustomSelect from "../../components/ui/CustomSelect";
 import ConvexImage from "../../components/shared/ConvexImage";
@@ -19,7 +19,7 @@ const ROLE_BADGE = {
 };
 
 export default function Settings() {
-  const { user, token, login } = useAuth();
+  const { user, token, login, resetPassword } = useAuth();
   const dropPointsRaw = useQuery(api.dropPoints.getDropPoints, { token });
   const { data: dropPoints, timedOut } = useQueryWithTimeout(dropPointsRaw);
   const updatePrefs = useMutation(api.users.updatePreferences);
@@ -34,6 +34,7 @@ export default function Settings() {
   const [saved, setSaved]         = useState(false);
   const [loading, setLoading]     = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [regNumber, setRegNumber] = useState(user?.registrationNumber || "");
   const [errors, setErrors]       = useState({});
 
@@ -82,6 +83,19 @@ export default function Settings() {
       toast.error(finalMsg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!user?.email) return;
+    setResetting(true);
+    try {
+      await resetPassword(user.email);
+      toast.success("Password reset email sent!");
+    } catch (e) {
+      toast.error(e.message || "Failed to send reset email.");
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -142,6 +156,25 @@ export default function Settings() {
               {ROLE_LABEL[user?.role] || "Student"}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Security Card */}
+      <div className="card bg-white p-6 mb-4">
+        <h3 className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-4">Security</h3>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[14px] font-bold text-stone-800">Password</p>
+            <p className="text-[12px] text-stone-500 font-medium mt-0.5">Reset your account password via email.</p>
+          </div>
+          <button 
+            className="flex items-center gap-2 px-4 py-2 bg-cream-50 hover:bg-cream-100 text-stone-700 border border-cream-200 rounded-xl text-[13px] font-bold transition-all active:scale-95 disabled:opacity-50"
+            onClick={handleResetPassword}
+            disabled={resetting}
+          >
+            {resetting ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
+            Reset
+          </button>
         </div>
       </div>
 
