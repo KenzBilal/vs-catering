@@ -181,7 +181,7 @@ export default function AttendancePage() {
                     <div>
                       <p className={`font-semibold text-[15px] flex items-center gap-2 ${isLocked ? "text-stone-600" : "text-stone-900"}`}>
                         {reg.user?.name}
-                        {!reg.isConfirmed && (
+                        {!reg.isConfirmed && reg.status === "registered" && (
                           <span className="bg-orange-100 text-orange-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider">
                             Waitlist #{reg.queuePosition}
                           </span>
