@@ -78,7 +78,7 @@ function ProtectedRoute({ children, adminOnly, superAdminOnly, permission }) {
   const { user, permissions, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-cream-bg">
-      <p className="text-stone-500 font-medium animate-pulse">Catering is loading...</p>
+      <p className="text-stone-500 font-medium animate-pulse">Loading...</p>
     </div>
   );
   if (!user) return <Navigate to="/login" replace />;
@@ -95,6 +95,7 @@ function ProtectedRoute({ children, adminOnly, superAdminOnly, permission }) {
 
   return children;
 }
+
 
 function NotFound() {
   const { user } = useAuth();
@@ -126,9 +127,10 @@ function AppRoutes() {
   const { user, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-cream-bg">
-      <p className="text-stone-500 font-medium animate-pulse">Catering is loading...</p>
+      <p className="text-stone-500 font-medium animate-pulse">Loading...</p>
     </div>
   );
+
 
   const isAdmin = user?.role === "admin" || user?.role === "sub_admin";
 

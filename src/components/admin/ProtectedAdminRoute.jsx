@@ -9,9 +9,10 @@ export default function ProtectedAdminRoute({ permission, children }) {
   
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-cream-bg">
-      <p className="text-stone-500 font-medium animate-pulse">Catering is loading...</p>
+      <p className="text-stone-500 font-medium animate-pulse">Loading...</p>
     </div>
   );
+
 
   if (!user) return <Navigate to="/login" replace />;
 

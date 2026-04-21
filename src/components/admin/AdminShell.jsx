@@ -11,10 +11,12 @@ import {
   Users,
   Settings,
   LogOut,
+  LogOut,
   UtensilsCrossed,
   ChevronRight,
 } from "lucide-react";
 import NotificationBell from "../shared/NotificationBell";
+import ConvexImage from "../shared/ConvexImage";
 
 const NAV_ITEMS = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -27,6 +29,7 @@ export default function AdminShell({ children }) {
   const { user, permissions, logout } = useAuth();
   const navigate = useNavigate();
   const settingsRaw = useQuery(api.adminSettings.getSettings, user?.role === "admin" ? { token: user?.token || "" } : "skip");
+  const siteSettings = useQuery(api.adminSettings.getSiteSettings);
   const initializeSettings = useMutation(api.adminSettings.initializeSettings);
 
   useEffect(() => {
@@ -49,17 +52,27 @@ export default function AdminShell({ children }) {
     navigate("/login");
   };
 
+
   return (
     <div className="flex min-h-screen bg-cream-100">
       {/* Sidebar */}
       <aside className="w-56 shrink-0 hidden md:flex flex-col fixed top-0 left-0 h-screen bg-white border-r border-cream-200 z-40">
         {/* Logo */}
         <div className="h-14 flex items-center gap-2.5 px-5 border-b border-cream-200">
-          <div className="w-7 h-7 bg-stone-900 rounded-lg flex items-center justify-center shrink-0">
-            <UtensilsCrossed size={14} className="text-cream-50" />
-          </div>
-          <span className="font-bold text-[15px] text-stone-900 tracking-tight">Catering</span>
+          {siteSettings?.siteLogo ? (
+            <div className="w-7 h-7 rounded-lg overflow-hidden border border-stone-100">
+              <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-7 h-7 bg-stone-900 rounded-lg flex items-center justify-center shrink-0">
+              <UtensilsCrossed size={14} className="text-cream-50" />
+            </div>
+          )}
+          <span className="font-bold text-[15px] text-stone-900 tracking-tight">
+            {siteSettings?.siteName || "Catering"}
+          </span>
         </div>
+
 
         <div className="px-5 py-3 flex items-center justify-between">
           <span className="text-[12px] font-bold text-stone-400 uppercase tracking-widest">System</span>
@@ -117,11 +130,20 @@ export default function AdminShell({ children }) {
       {/* Mobile top bar */}
       <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-cream-200 z-40 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-stone-900 rounded-lg flex items-center justify-center">
-            <UtensilsCrossed size={14} className="text-cream-50" />
-          </div>
-          <span className="font-bold text-[15px] text-stone-900">Catering</span>
+          {siteSettings?.siteLogo ? (
+            <div className="w-7 h-7 rounded-lg overflow-hidden border border-stone-100">
+              <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-7 h-7 bg-stone-900 rounded-lg flex items-center justify-center">
+              <UtensilsCrossed size={14} className="text-cream-50" />
+            </div>
+          )}
+          <span className="font-bold text-[15px] text-stone-900">
+            {siteSettings?.siteName || "Catering"}
+          </span>
         </div>
+
         <div className="flex items-center gap-2">
           <NotificationBell />
           <button
