@@ -133,13 +133,17 @@ export const getRegistrationsByCatering = query({
         if (!isAdmin) {
           return {
             _id: r._id,
+            userId: r.userId,
             role: r.role,
             isConfirmed: r.isConfirmed,
+            status: r.status,
+            dropPoint: r.dropPoint,
             user: user ? {
               name: user.name,
               photoStorageId: user.photoStorageId,
             } : { name: "Deleted User", photoStorageId: null }
           };
+
         }
 
         return { ...r, user: user || { name: "Deleted User" } };
