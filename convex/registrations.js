@@ -150,6 +150,13 @@ export const getRegistrationsByCatering = query({
         const user = await ctx.db.get(r.userId);
         if (!user) return null;
 
+        const payment = await ctx.db
+          .query("payments")
+          .withIndex("by_registration", (q) => q.eq("registrationId", r._id))
+          .first();
+
+        const base = { ...r, user, paymentStatus: payment?.status || "pending" };
+
         // If not admin, hide sensitive data
         if (!isAdmin) {
           return {
@@ -159,17 +166,18 @@ export const getRegistrationsByCatering = query({
             isConfirmed: r.isConfirmed,
             status: r.status,
             dropPoint: r.dropPoint,
-            user: user ? {
+            paymentStatus: base.paymentStatus,
+            user: {
               name: user.name,
               photoStorageId: user.photoStorageId,
-            } : { name: "Deleted User", photoStorageId: null }
+            }
           };
-
         }
 
-        return { ...r, user: user || { name: "Deleted User" } };
+        return base;
       })
     );
+
 
     return withUsers.filter(r => r !== null);
   },
@@ -217,7 +225,19 @@ export const markAttendance = mutation({
   },
   handler: async (ctx, { registrationId, status, rejectionReason, token }) => {
     await checkPermission(ctx, token, "mark_attendance");
+
+    const existingPayment = await ctx.db
+      .query("payments")
+      .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
+      .filter((q) => q.eq(q.field("status"), "cleared"))
+      .first();
+
+    if (existingPayment) {
+      throw new ConvexError("Cannot change attendance after payment has been cleared.");
+    }
+
     await ctx.db.patch(registrationId, {
+
       status,
       // #16: Clear isConfirmed when rejected or absent
       ...(status === "rejected" || status === "absent" ? { isConfirmed: false } : {}),

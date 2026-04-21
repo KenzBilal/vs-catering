@@ -211,24 +211,24 @@ export default function AttendancePage() {
             {/* Status buttons */}
             <div className="flex flex-wrap gap-2">
               <button
-                disabled={saving[reg._id]}
+                disabled={saving[reg._id] || reg.paymentStatus === "cleared"}
                 onClick={() => handleMark(reg._id, "attended")}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] ${
                   reg.status === "attended" 
                     ? "bg-[#e8f5ee] text-[#1a5c3a] border border-[#b8dfc8] shadow-sm" 
                     : "bg-white text-stone-500 border border-cream-200 hover:bg-cream-50"
-                }`}
+                } ${reg.paymentStatus === "cleared" ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <CheckCircle2 size={16} /> Attended
               </button>
               <button
-                disabled={saving[reg._id]}
+                disabled={saving[reg._id] || reg.paymentStatus === "cleared"}
                 onClick={() => handleMark(reg._id, "absent")}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] ${
                   reg.status === "absent" 
                     ? "bg-[#f0ece8] text-[#5c524a] border border-[#d8cfc8] shadow-sm" 
                     : "bg-white text-stone-500 border border-cream-200 hover:bg-cream-50"
-                }`}
+                } ${reg.paymentStatus === "cleared" ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <XCircle size={16} /> Absent
               </button>
@@ -241,21 +241,28 @@ export default function AttendancePage() {
                   type="text"
                   placeholder="Rejection reason (e.g., incomplete uniform)"
                   value={rejectionInput[reg._id] || ""}
+                  disabled={reg.paymentStatus === "cleared"}
                   onChange={(e) => setRejectionInput((prev) => ({ ...prev, [reg._id]: e.target.value }))}
-                  className="flex-1 bg-white border border-cream-200 text-stone-800 rounded-lg px-3 py-2 text-[13px] outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition-all"
+                  className="flex-1 bg-white border border-cream-200 text-stone-800 rounded-lg px-3 py-2 text-[13px] outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition-all disabled:opacity-50"
                 />
                 <button
-                  disabled={saving[reg._id]}
+                  disabled={saving[reg._id] || reg.paymentStatus === "cleared"}
                   onClick={() => handleMark(reg._id, "rejected", rejectionInput[reg._id])}
                   className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-[0.98] whitespace-nowrap ${
                     reg.status === "rejected" 
                       ? "bg-red-50 text-red-700 border border-red-200 shadow-sm" 
                       : "bg-white text-red-600 border border-red-100 hover:bg-red-50"
-                  }`}
+                  } ${reg.paymentStatus === "cleared" ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   <AlertCircle size={16} /> Mark Rejected
                 </button>
               </div>
+
+              {reg.paymentStatus === "cleared" && (
+                <p className="text-[11px] font-bold text-[#1a5c3a] bg-[#e8f5ee] px-2 py-1 rounded-lg inline-flex items-center gap-1 mt-3">
+                  <CheckCircle2 size={12} /> Payment Cleared — Attendance Locked
+                </p>
+              )}
 
               {reg.status === "rejected" && reg.rejectionReason && (
                 <p className="flex items-center gap-1.5 text-[12px] font-medium text-red-600 mt-2 bg-red-50/50 p-2 rounded-md">
@@ -263,6 +270,7 @@ export default function AttendancePage() {
                 </p>
               )}
             </div>
+
           </div>
         ))}
           </div>
