@@ -2,14 +2,13 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
 import { useState } from "react";
-import { MapPin, Plus, Trash2, ArrowLeft, Loader2, Power } from "lucide-react";
+import { MapPin, Plus, Trash2, ArrowLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
 import LoadingState from "../../components/shared/LoadingState";
 import ConfirmModal from "../../components/shared/ConfirmModal";
 import toast from "react-hot-toast";
-
 
 export default function ManageDropPoints() {
   const { token } = useAuth();
@@ -19,12 +18,10 @@ export default function ManageDropPoints() {
   
   const addDropPoint = useMutation(api.adminSettings.addDropPoint);
   const removeDropPoint = useMutation(api.adminSettings.removeDropPoint);
-  const toggleStatus = useMutation(api.adminSettings.toggleDropPointStatus);
 
   const [newDrop, setNewDrop] = useState("");
   const [adding, setAdding] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
-
 
   if (timedOut) return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
   if (dropPoints === undefined) return <LoadingState rows={5} />;
@@ -52,16 +49,6 @@ export default function ManageDropPoints() {
     }
   };
 
-
-  const handleToggle = async (id, current) => {
-    try {
-      await toggleStatus({ dropPointId: id, isActive: !current, token });
-      toast.success(current ? "Deactivated" : "Activated");
-    } catch (e) {
-      toast.error("Failed to update status");
-    }
-  };
-
   return (
     <div className="max-w-2xl">
       <div className="mb-8">
@@ -73,7 +60,7 @@ export default function ManageDropPoints() {
         </button>
         <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Drop Points</h1>
         <p className="text-[14.5px] font-medium text-stone-500 mt-1">
-          Add or remove available drop-off locations for student registrations.
+          Add or remove available drop-off locations for registrations.
         </p>
       </div>
 
@@ -84,7 +71,6 @@ export default function ManageDropPoints() {
             <input
               type="text"
               placeholder="e.g. Main Entrance"
-
               value={newDrop}
               onChange={(e) => setNewDrop(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
@@ -110,30 +96,17 @@ export default function ManageDropPoints() {
             dropPoints.map((dp) => (
               <div key={dp._id} className="flex items-center justify-between p-4 px-6 hover:bg-cream-50/30 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${dp.isActive ? "bg-green-500" : "bg-stone-300"}`} />
-                  <span className={`font-bold text-[15px] ${dp.isActive ? "text-stone-800" : "text-stone-400 line-through"}`}>
+                  <span className="font-bold text-[15px] text-stone-800">
                     {dp.name}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleToggle(dp._id, dp.isActive)}
-                    title={dp.isActive ? "Deactivate" : "Activate"}
-                    className={`p-2 rounded-xl transition-all active:scale-90 ${
-                      dp.isActive ? "text-stone-400 hover:text-stone-900 hover:bg-stone-100" : "text-green-600 hover:bg-green-50"
-                    }`}
-                  >
-                    <Power size={17} />
-                  </button>
-                  <button
-                    onClick={() => setConfirmDelete(dp._id)}
-                    className="p-2 rounded-xl text-stone-300 hover:text-red-600 hover:bg-red-50 transition-all active:scale-90"
-                  >
-                    <Trash2 size={17} />
-                  </button>
-
-                </div>
+                <button
+                  onClick={() => setConfirmDelete(dp._id)}
+                  className="p-2 rounded-xl text-stone-300 hover:text-red-600 hover:bg-red-50 transition-all active:scale-90"
+                >
+                  <Trash2 size={17} />
+                </button>
               </div>
             ))
           )}
@@ -149,4 +122,3 @@ export default function ManageDropPoints() {
     </div>
   );
 }
-
