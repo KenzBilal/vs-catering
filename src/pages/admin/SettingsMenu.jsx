@@ -1,7 +1,33 @@
 import { Link } from "react-router-dom";
-import { MapPin, ShieldCheck, ChevronRight, IndianRupee, Layout } from "lucide-react";
+import { MapPin, ShieldCheck, ChevronRight, IndianRupee, Layout, Trash2 } from "lucide-react";
+
+import { useAuth } from "../../lib/AuthContext";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { useState } from "react";
+import ConfirmModal from "../../components/shared/ConfirmModal";
+import toast from "react-hot-toast";
 
 export default function SettingsMenu() {
+  const { user, token } = useAuth();
+  const resetDb = useMutation(api.maintenance.nuclearReset);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleReset = async () => {
+    setIsResetting(true);
+    try {
+      await resetDb({ token });
+      toast.success("Database Reset Complete");
+      window.location.reload();
+    } catch (e) {
+      toast.error(e.message || "Reset failed");
+    } finally {
+      setIsResetting(false);
+      setShowResetConfirm(false);
+    }
+  };
+
   const options = [
     {
       id: "drop-points",
@@ -63,6 +89,34 @@ export default function SettingsMenu() {
           </Link>
         ))}
       </div>
+
+      {user?.role === "admin" && (
+        <div className="mt-12 pt-8 border-t border-stone-100 max-w-2xl">
+          <div className="bg-red-50/50 border border-red-100 rounded-2xl p-6">
+            <h4 className="text-[14px] font-bold text-red-900 mb-1">Danger Zone</h4>
+            <p className="text-[12.5px] font-medium text-red-600/70 mb-4 leading-relaxed">
+              For testing purposes only. This will permanently delete all events, users, and registrations. Your account will be preserved.
+            </p>
+            <button 
+              onClick={() => setShowResetConfirm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-[13px] font-bold rounded-xl shadow-lg shadow-red-100 transition-all active:scale-95 disabled:opacity-50"
+              disabled={isResetting}
+            >
+              <Trash2 size={16} /> {isResetting ? "Resetting..." : "Nuclear Reset"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <ConfirmModal 
+        isOpen={showResetConfirm}
+        onClose={() => setShowResetConfirm(null)}
+        onConfirm={handleReset}
+        title="Absolute Final Warning"
+        message="This is a nuclear reset. EVERY catering event, EVERY student, and EVERY payment will be deleted from the database. Only your admin profile stays. Proceed?"
+        variant="danger"
+        confirmText="Yes, RESET EVERYTHING"
+      />
     </div>
   );
 }
