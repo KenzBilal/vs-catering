@@ -42,23 +42,22 @@ export default function PaymentsPage() {
   const [confirmClearGroup, setConfirmClearGroup] = useState(null);
 
   // Group Creation State
-  const [selectedReg, setSelectedReg] = useState(null); // For the initial options modal
-  const [groupHead, setGroupHead] = useState(null); // The student being clicked to start a group
-  const [selectedMembers, setSelectedMembers] = useState([]); // Array of registration IDs
+  const [selectedReg, setSelectedReg] = useState(null); // For the options modal
+  const [groupHead, setGroupHead] = useState(null); // The Lead
+  const [selectedMembers, setSelectedMembers] = useState([]);
   const [memberSearchQuery, setMemberSearchQuery] = useState("");
-  const [confirmDisband, setConfirmDisband] = useState(null); // GroupID to disband
-  const [viewingTeam, setViewingTeam] = useState(null); // Group object to view members
-
+  const [confirmDisband, setConfirmDisband] = useState(null);
+  const [viewingTeam, setViewingTeam] = useState(null);
 
   if (catTimeout || regTimeout || payTimeout) {
     return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
   }
 
-  // Only attended students
+  // Attended students only
   const attendedRegs = (registrations || []).filter((r) => r.status === "attended");
   const getPaymentForReg = (regId) => (payments || []).find((p) => p.registrationId === regId);
 
-  // Filter for display: only individual regs and team heads
+  // Filter display: individual or Lead only
   const displayRegs = attendedRegs.filter(reg => {
     const payment = getPaymentForReg(reg._id);
     const isMember = payment?.group && payment?.group?.headUserId !== reg.userId;
@@ -84,9 +83,9 @@ export default function PaymentsPage() {
         method,
         token,
       });
-      toast.success("Payment added to pending");
+      toast.success("Payment pending");
     } catch (e) {
-      toast.error(e.message || "Failed to create payment");
+      toast.error(e.message || "Error");
     } finally {
       setSaving((s) => ({ ...s, [reg._id]: false }));
     }
@@ -101,9 +100,9 @@ export default function PaymentsPage() {
         token,
       });
       setConfirmClear(null);
-      toast.success("Payment marked as paid");
+      toast.success("Paid");
     } catch (e) {
-      toast.error(e.message || "Failed to clear payment");
+      toast.error(e.message || "Error");
     } finally {
       setSaving((s) => ({ ...s, [paymentId]: false }));
     }
@@ -111,13 +110,12 @@ export default function PaymentsPage() {
 
   const handleCreateGroup = async () => {
     if (selectedMembers.length === 0) {
-      toast.error("Select at least one team member.");
+      toast.error("Select members");
       return;
     }
     
     setSaving((s) => ({ ...s, "group": true }));
     try {
-      // Include the head in the members list
       const allMembers = [groupHead._id, ...selectedMembers];
       await createGroup({
         cateringId: id,
@@ -125,11 +123,11 @@ export default function PaymentsPage() {
         memberRegIds: allMembers,
         token,
       });
-      toast.success("Team created successfully");
+      toast.success("Team created");
       setGroupHead(null);
       setSelectedMembers([]);
     } catch (e) {
-      toast.error(e.message || "Failed to create team");
+      toast.error(e.message || "Error");
     } finally {
       setSaving((s) => ({ ...s, "group": false }));
     }
@@ -140,9 +138,9 @@ export default function PaymentsPage() {
     try {
       await clearGroup({ groupId, token });
       setConfirmClearGroup(null);
-      toast.success("Group payment cleared");
+      toast.success("Team paid");
     } catch (e) {
-      toast.error(e.message || "Failed to clear group");
+      toast.error(e.message || "Error");
     } finally {
       setSaving((s) => ({ ...s, [groupId]: false }));
     }
@@ -151,19 +149,19 @@ export default function PaymentsPage() {
   const handleDisbandGroup = async (groupId) => {
     try {
       await disbandGroup({ groupId, token });
-      toast.success("Team disbanded");
+      toast.success("Disbanded");
       setViewingTeam(null);
     } catch (e) {
-      toast.error(e.message || "Failed to disband team");
+      toast.error(e.message || "Error");
     }
   };
 
   const handleRemoveMember = async (groupId, regId) => {
     try {
       await removeMember({ groupId, registrationId: regId, token });
-      toast.success("Member removed from team");
+      toast.success("Removed");
     } catch (e) {
-      toast.error(e.message || "Failed to remove member");
+      toast.error(e.message || "Error");
     }
   };
 
@@ -191,7 +189,7 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      {/* Summary Bar */}
+      {/* Summary */}
       <div className="flex flex-wrap gap-2 mb-6">
         <div className="flex-1 min-w-[120px] bg-white border border-cream-200 rounded-xl p-3 shadow-sm flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-cream-50 flex items-center justify-center text-stone-400">
@@ -207,7 +205,7 @@ export default function PaymentsPage() {
             <IndianRupee size={16} />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-[#2d7a52] uppercase tracking-wider leading-none mb-1">Paid Out</p>
+            <p className="text-[10px] font-bold text-[#2d7a52] uppercase tracking-wider leading-none mb-1">Cleared</p>
             <p className="text-[16px] font-bold text-[#1a5c3a] leading-none">{formatCurrency(totalPaid)}</p>
           </div>
         </div>
@@ -225,8 +223,8 @@ export default function PaymentsPage() {
       {catering?.status === "upcoming" && (
         <EmptyState 
           icon={Clock} 
-          title="Event has not started yet" 
-          description="Payment management will be available once the event starts and attendance is marked." 
+          title="Not started" 
+          description="Available after attendance is marked." 
         />
       )}
 
@@ -235,8 +233,8 @@ export default function PaymentsPage() {
       {catering?.status !== "upcoming" && registrations !== undefined && attendedRegs.length === 0 && (
         <EmptyState 
           icon={HandCoins} 
-          title="No attended students yet" 
-          description="Mark attendance first before managing payments." 
+          title="No data" 
+          description="Mark attendance to manage payments." 
         />
       )}
 
@@ -245,20 +243,20 @@ export default function PaymentsPage() {
         {displayRegs.map((reg) => {
           const payment = getPaymentForReg(reg._id);
           const pay = getPayForRole(reg.role, reg.days[0]);
-          const isGroupHead = payment?.group && payment?.group?.headUserId === reg.userId;
+          const isLead = payment?.group && payment?.group?.headUserId === reg.userId;
 
           return (
             <div 
               key={reg._id} 
               onClick={() => {
-                if (isGroupHead) {
+                if (isLead) {
                   setViewingTeam(payment.group);
                   return;
                 }
                 if (!payment || payment.status === 'cleared') return;
                 setSelectedReg(reg);
               }}
-              className={`card bg-white p-5 hover:border-stone-300 transition-all cursor-pointer group animate-fade-in ${isGroupHead ? (payment.group.memberRegIds.length >= 3 ? 'card-stack-3' : 'card-stack-2') : ''} ${payment?.status === 'pending' ? 'ring-1 ring-transparent hover:ring-stone-200' : ''}`}
+              className={`card bg-white p-5 hover:border-stone-300 transition-all cursor-pointer group animate-fade-in ${isLead ? (payment.group.memberRegIds.length >= 3 ? 'card-stack-3' : 'card-stack-2') : ''} ${payment?.status === 'pending' ? 'ring-1 ring-transparent hover:ring-stone-200' : ''}`}
             >
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
                 <div className="flex items-start gap-3">
@@ -273,8 +271,8 @@ export default function PaymentsPage() {
                   <div>
                     <p className="font-bold text-[16px] text-stone-900 flex items-center gap-2">
                       {reg.user?.name}
-                      {isGroupHead && (
-                        <span className="bg-stone-900 text-cream-50 text-[9px] font-bold uppercase tracking-tight px-2 py-0.5 rounded-full">Team Head</span>
+                      {isLead && (
+                        <span className="bg-stone-900 text-cream-50 text-[9px] font-bold uppercase tracking-tight px-2 py-0.5 rounded-full">Lead</span>
                       )}
                     </p>
                     <p className="text-[13px] text-stone-500 mt-0.5 font-medium">
@@ -284,26 +282,26 @@ export default function PaymentsPage() {
                 </div>
                 <div className="bg-cream-100 border border-cream-200 px-3 py-1.5 rounded-lg flex flex-col items-end">
                   <p className="font-bold text-[16px] text-stone-900">{formatCurrency(pay)}</p>
-                  {isGroupHead && (
-                    <p className="text-[10px] font-bold text-stone-500 uppercase mt-0.5">Team Total: {formatCurrency(payment.group.totalAmount)}</p>
+                  {isLead && (
+                    <p className="text-[10px] font-bold text-stone-500 uppercase mt-0.5">Total: {formatCurrency(payment.group.totalAmount)}</p>
                   )}
                 </div>
               </div>
 
               {!payment && (
                  <div className="pt-4 border-t border-cream-100 flex items-center justify-between">
-                    <p className="text-[12px] font-medium text-stone-400">Payment not initialized yet.</p>
-                    <button className="text-[12px] font-bold text-stone-900 hover:underline" onClick={(e) => { e.stopPropagation(); handleCreatePayment(reg); }}>Initialize Now</button>
+                    <p className="text-[12px] font-medium text-stone-400">Not initialized</p>
+                    <button className="text-[12px] font-bold text-stone-900 hover:underline" onClick={(e) => { e.stopPropagation(); handleCreatePayment(reg); }}>Initialize</button>
                  </div>
               )}
 
               {payment && payment.status === "pending" && (
                 <div className="pt-4 border-t border-cream-100">
-                  {isGroupHead ? (
+                  {isLead ? (
                     <div className="flex flex-col gap-3">
                        <div className="flex items-center justify-between">
                         <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#8b3a00] bg-[#fdf0e6] border border-[#f5d0aa] rounded-full px-2.5 py-1">
-                          <Users size={12} /> TEAM PENDING (Total: {formatCurrency(payment.group.totalAmount)})
+                          <Users size={12} /> Team Pending ({formatCurrency(payment.group.totalAmount)})
                         </span>
 
                         <button 
@@ -321,7 +319,7 @@ export default function PaymentsPage() {
                             disabled={saving[payment.group._id]}
                             onClick={(e) => { e.stopPropagation(); handleClearGroup(payment.group._id); }}
                           >
-                            <CheckCircle2 size={16} /> Confirm Bulk Payment
+                            <CheckCircle2 size={16} /> Confirm
                           </button>
                           <button className="btn-secondary py-2 text-[13px]" onClick={(e) => { e.stopPropagation(); setConfirmClearGroup(null); }}>Cancel</button>
                         </div>
@@ -330,7 +328,7 @@ export default function PaymentsPage() {
                           className="btn-primary w-full py-2.5 text-[13px]"
                           onClick={(e) => { e.stopPropagation(); setConfirmClearGroup(payment.group._id); }}
                         >
-                          Mark Team as Paid
+                          Clear Team
                         </button>
                       )}
                     </div>
@@ -358,7 +356,7 @@ export default function PaymentsPage() {
                           className="btn-primary py-2 text-[13px] px-4"
                           onClick={(e) => { e.stopPropagation(); setConfirmClear(payment._id); }}
                         >
-                          Mark Paid
+                          Clear
                         </button>
                       )}
                     </div>
@@ -369,7 +367,7 @@ export default function PaymentsPage() {
               {payment && payment.status === "cleared" && (
                 <div className="pt-4 border-t border-cream-100 flex flex-wrap items-center gap-3">
                   <span className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 border text-[#1a5c3a] bg-[#e8f5ee] border-[#b8dfc8]`}>
-                    <CheckCircle2 size={12} /> PAID
+                    <CheckCircle2 size={12} /> CLEARED
                   </span>
                 </div>
               )}
@@ -383,8 +381,8 @@ export default function PaymentsPage() {
       {selectedReg && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedReg(null)}>
            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-scale-up" onClick={e => e.stopPropagation()}>
-              <h3 className="text-lg font-bold text-stone-900 mb-1">Payment Strategy</h3>
-              <p className="text-[13px] text-stone-500 mb-6">Choose how you want to handle {selectedReg.user?.name}'s payment.</p>
+              <h3 className="text-lg font-bold text-stone-900 mb-1">Method</h3>
+              <p className="text-[13px] text-stone-500 mb-6">How would you like to pay {selectedReg.user?.name}?</p>
               
               <div className="flex flex-col gap-3">
                 <button 
@@ -395,8 +393,8 @@ export default function PaymentsPage() {
                   className="w-full flex items-center justify-between p-4 bg-stone-50 border border-stone-100 rounded-xl hover:bg-stone-100 transition-all text-left"
                 >
                   <div>
-                    <p className="font-bold text-stone-900 text-[14px]">Individual Payout</p>
-                    <p className="text-[12px] text-stone-500">Pay only this student directly.</p>
+                    <p className="font-bold text-stone-900 text-[14px]">Individual</p>
+                    <p className="text-[12px] text-stone-500">Pay student directly.</p>
                   </div>
                   <IndianRupee className="text-stone-400" size={20} />
                 </button>
@@ -415,7 +413,7 @@ export default function PaymentsPage() {
                   >
                     <div>
                       <p className="font-bold text-stone-900 text-[14px]">Create Team</p>
-                      <p className="text-[12px] text-stone-500">Pay multiple students via {selectedReg.user?.name}.</p>
+                      <p className="text-[12px] text-stone-500">Pay via {selectedReg.user?.name}.</p>
                     </div>
                     <Users className="text-stone-400" size={20} />
                   </button>
@@ -425,14 +423,14 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      {/* Group Creation Modal */}
+      {/* Team Creation Modal */}
       {groupHead && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
           <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full flex flex-col max-h-[85vh] animate-scale-up overflow-hidden">
             <div className="p-6 border-b border-cream-100 flex justify-between items-center bg-stone-900 text-cream-50">
                <div>
                   <h3 className="text-lg font-bold">Create Team</h3>
-                  <p className="text-[12px] text-cream-100/60 font-medium tracking-tight uppercase">Head: {groupHead.user?.name}</p>
+                  <p className="text-[12px] text-cream-100/60 font-medium tracking-tight uppercase">Lead: {groupHead.user?.name}</p>
                </div>
                <button onClick={() => { setGroupHead(null); setSelectedMembers([]); }} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                  <X size={20} />
@@ -444,14 +442,14 @@ export default function PaymentsPage() {
                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
                  <input 
                   type="text" 
-                  placeholder="Search by name or phone..."
+                  placeholder="Search students..."
                   value={memberSearchQuery}
                   onChange={(e) => setMemberSearchQuery(e.target.value)}
                   className="pl-10 bg-white border-cream-200 focus:border-stone-400 py-2.5 text-[14px]"
                  />
               </div>
 
-              <p className="text-[11px] font-black text-stone-400 uppercase tracking-widest mb-4">Available Members</p>
+              <p className="text-[11px] font-black text-stone-400 uppercase tracking-widest mb-4">Available</p>
               <div className="flex flex-col gap-2">
                 {attendedRegs
                   .filter(r => r._id !== groupHead._id && !getPaymentForReg(r._id)?.groupId && getPaymentForReg(r._id)?.status !== 'cleared')
@@ -486,7 +484,7 @@ export default function PaymentsPage() {
 
             <div className="p-6 bg-white border-t border-cream-100">
                <div className="flex items-center justify-between mb-4">
-                  <p className="text-[13px] font-bold text-stone-500">Selected Members: <span className="text-stone-900">{selectedMembers.length + 1}</span></p>
+                  <p className="text-[13px] font-bold text-stone-500">Members: <span className="text-stone-900">{selectedMembers.length + 1}</span></p>
                   <p className="text-lg font-black text-stone-900">
                     {formatCurrency(
                       (selectedMembers.reduce((sum, rid) => sum + getPayForRole(registrations.find(r => r._id === rid).role, registrations.find(r => r._id === rid).days[0]), 0)) + 
@@ -499,7 +497,7 @@ export default function PaymentsPage() {
                 disabled={saving["group"]}
                 className="btn-primary w-full py-4 text-[15px] rounded-2xl shadow-xl shadow-stone-200"
                >
-                 {saving["group"] ? "Creating Team..." : "Confirm & Create Team"}
+                 {saving["group"] ? "Creating..." : "Create Team"}
                </button>
             </div>
           </div>
@@ -512,9 +510,9 @@ export default function PaymentsPage() {
            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full flex flex-col max-h-[85vh] animate-scale-up overflow-hidden" onClick={e => e.stopPropagation()}>
               <div className="p-6 border-b border-cream-100 flex justify-between items-center bg-stone-900 text-cream-50">
                  <div>
-                    <h3 className="text-lg font-bold">Team Members</h3>
+                    <h3 className="text-lg font-bold">Team</h3>
                     <p className="text-[12px] text-cream-100/60 font-medium tracking-tight uppercase">
-                      Head: {(registrations || []).find(r => r.userId === viewingTeam.headUserId)?.user?.name || "Unknown"}
+                      Lead: {(registrations || []).find(r => r.userId === viewingTeam.headUserId)?.user?.name || "Unknown"}
                     </p>
                  </div>
                  <button onClick={() => setViewingTeam(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
@@ -527,7 +525,7 @@ export default function PaymentsPage() {
                    {viewingTeam.memberRegIds.map(regId => {
                      const reg = registrations.find(r => r._id === regId);
                      if (!reg) return null;
-                     const isHead = reg.userId === viewingTeam.headUserId;
+                     const isLead = reg.userId === viewingTeam.headUserId;
                      return (
                        <div key={regId} className="flex items-center justify-between p-4 bg-white border border-cream-200 rounded-2xl hover:border-stone-300 transition-all group/member">
                           <div className="flex items-center gap-3">
@@ -541,17 +539,17 @@ export default function PaymentsPage() {
                              <div>
                                 <p className="text-[14px] font-bold text-stone-900 flex items-center gap-2">
                                   {reg.user?.name}
-                                  {isHead && <span className="text-[10px] bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded uppercase font-black">Head</span>}
+                                  {isLead && <span className="text-[10px] bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded uppercase font-black">Lead</span>}
                                 </p>
                                 <p className="text-[11px] font-medium text-stone-400">{getRoleLabel(reg.role)} • {formatCurrency(getPayForRole(reg.role, reg.days[0]))}</p>
                              </div>
                           </div>
                           
-                          {!isHead && viewingTeam.status !== 'cleared' && (
+                          {!isLead && viewingTeam.status !== 'cleared' && (
                             <button 
                               onClick={() => handleRemoveMember(viewingTeam._id, regId)}
                               className="p-2 text-stone-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                              title="Remove from team"
+                              title="Remove"
                             >
                               <X size={16} />
                             </button>
@@ -564,7 +562,7 @@ export default function PaymentsPage() {
 
               <div className="p-6 bg-white border-t border-cream-100 flex items-center justify-between">
                  <div>
-                    <p className="text-[12px] font-bold text-stone-400 uppercase tracking-widest">Total Payout</p>
+                    <p className="text-[12px] font-bold text-stone-400 uppercase tracking-widest">Total</p>
                     <p className="text-2xl font-black text-stone-900">{formatCurrency(viewingTeam.totalAmount)}</p>
                  </div>
                  {viewingTeam.status !== 'cleared' && (
@@ -572,7 +570,7 @@ export default function PaymentsPage() {
                     onClick={() => setConfirmDisband(viewingTeam._id)}
                     className="btn-secondary py-2 text-[13px] border-red-100 text-red-600 hover:bg-red-50"
                    >
-                     Disband Team
+                     Disband
                    </button>
                  )}
               </div>
@@ -585,10 +583,11 @@ export default function PaymentsPage() {
         onClose={() => setConfirmDisband(null)}
         onConfirm={() => handleDisbandGroup(confirmDisband)}
         title="Disband Team"
-        message="Are you sure you want to disband this team? All members will need to be paid individually."
+        message="Disband this team? Members will be paid individually."
       />
     </div>
   );
 }
+
 
 
