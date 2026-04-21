@@ -268,6 +268,49 @@ export const disbandGroup = mutation({
   },
 });
 
+export const removeMemberFromPaymentGroup = mutation({
+  args: { 
+    groupId: v.id("paymentGroups"), 
+    registrationId: v.id("registrations"), 
+    token: v.string() 
+  },
+  handler: async (ctx, { groupId, registrationId, token }) => {
+    await checkPermission(ctx, token, "manage_payments");
+    const group = await ctx.db.get(groupId);
+    if (!group || group.status === "cleared") throw new ConvexError("Cannot modify group.");
+
+    if (group.headUserId === (await ctx.db.get(registrationId))?.userId) {
+      throw new ConvexError("Cannot remove the team head. Disband the team instead.");
+    }
+
+    const payment = await ctx.db
+      .query("payments")
+      .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
+      .first();
+    
+    if (payment && payment.groupId === groupId) {
+      await ctx.db.patch(payment._id, { groupId: undefined });
+      
+      const newMembers = group.memberRegIds.filter(id => id !== registrationId);
+      const newTotal = group.totalAmount - payment.amount;
+      
+      if (newMembers.length < 2) {
+        // Only head left? Disband.
+        for (const pid of (await ctx.db.query("payments").withIndex("by_group", q => q.eq("groupId", groupId)).collect())) {
+          await ctx.db.patch(pid._id, { groupId: undefined });
+        }
+        await ctx.db.delete(groupId);
+      } else {
+        await ctx.db.patch(groupId, { 
+          memberRegIds: newMembers,
+          totalAmount: newTotal
+        });
+      }
+    }
+  },
+});
+
+
 
 export const getPendingPayments = query({
   args: { token: v.string() },
