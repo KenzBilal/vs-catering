@@ -298,8 +298,8 @@ export const setEventPayout = mutation({
       await ctx.db.insert("notifications", {
         type: "payment",
         category: "individual",
-        title: "Payout Scheduled",
-        message: `Payout for ${catering.place} is scheduled for ${payoutDate}.`,
+        title: "Payout",
+        message: `${payoutDate} • ${catering.place}`,
         targetUserId: reg.userId,
         cateringId: cateringId,
         cateringTitle: catering.place,

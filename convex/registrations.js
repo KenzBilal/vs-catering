@@ -115,8 +115,8 @@ export const register = mutation({
         await ctx.db.insert("notifications", {
           type: "catering",
           category: "individual",
-          title: "New Registration",
-          message: `${caller.name} registered for ${catering.place} as ${args.role.replace("_", " ")}.`,
+          title: "Registration",
+          message: `${caller.name} • ${catering.place} (${args.role.replace("_", " ")})`,
           targetUserId: admin._id,
           cateringId: args.cateringId,
           isRead: false,
@@ -271,8 +271,8 @@ export const markAttendance = mutation({
       await ctx.db.insert("notifications", {
         type: "catering",
         category: "individual",
-        title: "Attendance Marked",
-        message: `You have been marked as ${status} for the event at ${catering.place}.`,
+        title: "Attendance",
+        message: `${status.charAt(0).toUpperCase() + status.slice(1)} • ${catering.place}`,
         targetUserId: reg.userId,
         cateringId: reg.cateringId,
         isRead: false,
@@ -335,8 +335,8 @@ export const changeRole = mutation({
           await ctx.db.insert("notifications", {
             type: "payment",
             category: "individual",
-            title: "Payment Adjusted",
-            message: `Your payment for ${catering.place} was adjusted to ₹${newAmount} due to role change.`,
+            title: "Payout",
+            message: `${catering.payoutDate} • ${catering.place}`,
             targetUserId: updatedReg.userId,
             paymentId: payment._id,
             amount: newAmount,
@@ -352,7 +352,7 @@ export const changeRole = mutation({
       type: "role",
       category: "individual",
       title: "Role Change",
-      message: `Your role was updated to ${role.replace("_", " ")}.`,
+      message: `${role.replace("_", " ")} • ${catering?.place || "Event"}`,
       targetUserId: reg.userId,
       targetUserName: user.name,
       isRead: false,
@@ -393,8 +393,8 @@ export const cancelRegistration = mutation({
       await ctx.db.insert("notifications", {
         type: "catering",
         category: "individual",
-        title: "Registration Cancelled",
-        message: `${caller.name} cancelled their registration for ${catering?.place || "an event"}.`,
+        title: "Cancelled",
+        message: `${caller.name} • ${catering?.place || "Event"}`,
         targetUserId: admin._id,
         cateringId: reg.cateringId,
         isRead: false,
@@ -435,20 +435,6 @@ export const cancelRegistration = mutation({
             isRead: false,
             createdAt: Date.now(),
           });
-
-          // Notify Admins of Promotion
-          for (const admin of admins) {
-            await ctx.db.insert("notifications", {
-              type: "catering",
-              category: "individual",
-              title: "Waitlist Promotion",
-              message: `${promotedUser?.name || "A student"} was promoted to ${reg.role.replace("_", " ")} for ${catering.place}.`,
-              targetUserId: admin._id,
-              cateringId: catering._id,
-              isRead: false,
-              createdAt: Date.now(),
-            });
-          }
         }
       }
     }
