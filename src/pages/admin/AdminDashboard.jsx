@@ -7,8 +7,9 @@ import CustomSelect from "../../components/ui/CustomSelect";
 import { useState } from "react";
 import {
   Plus, UserCheck, CreditCard, AlertCircle, BarChart3,
-  TrendingUp, CalendarDays, Users, IndianRupee, Clock, ArrowRight
+  TrendingUp, CalendarDays, Users, IndianRupee, Clock, ArrowRight, PlayCircle
 } from "lucide-react";
+
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
 import ErrorState from "../../components/shared/ErrorState";
 import LoadingState from "../../components/shared/LoadingState";
