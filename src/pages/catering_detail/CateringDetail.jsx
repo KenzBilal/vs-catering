@@ -112,7 +112,14 @@ export default function CateringDetail() {
 
       <UserProfileModal viewUser={viewUser} setViewUser={setViewUser} />
 
-      <RegistrationStatus myReg={myReg} catering={catering} isAdmin={isAdmin} navigate={navigate} id={id} token={token} />
+      <RegistrationStatus 
+        myReg={myReg} 
+        catering={catering} 
+        isSuperAdmin={user?.role === "admin"} 
+        navigate={navigate} 
+        id={id} 
+        token={token} 
+      />
     </div>
   );
 }

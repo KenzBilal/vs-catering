@@ -5,11 +5,12 @@ import { api } from "../../../../convex/_generated/api";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-export default function RegistrationStatus({ myReg, catering, isAdmin, navigate, id, token }) {
+export default function RegistrationStatus({ myReg, catering, isSuperAdmin, navigate, id, token }) {
   const cancelReg = useMutation(api.registrations.cancelRegistration);
   const [cancelling, setCancelling] = useState(false);
 
-  if (isAdmin || catering.status === "ended") return null;
+  if (isSuperAdmin || catering.status === "ended") return null;
+
 
 
   const handleCancel = async () => {

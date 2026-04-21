@@ -258,7 +258,7 @@ export default function PaymentsPage() {
                 if (!payment || payment.status === 'cleared') return;
                 setSelectedReg(reg);
               }}
-              className={`card bg-white p-5 hover:border-stone-300 transition-all cursor-pointer group animate-fade-in ${isGroupHead ? 'card-stack mb-3' : ''} ${payment?.status === 'pending' ? 'ring-1 ring-transparent hover:ring-stone-200' : ''}`}
+              className={`card bg-white p-5 hover:border-stone-300 transition-all cursor-pointer group animate-fade-in ${isGroupHead ? (payment.group.memberRegIds.length >= 3 ? 'card-stack-3' : 'card-stack-2') : ''} ${payment?.status === 'pending' ? 'ring-1 ring-transparent hover:ring-stone-200' : ''}`}
             >
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
                 <div className="flex items-start gap-3">
