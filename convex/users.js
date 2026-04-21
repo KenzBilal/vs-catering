@@ -72,7 +72,7 @@ export const createUser = mutation({
 
 export const loginUser = mutation({
   args: { email: v.string(), rememberMe: v.optional(v.boolean()), firebaseVerified: v.optional(v.boolean()) },
-  handler: async (ctx, { email, rememberMe }) => {
+  handler: async (ctx, { email, rememberMe, firebaseVerified }) => {
     const cleanEmail = email.toLowerCase().trim();
     if (!validateEmail(cleanEmail)) throw new ConvexError("Enter a valid email address.");
 
