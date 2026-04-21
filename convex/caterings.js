@@ -362,7 +362,7 @@ export const getFinishedCaterings = query({
   handler: async (ctx, { token }) => {
     await checkPermission(ctx, token, "manage_payments");
     
-    return await ctx.db
+    const caterings = await ctx.db
       .query("caterings")
       .filter((q) => 
         q.and(
@@ -376,6 +376,21 @@ export const getFinishedCaterings = query({
       )
       .order("desc")
       .collect();
+
+    const result = [];
+    for (const c of caterings) {
+      const hasPending = await ctx.db
+        .query("payments")
+        .withIndex("by_catering", (q) => q.eq("cateringId", c._id))
+        .filter((q) => q.eq(q.field("status"), "pending"))
+        .first();
+      
+      if (hasPending) {
+        result.push(c);
+      }
+    }
+    return result;
+
 
 
   },
