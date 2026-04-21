@@ -217,7 +217,8 @@ export default function AttendancePage() {
                   reg.status === "attended" 
                     ? "bg-[#e8f5ee] text-[#1a5c3a] border border-[#b8dfc8] shadow-sm" 
                     : "bg-white text-stone-500 border border-cream-200 hover:bg-cream-50"
-                } ${reg.paymentStatus === "cleared" ? "opacity-50 cursor-not-allowed" : ""}`}
+                }`}
+
               >
                 <CheckCircle2 size={16} /> Attended
               </button>
@@ -228,7 +229,7 @@ export default function AttendancePage() {
                   reg.status === "absent" 
                     ? "bg-[#f0ece8] text-[#5c524a] border border-[#d8cfc8] shadow-sm" 
                     : "bg-white text-stone-500 border border-cream-200 hover:bg-cream-50"
-                } ${reg.paymentStatus === "cleared" ? "opacity-50 cursor-not-allowed" : ""}`}
+                }`}
               >
                 <XCircle size={16} /> Absent
               </button>
@@ -252,17 +253,21 @@ export default function AttendancePage() {
                     reg.status === "rejected" 
                       ? "bg-red-50 text-red-700 border border-red-200 shadow-sm" 
                       : "bg-white text-red-600 border border-red-100 hover:bg-red-50"
-                  } ${reg.paymentStatus === "cleared" ? "opacity-50 cursor-not-allowed" : ""}`}
+                  }`}
                 >
                   <AlertCircle size={16} /> Mark Rejected
                 </button>
               </div>
 
+
               {reg.paymentStatus === "cleared" && (
-                <p className="text-[11px] font-bold text-[#1a5c3a] bg-[#e8f5ee] px-2 py-1 rounded-lg inline-flex items-center gap-1 mt-3">
-                  <CheckCircle2 size={12} /> Payment Cleared — Attendance Locked
-                </p>
+                <div className="mt-3">
+                  <span className="text-[10px] font-black text-[#1a5c3a] bg-[#e8f5ee] px-2.5 py-1 rounded-lg uppercase tracking-widest inline-flex items-center gap-1.5">
+                    <CheckCircle2 size={12} strokeWidth={3} /> Payment Cleared
+                  </span>
+                </div>
               )}
+
 
               {reg.status === "rejected" && reg.rejectionReason && (
                 <p className="flex items-center gap-1.5 text-[12px] font-medium text-red-600 mt-2 bg-red-50/50 p-2 rounded-md">
