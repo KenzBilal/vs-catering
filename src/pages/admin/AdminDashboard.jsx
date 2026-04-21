@@ -234,9 +234,7 @@ export default function AdminDashboard() {
                         const eventDate = new Date(c.dates[0] + "T" + c.specificTime);
                         const now = new Date();
                         const diffHours = (eventDate - now) / (1000 * 60 * 60);
-                        const isNear = diffHours <= 48 && c.status !== "ended" && c.status !== "cancelled";
-                        
-                        if (isNear) {
+                        if (isNear && !c.attendanceStarted) {
                           return (
                             <button
                               className={`p-1.5 rounded-lg border transition-all ${
@@ -251,6 +249,7 @@ export default function AdminDashboard() {
                             </button>
                           );
                         }
+
                         return null;
                       })()}
                       <button

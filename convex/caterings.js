@@ -140,6 +140,19 @@ export const updateCatering = mutation({
     const existing = await ctx.db.get(cateringId);
     if (!existing) throw new ConvexError("Event not found.");
     if (existing.status === "cancelled") throw new ConvexError("Cannot edit a cancelled event.");
+    if (existing.status === "ended") throw new ConvexError("Cannot edit an event that has already ended.");
+
+    // Prevent edit if attendance has already been marked
+    const attendanceTaken = await ctx.db
+      .query("registrations")
+      .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
+      .filter((q) => q.neq(q.field("status"), "registered"))
+      .first();
+
+    if (attendanceTaken) {
+      throw new ConvexError("Cannot edit an event once attendance has been started.");
+    }
+
 
     const sanitized = {};
     if (updates.place !== undefined) {
@@ -232,6 +245,17 @@ export const startVerification = mutation({
       throw new ConvexError("Cannot start verification for this event.");
     }
 
+    const attendanceTaken = await ctx.db
+      .query("registrations")
+      .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
+      .filter((q) => q.neq(q.field("status"), "registered"))
+      .first();
+
+    if (attendanceTaken) {
+      throw new ConvexError("Cannot verify once attendance has been started.");
+    }
+
+
     // Set event verification status to active
     await ctx.db.patch(cateringId, { 
       verificationStatus: "active",
@@ -284,11 +308,13 @@ export const listCaterings = query({
         
         stats = {
           registeredCount: regs.filter(r => r.status === "registered").length,
-          verifiedCount: regs.filter(r => r.verificationStatus === "verified").length
+          verifiedCount: regs.filter(r => r.verificationStatus === "verified").length,
+          attendanceStarted: regs.some(r => r.status !== "registered")
         };
       }
 
       cateringsWithStats.push({ ...c, ...stats });
+
     }
 
     return cateringsWithStats;
@@ -299,9 +325,20 @@ export const listCaterings = query({
 export const getCatering = query({
   args: { cateringId: v.id("caterings"), token: v.optional(v.string()) },
   handler: async (ctx, { cateringId, token }) => {
-    // Publicly accessible query
-    return await ctx.db.get(cateringId);
+    const catering = await ctx.db.get(cateringId);
+    if (!catering) return null;
+
+    const regs = await ctx.db
+      .query("registrations")
+      .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
+      .collect();
+
+    return {
+      ...catering,
+      attendanceStarted: regs.some(r => r.status !== "registered")
+    };
   },
+
 });
 
 export const refreshStatuses = internalMutation({

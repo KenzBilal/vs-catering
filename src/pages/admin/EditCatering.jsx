@@ -126,18 +126,23 @@ export default function EditCatering() {
     return <p className="text-stone-500">Event not found.</p>;
   }
 
-  if (catering.status === "cancelled") {
+  if (catering.status === "cancelled" || catering.attendanceStarted) {
     return (
       <div>
         <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors mb-6">
           <ArrowLeft size={16} /> Back
         </button>
         <div className="card bg-red-50 border-red-200 text-center py-10">
-          <p className="font-semibold text-red-700">This event has been cancelled and cannot be edited.</p>
+          <p className="font-semibold text-red-700">
+            {catering.status === "cancelled" 
+              ? "This event has been cancelled and cannot be edited."
+              : "Attendance has already been started. This event is now locked for editing."}
+          </p>
         </div>
       </div>
     );
   }
+
 
   const day0Slots = slots.filter((s) => s.day === 0);
   const day1Slots = slots.filter((s) => s.day === 1);

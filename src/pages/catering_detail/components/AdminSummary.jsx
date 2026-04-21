@@ -16,6 +16,7 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
   const hasRegistrations = registrations && registrations.length > 0;
   const verifiedCount = registrations?.filter(r => r.verificationStatus === "verified").length || 0;
   const totalRegistered = registrations?.filter(r => r.status === "registered").length || 0;
+  const attendanceStarted = registrations?.some(r => r.status !== "registered");
 
   const handleStartVerification = async () => {
     if (totalRegistered === 0) {
@@ -41,40 +42,43 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
   return (
     <>
       {/* Verification Section */}
-      <div className="card mb-6 p-6 border-stone-200">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h3 className="section-title !mb-1">Event Verification</h3>
-            <p className="text-[12.5px] font-medium text-stone-500">
-              {catering.verificationStatus === "active" ? "Verification is currently active." : "Send popups to confirm attendance."}
-            </p>
+      {!attendanceStarted && (
+        <div className="card mb-6 p-6 border-stone-200">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="section-title !mb-1">Event Verification</h3>
+              <p className="text-[12.5px] font-medium text-stone-500">
+                {catering.verificationStatus === "active" ? "Verification is currently active." : "Send popups to confirm attendance."}
+              </p>
+            </div>
+            <button 
+              onClick={handleStartVerification}
+              disabled={loading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95 disabled:opacity-50 ${
+                catering.verificationStatus === "active" 
+                  ? "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50" 
+                  : "bg-stone-900 text-white hover:bg-stone-800"
+              }`}
+            >
+              <PlayCircle size={16} /> 
+              {loading ? "Processing..." : (catering.verificationStatus === "active" ? "Re-verify" : "Start Verify")}
+            </button>
           </div>
-          <button 
-            onClick={handleStartVerification}
-            disabled={loading}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95 disabled:opacity-50 ${
-              catering.verificationStatus === "active" 
-                ? "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50" 
-                : "bg-stone-900 text-white hover:bg-stone-800"
-            }`}
-          >
-            <PlayCircle size={16} /> 
-            {loading ? "Processing..." : (catering.verificationStatus === "active" ? "Re-verify" : "Start Verify")}
-          </button>
-        </div>
 
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-cream-50/50 border border-cream-100 rounded-[20px] p-4 text-center">
-            <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">Registered</p>
-            <p className="text-[24px] font-black text-stone-900">{totalRegistered}</p>
-          </div>
-          <div className="bg-[#e8f5ee]/50 border border-[#1a5c3a]/10 rounded-[20px] p-4 text-center">
-            <p className="text-[11px] font-bold text-[#1a5c3a] uppercase tracking-wider mb-1">Verified</p>
-            <p className="text-[24px] font-black text-[#1a5c3a]">{verifiedCount}</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-cream-50/50 border border-cream-100 rounded-[20px] p-4 text-center">
+              <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">Registered</p>
+              <p className="text-[24px] font-black text-stone-900">{totalRegistered}</p>
+            </div>
+            <div className="bg-[#e8f5ee]/50 border border-[#1a5c3a]/10 rounded-[20px] p-4 text-center">
+              <p className="text-[11px] font-bold text-[#1a5c3a] uppercase tracking-wider mb-1">Verified</p>
+              <p className="text-[24px] font-black text-[#1a5c3a]">{verifiedCount}</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
 
       <ConfirmModal 
         isOpen={showConfirm}

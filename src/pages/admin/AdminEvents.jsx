@@ -184,13 +184,14 @@ export default function AdminEvents() {
 
                 {/* Actions */}
                 <div className="flex gap-2 flex-wrap sm:flex-nowrap shrink-0">
+
                   {(() => {
                     const eventDate = new Date(c.dates[0] + "T" + c.specificTime);
                     const now = new Date();
                     const diffHours = (eventDate - now) / (1000 * 60 * 60);
                     const isNear = diffHours <= 48 && c.status !== "ended" && c.status !== "cancelled";
                     
-                    if (isNear) {
+                    if (isNear && !c.attendanceStarted) {
                       return (
                         <button
                           className={`btn-secondary py-1.5 px-3 text-[12px] flex items-center gap-1.5 ${
@@ -204,8 +205,7 @@ export default function AdminEvents() {
                     }
                     return null;
                   })()}
-                  {c.status !== "cancelled" && c.status !== "ended" && canManageCaterings && (
-
+                  {c.status !== "cancelled" && c.status !== "ended" && !c.attendanceStarted && canManageCaterings && (
                     <button
                       className="btn-secondary py-1.5 px-3 text-[12px]"
                       onClick={() => navigate(`/admin/catering/${c._id}/edit`)}
@@ -229,15 +229,16 @@ export default function AdminEvents() {
                       <CreditCard size={14} /> Payments
                     </button>
                   )}
-                  {c.status !== "cancelled" && c.status !== "ended" && canManageCaterings && (
+                  {c.status !== "cancelled" && c.status !== "ended" && !c.attendanceStarted && canManageCaterings && (
                     <button
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-red-600 border border-red-100 bg-white hover:bg-red-50 transition-all active:scale-95"
-                      onClick={() => { setConfirmCancel(c._id); setCancelError(""); }}
+                      onClick={() => { setConfirmCancel(c._id); }}
                     >
                       <XCircle size={14} /> Cancel
                     </button>
                   )}
                 </div>
+
               </div>
             </div>
           );
