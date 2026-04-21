@@ -193,9 +193,9 @@ export default function AttendancePage() {
                     <option key={r} value={r}>{getRoleLabel(r)}</option>
                   ))}
                 </select>
-                <span className="text-[12px] font-medium text-stone-400">→</span>
               </div>
             </div>
+
 
 
             {/* Status buttons */}

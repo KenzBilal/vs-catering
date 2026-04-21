@@ -64,7 +64,8 @@ export default function Register() {
     return <div className="page-container"><p className="text-stone-500">Catering not found.</p></div>;
   }
 
-  const availableRoles = [...new Set(catering.slots.filter((s) => s.day === 0 && s.limit > 0).map((s) => s.role))];
+  const availableRoles = [...new Set(catering.slots.filter((s) => Number(s.limit) > 0).map((s) => s.role))];
+
   const filteredRoles = availableRoles.filter((r) => {
     if (user?.gender === "male") return r === "service_boy" || r === "captain_male";
     if (user?.gender === "female") return r === "service_girl" || r === "captain_female";

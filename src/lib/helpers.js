@@ -51,11 +51,13 @@ export function formatCurrency(amount) {
 }
 
 export function generateWhatsAppMessage(catering, registrationUrl) {
-  const roles = catering.slots.map((s) => {
+  const activeSlots = catering.slots.filter(s => Number(s.limit) > 0);
+  const roles = activeSlots.map((s) => {
     const label = getRoleLabel(s.role);
     const dayLabel = catering.isTwoDay ? ` (Day ${s.day + 1})` : "";
     return `${label}${dayLabel}: ${s.limit} required — ${formatCurrency(s.pay)} per person`;
   });
+
 
   const dateStr = catering.isTwoDay
     ? `${formatDate(catering.dates[0])} and ${formatDate(catering.dates[1])}`
@@ -78,7 +80,8 @@ Photo required: ${catering.photoRequired ? "Yes" : "No"}
 
 Register here: ${registrationUrl}
 
-Register on the website to confirm your spot. First ${Math.min(...catering.slots.map((s) => s.limit))} per role are confirmed. Others go on waiting list.`;
+Register on the website to confirm your spot. First ${activeSlots.length > 0 ? Math.min(...activeSlots.map((s) => s.limit)) : 0} per role are confirmed. Others go on waiting list.`;
+
 }
 
 export function getStatusBadgeClass(status) {
