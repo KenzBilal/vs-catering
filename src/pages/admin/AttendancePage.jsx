@@ -81,14 +81,23 @@ export default function AttendancePage() {
 
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-stone-900 tracking-tight">Attendance</h2>
-        <div className="flex flex-wrap items-center gap-4 mt-2 text-[14px] text-stone-500 font-medium">
-          <span className="flex items-center gap-1.5"><MapPin size={16} /> {catering?.place}</span>
-          <span className="flex items-center gap-1.5">
-            <CalendarDays size={16} /> 
-            {catering ? (catering.isTwoDay ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}` : formatDate(catering.dates[0])) : ""}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-4 mt-2">
+          <div className="flex flex-wrap items-center gap-4 text-[14px] text-stone-500 font-medium">
+            <span className="flex items-center gap-1.5"><MapPin size={16} /> {catering?.place}</span>
+            <span className="flex items-center gap-1.5">
+              <CalendarDays size={16} /> 
+              {catering ? (catering.isTwoDay ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}` : formatDate(catering.dates[0])) : ""}
+            </span>
+          </div>
+          <button
+            onClick={() => navigate("/admin/settings/payouts")}
+            className="flex items-center gap-1.5 text-[12px] font-bold text-[#8b3a00] bg-[#fdf0e6] px-3 py-1.5 rounded-xl border border-[#f5d0aa] hover:bg-white transition-all active:scale-95"
+          >
+            <IndianRupee size={14} /> Schedule Payout
+          </button>
         </div>
       </div>
+
 
       {/* Search & Filters */}
       <div className="flex flex-col gap-3 mb-6 bg-cream-50 p-4 rounded-2xl border border-cream-200 shadow-sm">

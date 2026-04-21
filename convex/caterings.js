@@ -329,12 +329,18 @@ export const getFinishedCaterings = query({
       .query("caterings")
       .filter((q) => 
         q.and(
-          q.eq(q.field("status"), "ended"),
+          q.or(
+            q.eq(q.field("status"), "ended"),
+            q.eq(q.field("status"), "today"),
+            q.eq(q.field("status"), "tomorrow")
+          ),
           q.neq(q.field("status"), "cancelled")
         )
       )
       .order("desc")
       .collect();
+
+
   },
 });
 
