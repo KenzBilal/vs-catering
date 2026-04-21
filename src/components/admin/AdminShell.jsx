@@ -11,10 +11,10 @@ import {
   Users,
   Settings,
   LogOut,
-  LogOut,
   UtensilsCrossed,
   ChevronRight,
 } from "lucide-react";
+
 import NotificationBell from "../shared/NotificationBell";
 import ConvexImage from "../shared/ConvexImage";
 
