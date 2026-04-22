@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
@@ -14,7 +14,6 @@ export default function VerifyEmail() {
   const emailFromUrl = searchParams.get("email");
   const oobCode = searchParams.get("oobCode");
   const mode = searchParams.get("mode");
-  const continueUrl = searchParams.get("continueUrl");
   const { login } = useAuth();
 
   const [loading, setLoading] = useState(false);
@@ -22,27 +21,32 @@ export default function VerifyEmail() {
   const [cooldown, setCooldown] = useState(0);
   const [verified, setVerified] = useState(false);
   const [processingCode, setProcessingCode] = useState(false);
-  const [linkHandled, setLinkHandled] = useState(false);
+  
+  // Use a ref to prevent double-execution in React Strict Mode
+  const verificationStarted = useRef(false);
 
   const loginUserMutation = useMutation(api.users.loginUser);
 
   // Handle verification via link (Option B - direct verification)
   useEffect(() => {
-    if (oobCode && mode === "verifyEmail" && !linkHandled) {
-      setLinkHandled(true);
+    if (oobCode && mode === "verifyEmail" && !verificationStarted.current) {
+      verificationStarted.current = true;
+      
       const verifyDirectly = async () => {
         setProcessingCode(true);
         setLoading(true);
         try {
+          // 1. Verify the code with Firebase
           await applyActionCode(auth, oobCode);
           
-          // Reload user to get updated status
+          // 2. Reload user to get updated status
           if (auth.currentUser) {
             await reload(auth.currentUser);
           }
           
           const userEmail = auth.currentUser?.email;
           if (userEmail) {
+            // 3. Sync with Convex
             const result = await loginUserMutation({ 
               email: userEmail, 
               firebaseVerified: true 
@@ -52,6 +56,7 @@ export default function VerifyEmail() {
               setVerified(true);
               toast.success("Email verified successfully!");
               login(result, true);
+              // Delay redirect so they see the success state
               setTimeout(() => navigate("/"), 2000);
             } else {
               toast.error("Failed to sync verification status.");
@@ -62,9 +67,13 @@ export default function VerifyEmail() {
           }
         } catch (err) {
           console.error("Verification Error:", err);
-          const errorMessage = err.message || "";
-          if (errorMessage.includes("invalid") || errorMessage.includes("expired")) {
-            toast.error("Invalid or expired verification link. Please request a new one.");
+          const errorCode = err.code || "";
+          
+          // If we already verified successfully in another effect/tab, ignore "expired" error
+          if (verified) return;
+
+          if (errorCode === "auth/invalid-action-code" || errorCode === "auth/expired-action-code") {
+            toast.error("This verification link has already been used or has expired.");
           } else {
             toast.error("Verification failed. Please try again.");
           }
@@ -76,7 +85,7 @@ export default function VerifyEmail() {
       
       verifyDirectly();
     }
-  }, [oobCode, mode, linkHandled, loginUserMutation, login, navigate]);
+  }, [oobCode, mode, loginUserMutation, login, navigate, verified]);
 
   useEffect(() => {
     let timer;
