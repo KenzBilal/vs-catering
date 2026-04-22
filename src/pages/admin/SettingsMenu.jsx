@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, ShieldCheck, ChevronRight, IndianRupee, Layout, Trash2, KeyRound, User, Loader2 } from "lucide-react";
+import { MapPin, ShieldCheck, ChevronRight, IndianRupee, Layout, Trash2, User } from "lucide-react";
 
 import { useAuth } from "../../lib/AuthContext";
 import { useMutation } from "convex/react";
@@ -9,11 +9,10 @@ import ConfirmModal from "../../components/shared/ConfirmModal";
 import toast from "react-hot-toast";
 
 export default function SettingsMenu() {
-  const { user, token, resetPassword } = useAuth();
+  const { user, token } = useAuth();
   const resetDb = useMutation(api.maintenance.nuclearReset);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const [resettingPwd, setResettingPwd] = useState(false);
 
   const handleReset = async () => {
     setIsResetting(true);
@@ -29,20 +28,15 @@ export default function SettingsMenu() {
     }
   };
 
-  const handleResetPassword = async () => {
-    if (!user?.email) return;
-    setResettingPwd(true);
-    try {
-      await resetPassword(user.email);
-      toast.success("Password reset email sent!");
-    } catch (e) {
-      toast.error(e.message || "Failed to send reset email.");
-    } finally {
-      setResettingPwd(false);
-    }
-  };
-
   const options = [
+    {
+      id: "personal",
+      title: "Personal",
+      description: "Manage your profile and security.",
+      icon: <User size={20} className="text-stone-400" />,
+      href: "/admin/settings/personal",
+      color: "bg-emerald-50",
+    },
     {
       id: "branding",
       title: "Branding",
@@ -88,37 +82,10 @@ export default function SettingsMenu() {
 
   return (
     <div className="pb-12">
-      <div className="mb-6">
+      <div className="mb-8">
         <h2 className="text-2xl font-bold text-stone-900 tracking-tight">Settings</h2>
       </div>
 
-      {/* Personal Settings Section */}
-      <div className="mb-10 max-w-2xl">
-        <h3 className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-4">Personal Settings</h3>
-        <div className="bg-white border border-cream-200 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-cream-100 rounded-xl flex items-center justify-center text-stone-500">
-                <User size={24} />
-              </div>
-              <div>
-                <p className="font-bold text-stone-900 leading-tight">{user?.name}</p>
-                <p className="text-[12.5px] font-medium text-stone-400 mt-0.5">{user?.email}</p>
-              </div>
-            </div>
-            <button 
-              onClick={handleResetPassword}
-              disabled={resettingPwd}
-              className="flex items-center gap-2 px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white text-[13px] font-bold rounded-xl shadow-lg shadow-stone-100 transition-all active:scale-95 disabled:opacity-50"
-            >
-              {resettingPwd ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
-              Reset Password
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <h3 className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-4">System Management</h3>
       <div className="grid gap-3 max-w-2xl">
         {options.map((opt) => (
           <Link

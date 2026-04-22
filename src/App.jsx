@@ -38,6 +38,7 @@ import ManageSubAdmins  from "./pages/admin/ManageSubAdmins";
 import ManagePayouts    from "./pages/admin/ManagePayouts";
 import ManageInterface  from "./pages/admin/ManageInterface";
 import ManageBranding   from "./pages/admin/ManageBranding";
+import PersonalSettings from "./pages/admin/PersonalSettings";
 import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 
 // Auth pages
@@ -176,6 +177,7 @@ function AppRoutes() {
       {/* Settings Sub-Routes (Super Admin Only) */}
       <Route path="/admin/settings"             element={<ProtectedRoute superAdminOnly><AdminShell><SettingsMenu /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/drop-points" element={<ProtectedRoute superAdminOnly><AdminShell><ManageDropPoints /></AdminShell></ProtectedRoute>} />
+      <Route path="/admin/settings/personal"    element={<ProtectedRoute adminOnly><AdminShell><PersonalSettings /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/sub-admins"  element={<ProtectedRoute superAdminOnly><AdminShell><ManageSubAdmins /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/payouts"     element={<ProtectedRoute superAdminOnly><AdminShell><ManagePayouts /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/interface"   element={<ProtectedRoute adminOnly><AdminShell><ManageInterface /></AdminShell></ProtectedRoute>} />
