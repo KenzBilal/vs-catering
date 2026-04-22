@@ -15,7 +15,6 @@ import toast from "react-hot-toast";
 import RegisterSuccess from "./components/RegisterSuccess";
 import RoleSelector from "./components/RoleSelector";
 import DressCodeWheel from "./components/DressCodeWheel";
-import DaySelector from "./components/DaySelector";
 import PhotoUpload from "./components/PhotoUpload";
 
 const MAX_PHOTO_SIZE_MB = 5;
