@@ -158,6 +158,10 @@ export const updateCatering = mutation({
     if (updates.specificTime !== undefined) sanitized.specificTime = updates.specificTime;
     if (updates.photoRequired !== undefined) sanitized.photoRequired = updates.photoRequired;
     if (updates.limitSlots !== undefined) sanitized.limitSlots = updates.limitSlots;
+    if (updates.date !== undefined) {
+      validateDate(updates.date);
+      sanitized.date = updates.date;
+    }
 
     await ctx.db.patch(cateringId, sanitized);
 
@@ -282,7 +286,10 @@ export const listCaterings = query({
 
     const cateringsWithStats = [];
     for (const c of all) {
-      const eventDate = new Date(c.date);
+      const eventDateStr = c.date || (c.dates && c.dates[0]);
+      if (!eventDateStr) continue;
+
+      const eventDate = new Date(eventDateStr);
       eventDate.setHours(0, 0, 0, 0);
       if (c.status !== "cancelled" && eventDate < thirtyDaysAgo) continue;
 
@@ -322,6 +329,7 @@ export const getCatering = query({
 
     return {
       ...catering,
+      date: catering.date || (catering.dates && catering.dates[0]),
       attendanceStarted: regs.some(r => r.status !== "registered")
     };
   },

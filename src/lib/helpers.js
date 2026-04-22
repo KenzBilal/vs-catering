@@ -22,7 +22,9 @@ export function getTimeOfDayLabel(time) {
 }
 
 export function formatDate(dateStr) {
+  if (!dateStr) return "N/A";
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "N/A";
   return d.toLocaleDateString("en-IN", {
     weekday: "short",
     day: "numeric",
@@ -47,6 +49,7 @@ export function formatTime12h(timeStr) {
 }
 
 export function formatCurrency(amount) {
+  if (typeof amount !== 'number' || isNaN(amount)) return "₹0";
   return `₹${amount}`;
 }
 
@@ -54,42 +57,64 @@ export function generateWhatsAppMessage(catering, registrationUrl, siteName = "C
   const activeSlots = catering.slots.filter(s => Number(s.limit) > 0);
   
   const formatDateHeader = (dStr) => {
+    if (!dStr) return "N/A";
     const d = new Date(dStr);
+    if (isNaN(d.getTime())) return "N/A";
     const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    return `${d.getDate()}-${months[d.getMonth()]}`;
+    const day = d.getDate();
+    const month = months[d.getMonth()];
+    return `${day}-${month}`;
   };
 
   const headerDate = formatDateHeader(catering.date);
 
   const roles = activeSlots.map((s) => {
     const label = getRoleLabel(s.role);
-    return `*${label}:* ${s.limit} required — ₹${s.pay}`;
+    return `${label}: ${s.limit} required`;
   });
 
-  let dressCode = catering.dressCodeNotes;
-  // Bold standard labels in dress code if they exist at start of lines
-  ["Service Boy", "Service Girl", "Captain", "Service Staff"].forEach(label => {
+  // Calculate common pay or mention it generally if possible
+  const distinctPays = [...new Set(activeSlots.map(s => s.pay))];
+  let payLine = "";
+  if (distinctPays.length === 1) {
+    payLine = `Pay: ₹${distinctPays[0]}`;
+  } else {
+    // If different, we might want to list them but user's example showed a single Pay line.
+    // Let's stick to showing pay per role if they are different, or follow their example exactly.
+    // The user's example had:
+    // Service Boy: 30 required
+    // Service Girl: 10 required
+    // Captain: 10 required
+    // Pay: ₹200 (₹20 Bonus for early bird)
+    // This implies a common pay line.
+    payLine = `Pay: ₹${distinctPays.join(" / ₹")}`;
+  }
+
+  let dressCode = catering.dressCodeNotes || "";
+  // In WhatsApp, labels should be followed by a colon for better clarity.
+  // The user asked for "bold text should be darker" which in WhatsApp means *text*.
+  ["Service Boy", "Service Girl", "Captain"].forEach(label => {
     const reg = new RegExp(`^${label}:`, 'gm');
     dressCode = dressCode.replace(reg, `*${label}:*`);
   });
 
-  return `*${siteName} — (${headerDate})*
+  return `${siteName} — (${headerDate})
 
-*Place:* ${catering.place}
-*Time:* ${formatTime12h(catering.specificTime)} (${getTimeOfDayLabel(catering.timeOfDay)})
-*Pickup:* Main Gate
+Place: ${catering.place}
+Time: ${formatTime12h(catering.specificTime)} (${getTimeOfDayLabel(catering.timeOfDay)})
+Pickup: Main Gate
 
-*Roles and Pay:*
+Roles and Pay:
 ${roles.join("\n")}
+${payLine}
 
-*Dress Code;*
+Dress Code:
 ${dressCode}
 
-*Photo required:* ${catering.photoRequired ? "Yes" : "No"}
+Photo required: ${catering.photoRequired ? "Yes" : "No"}
 
-*Register here:* ${registrationUrl}`;
+Register here: ${registrationUrl}`;
 }
-
 
 export function getStatusBadgeClass(status) {
   const map = {

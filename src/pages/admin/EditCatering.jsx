@@ -4,7 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
 import { useNavigate, useParams } from "react-router-dom";
 import { getRoleLabel, formatTime12h } from "../../lib/helpers";
-import { ArrowLeft, Save, Sun, Moon } from "lucide-react";
+import { ArrowLeft, Save, Sun, Moon, Calendar } from "lucide-react";
 import Toggle from "../../components/ui/Toggle";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
@@ -20,6 +20,7 @@ export default function EditCatering() {
   const updateCatering = useMutation(api.caterings.updateCatering);
 
   const [place, setPlace] = useState("");
+  const [date, setDate] = useState("");
   const [timeOfDay, setTimeOfDay] = useState("day");
   const [specificTime, setSpecificTime] = useState("");
   const [photoRequired, setPhotoRequired] = useState(false);
@@ -40,6 +41,7 @@ export default function EditCatering() {
       setPhotoRequired(catering.photoRequired);
       setDressCodeNotes(catering.dressCodeNotes);
       setSlots(catering.slots);
+      setDate(catering.date || "");
       setLimitSlots(catering.limitSlots || false);
       setInitialized(true);
     }
@@ -59,6 +61,7 @@ export default function EditCatering() {
     const newErrors = {};
 
     if (!place.trim()) { newErrors.place = "Place is required."; hasError = true; }
+    if (!date.trim()) { newErrors.date = "Date is required."; hasError = true; }
     if (!specificTime.trim()) { newErrors.specificTime = "Time is required."; hasError = true; }
 
     if (hasError) {
@@ -89,6 +92,7 @@ export default function EditCatering() {
         photoRequired,
         dressCodeNotes,
         limitSlots,
+        date,
         slots: finalSlots,
         token,
       });
@@ -202,6 +206,26 @@ export default function EditCatering() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Schedule */}
+        <div className="card bg-white p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <Calendar className="text-stone-400" size={18} />
+            <h3 className="font-bold text-[15px] text-stone-800">Schedule</h3>
+          </div>
+          <div className="flex flex-col gap-5">
+            <div>
+              <label className="label">Date</label>
+              <input 
+                type="date" 
+                value={date} 
+                onChange={(e) => { setDate(e.target.value); if(errors.date) setErrors(e=>({...e, date:""})) }} 
+                className={errors.date ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}
+              />
+              {errors.date && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.date}</p>}
             </div>
           </div>
         </div>
