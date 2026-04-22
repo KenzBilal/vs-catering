@@ -68,7 +68,7 @@ export function generateWhatsAppMessage(catering, registrationUrl, siteName = "C
 
   const roles = activeSlots.map((s) => {
     const label = getRoleLabel(s.role);
-    return `${label}: ${s.limit} required`;
+    return `${label}: ${s.limit} required- (rupees)${s.pay}`;
   });
 
 
