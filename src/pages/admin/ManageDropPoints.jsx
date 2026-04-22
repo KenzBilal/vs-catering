@@ -13,11 +13,11 @@ import toast from "react-hot-toast";
 export default function ManageDropPoints() {
   const { token } = useAuth();
   const navigate = useNavigate();
-  const dropPointsRaw = useQuery(api.adminSettings.getDropPoints);
+  const dropPointsRaw = useQuery(api.dropPoints.getDropPoints, { token });
   const { data: dropPoints, timedOut } = useQueryWithTimeout(dropPointsRaw);
   
-  const addDropPoint = useMutation(api.adminSettings.addDropPoint);
-  const removeDropPoint = useMutation(api.adminSettings.removeDropPoint);
+  const addDropPoint = useMutation(api.dropPoints.addDropPoint);
+  const removeDropPoint = useMutation(api.dropPoints.deactivateDropPoint);
 
   const [newDrop, setNewDrop] = useState("");
   const [adding, setAdding] = useState(false);
