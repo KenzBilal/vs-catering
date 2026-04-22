@@ -31,6 +31,7 @@ export default function CreateCatering() {
     { role: "service_boy", limit: 30, pay: 0 },
     { role: "service_girl", limit: 10, pay: 0 },
     { role: "captain_male", limit: 10, pay: 0 },
+    { role: "captain_female", limit: 0, pay: 0 },
   ]);
 
   const [errors, setErrors] = useState({});

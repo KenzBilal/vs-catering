@@ -148,6 +148,7 @@ export const setPayoutSettings = mutation({
         nextPayoutDate: payoutDate,
         payoutNote: note,
         lastUpdatedBy: user._id,
+        updatedAt: Date.now(),
       },
     });
   },

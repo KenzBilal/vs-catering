@@ -153,6 +153,12 @@ export default defineSchema({
       description: v.optional(v.string()),
       category: v.optional(v.string()),
     })),
+    payoutSettings: v.optional(v.object({
+      nextPayoutDate: v.optional(v.string()),
+      payoutNote: v.optional(v.string()),
+      lastUpdatedBy: v.id("users"),
+      updatedAt: v.number(),
+    })),
     createdAt: v.number(),
   }).index("by_key", ["key"]),
 

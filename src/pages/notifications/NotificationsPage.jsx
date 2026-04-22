@@ -47,7 +47,7 @@ export default function NotificationsPage() {
     if (n.cateringId) {
       navigate(`/catering/${n.cateringId}`);
     } else if (n.type === "payment") {
-      navigate("/profile"); // Assuming payments are in profile
+      navigate("/history");
     }
   };
 
