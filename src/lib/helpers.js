@@ -71,22 +71,6 @@ export function generateWhatsAppMessage(catering, registrationUrl, siteName = "C
     return `${label}: ${s.limit} required`;
   });
 
-  // Calculate common pay or mention it generally if possible
-  const distinctPays = [...new Set(activeSlots.map(s => s.pay))];
-  let payLine = "";
-  if (distinctPays.length === 1) {
-    payLine = `Pay: ₹${distinctPays[0]}`;
-  } else {
-    // If different, we might want to list them but user's example showed a single Pay line.
-    // Let's stick to showing pay per role if they are different, or follow their example exactly.
-    // The user's example had:
-    // Service Boy: 30 required
-    // Service Girl: 10 required
-    // Captain: 10 required
-    // Pay: ₹200 (₹20 Bonus for early bird)
-    // This implies a common pay line.
-    payLine = `Pay: ₹${distinctPays.join(" / ₹")}`;
-  }
 
   let dressCode = catering.dressCodeNotes || "";
   // In WhatsApp, labels should be followed by a colon for better clarity.
@@ -104,7 +88,6 @@ Pickup: Main Gate
 
 Roles and Pay:
 ${roles.join("\n")}
-${payLine}
 
 Dress Code:
 ${dressCode}
