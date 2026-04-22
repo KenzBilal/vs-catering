@@ -168,9 +168,12 @@ export default function AttendancePage() {
           )}          
           <div className="flex flex-col gap-4">
           {filtered.map((reg) => {
+          const anyPaymentCleared = (registrations || []).some(r => r.paymentStatus === "cleared");
+          const isEventLocked = !!catering?.payoutDate || anyPaymentCleared;
+          
           const isPaid = reg.paymentStatus === "cleared";
           const isAttended = reg.status !== "registered";
-          const isLocked = isAttended || isPaid;
+          const isLocked = isPaid || isEventLocked;
           
           return (
             <div 

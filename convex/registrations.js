@@ -231,6 +231,15 @@ export const markAttendance = mutation({
   handler: async (ctx, { registrationId, status, rejectionReason, token }) => {
     await checkPermission(ctx, token, "mark_attendance");
 
+    const reg = await ctx.db.get(registrationId);
+    if (!reg) throw new ConvexError("Registration not found.");
+    const catering = await ctx.db.get(reg.cateringId);
+    if (!catering) throw new ConvexError("Event not found.");
+
+    if (catering.payoutDate) {
+      throw new ConvexError("Cannot change attendance after a payout date has been scheduled for this event.");
+    }
+
     const existingPayment = await ctx.db
       .query("payments")
       .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
@@ -326,15 +335,20 @@ export const changeRole = mutation({
     const user = await ctx.db.get(reg.userId);
     if (!user) throw new ConvexError("User not found.");
 
-    // Prevent change if attendance has been marked OR payment cleared
+    const catering = await ctx.db.get(reg.cateringId);
+    if (catering?.payoutDate) {
+      throw new ConvexError("Cannot change role after a payout date has been scheduled for this event.");
+    }
+
+    // Prevent change if individual payment cleared
     const payment = await ctx.db
       .query("payments")
       .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
       .filter((q) => q.eq(q.field("status"), "cleared"))
       .first();
 
-    if (payment || reg.status !== "registered") {
-      throw new ConvexError("Cannot change role once attendance has been marked or payment cleared.");
+    if (payment) {
+      throw new ConvexError("Cannot change role once payment has been cleared.");
     }
 
 
