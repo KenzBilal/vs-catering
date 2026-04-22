@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
 import { ArrowLeft, IndianRupee, Save, Calendar, Search, ChevronRight, Clock, CheckCircle2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatDate } from "../../lib/helpers";
 import LoadingState from "../../components/shared/LoadingState";
 import EmptyState from "../../components/shared/EmptyState";
@@ -12,6 +12,9 @@ import toast from "react-hot-toast";
 export default function ManagePayouts() {
   const { token } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const eventIdFromQuery = searchParams.get("eventId");
+
   const finishedEvents = useQuery(api.caterings.getFinishedCaterings, { token });
   const setEventPayout = useMutation(api.caterings.setEventPayout);
 
@@ -20,6 +23,18 @@ export default function ManagePayouts() {
   const [payoutDate, setPayoutDate] = useState("");
   const [payoutNote, setPayoutNote] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Deep-link to specific event if eventId is in URL
+  useEffect(() => {
+    if (finishedEvents && eventIdFromQuery && !selectedEvent) {
+      const target = finishedEvents.find(e => e._id === eventIdFromQuery);
+      if (target) {
+        setSelectedEvent(target);
+        setPayoutDate(target.payoutDate || "");
+        setPayoutNote(target.payoutNote || "");
+      }
+    }
+  }, [finishedEvents, eventIdFromQuery, selectedEvent]);
 
   const filteredEvents = (finishedEvents || []).filter(e => 
     e.place.toLowerCase().includes(search.toLowerCase())

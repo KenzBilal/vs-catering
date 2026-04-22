@@ -1,4 +1,5 @@
-import { Share2, CheckCircle2, AlertCircle, PlayCircle } from "lucide-react";
+import { Share2, CheckCircle2, AlertCircle, PlayCircle, IndianRupee } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { generateWhatsAppMessage } from "../../../lib/helpers";
 import { useMutation, useQuery } from "convex/react";
 
@@ -9,6 +10,7 @@ import { useAuth } from "../../../lib/AuthContext";
 import ConfirmModal from "../../../components/shared/ConfirmModal";
 
 export default function AdminSummary({ catering, registrations, dropCounts, handleCopyMessage, copied }) {
+  const navigate = useNavigate();
   const { token } = useAuth();
   const startVerification = useMutation(api.caterings.startVerification);
   const [loading, setLoading] = useState(false);
@@ -44,6 +46,48 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
 
   return (
     <>
+      {/* Payout Section (Only for Ended Events) */}
+      {catering.status === "ended" && !catering.payoutDate && (
+        <div className="card mb-6 p-6 border-orange-200 bg-orange-50/20">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="section-title !mb-1 text-orange-900">Schedule Payout</h3>
+              <p className="text-[12.5px] font-medium text-orange-700/70">
+                Event ended. Set the expected payment date for students.
+              </p>
+            </div>
+            <button 
+              onClick={() => navigate(`/admin/settings/payouts?eventId=${catering._id}`)}
+              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-[13px] font-bold shadow-lg shadow-orange-100 transition-all active:scale-95"
+            >
+              <IndianRupee size={16} /> 
+              Set Date
+            </button>
+          </div>
+        </div>
+      )}
+
+      {catering.payoutDate && (
+        <div className="card mb-6 p-6 border-emerald-200 bg-emerald-50/20">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="section-title !mb-1 text-emerald-900 font-bold flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-emerald-600" />
+                Payout Scheduled
+              </h3>
+              <p className="text-[12.5px] font-medium text-emerald-700/70">
+                Payment scheduled for: <span className="font-bold text-emerald-800">{catering.payoutDate}</span>
+              </p>
+            </div>
+            <button 
+              onClick={() => navigate(`/admin/settings/payouts?eventId=${catering._id}`)}
+              className="text-[12.5px] font-bold text-emerald-700 hover:text-emerald-900 underline underline-offset-4"
+            >
+              Edit
+            </button>
+          </div>
+        </div>
+      )}
       {/* Verification Section */}
       {!attendanceStarted && (
         <div className="card mb-6 p-6 border-stone-200">
