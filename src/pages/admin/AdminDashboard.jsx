@@ -34,9 +34,16 @@ export default function AdminDashboard() {
   const { data: pendingPayments, timedOut: payTimeout } = useQueryWithTimeout(pendingPaymentsRaw);
   const { data: analytics, timedOut: anaTimeout } = useQueryWithTimeout(analyticsRaw);
 
+  const isLoading = 
+    (canManageCaterings && caterings === undefined && !catTimeout) ||
+    (canManagePayments && pendingPayments === undefined && !payTimeout) ||
+    (canManagePayments && analytics === undefined && !anaTimeout);
+
   if (catTimeout || payTimeout || anaTimeout) {
     return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
   }
+
+  if (isLoading) return <LoadingState message="Initializing dashboard..." />;
 
   const activeCaterings = (caterings || []).filter(
     (c) => c.status === "today" || c.status === "tomorrow" || c.status === "upcoming"
@@ -67,13 +74,12 @@ export default function AdminDashboard() {
         <div>
           <h1 className="text-3xl font-black text-stone-900 tracking-tight">Dashboard</h1>
           <p className="text-[14.5px] font-medium text-stone-500 mt-1">
-            Good {now.getHours() < 12 ? "morning" : now.getHours() < 17 ? "afternoon" : "evening"},{" "}
-            <span className="text-stone-900 font-bold">{user?.name?.split(" ")[0] || "Admin"}</span>.
+            Welcome back, <span className="text-stone-900 font-bold">{user?.name?.split(" ")[0] || "Admin"}</span>.
           </p>
         </div>
         
         {canManagePayments && (
-           <div className="flex bg-white border border-stone-200/60 rounded-2xl p-1 shadow-sm gap-1 self-start">
+           <div className="flex bg-white border border-stone-200/60 rounded-xl p-1 shadow-sm gap-1 self-start">
             <CustomSelect
               options={monthNames.map((m, i) => ({ label: m, value: i + 1 }))}
               value={month}
@@ -92,91 +98,12 @@ export default function AdminDashboard() {
       </div>
 
       {canManagePayments && (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <StatCard icon={<CalendarDays size={16}/>} label="Events" value={analytics?.totalCaterings} />
-            <StatCard icon={<IndianRupee size={16}/>} label="Paid" value={formatCurrency(analytics?.totalPayout)} />
-            <StatCard icon={<Clock size={16}/>} label="Unpaid" value={analytics?.paymentsPending} highlight />
-            <StatCard icon={<TrendingUp size={16}/>} label="Balance" value={formatCurrency(analytics?.pendingPayout)} highlight />
-          </div>
-
-          {analytics && prefs.showAnalytics && (
-            <div className="bg-white border border-stone-200/60 rounded-[28px] p-6 shadow-sm mb-8 relative overflow-hidden">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-[14px] font-black text-stone-900 flex items-center gap-2.5 uppercase tracking-wider">
-                  <BarChart3 size={18} className="text-stone-400" /> Revenue & Trends
-                </h3>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#1a5c3a]" />
-                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-tighter">Cleared</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#f5d0aa]" />
-                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-tighter">Pending</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                {/* Weekly Trends Graph */}
-                <div className="lg:col-span-2">
-                  <div className="flex items-end justify-between h-[160px] gap-3 px-2 border-b border-stone-100">
-                    {analytics.weeklyTrends.map((t, i) => {
-                      const max = Math.max(...analytics.weeklyTrends.map(x => x.payout + x.pending), 1000);
-                      const payoutHeight = (t.payout / max) * 100;
-                      const pendingHeight = (t.pending / max) * 100;
-                      return (
-                        <div key={i} className="flex-1 flex flex-col justify-end gap-1 group relative h-full">
-                          <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-stone-900 text-white text-[10px] px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none z-10 shadow-2xl font-black translate-y-2 group-hover:translate-y-0">
-                            Total: ₹{t.payout + t.pending}
-                          </div>
-                          <div 
-                            className="w-full bg-[#f5d0aa] rounded-t-md transition-all duration-700 delay-75 hover:brightness-95" 
-                            style={{ height: `${pendingHeight}%` }} 
-                          />
-                          <div 
-                            className="w-full bg-[#1a5c3a] rounded-t-md transition-all duration-700 hover:brightness-110" 
-                            style={{ height: `${payoutHeight}%` }} 
-                          />
-                          <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-[10px] font-black text-stone-400 uppercase tracking-tighter">W{t.week}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Health Metrics */}
-                <div className="flex flex-col justify-center gap-6 bg-stone-50/50 p-6 rounded-[20px] border border-stone-100">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-end">
-                      <span className="text-[11px] font-black text-stone-400 uppercase tracking-widest">Payout Efficiency</span>
-                      <span className="text-[18px] font-black text-[#1a5c3a]">{Math.round((analytics.totalPayout / (analytics.totalPayout + analytics.pendingPayout || 1)) * 100)}%</span>
-                    </div>
-                    <div className="h-3 bg-stone-200/50 rounded-full overflow-hidden p-0.5">
-                      <div 
-                        className="h-full bg-gradient-to-r from-[#2d7a52] to-[#1a5c3a] rounded-full transition-all duration-1000 shadow-sm" 
-                        style={{ width: `${(analytics.totalPayout / (analytics.totalPayout + analytics.pendingPayout || 1)) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-stone-200/60">
-                    <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 rounded-full bg-white border border-stone-200 flex items-center justify-center text-stone-400">
-                          <AlertCircle size={20} />
-                       </div>
-                       <div>
-                          <p className="text-[11px] font-black text-stone-400 uppercase tracking-widest">At Risk</p>
-                          <p className="text-[15px] font-bold text-stone-800">{analytics.paymentsPending} items pending</p>
-                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+          <StatCard label="Events" value={analytics?.totalCaterings || 0} icon={<CalendarDays size={18} />} />
+          <StatCard label="Paid Out" value={formatCurrency(analytics?.totalPayout || 0)} icon={<IndianRupee size={18} />} />
+          <StatCard label="Unpaid Items" value={analytics?.paymentsPending || 0} icon={<Clock size={18} />} />
+          <StatCard label="Balance" value={formatCurrency(analytics?.pendingPayout || 0)} icon={<TrendingUp size={18} />} highlight />
+        </div>
       )}
 
       <div className={`grid grid-cols-1 ${canManageCaterings && canManagePayments ? "lg:grid-cols-2" : ""} gap-8`}>
@@ -331,32 +258,24 @@ export default function AdminDashboard() {
 
 function StatCard({ label, value, highlight, icon }) {
   return (
-    <div className={`p-5 rounded-2xl border flex flex-col justify-center transition-all duration-500 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden group ${
+    <div className={`p-6 rounded-2xl border transition-all duration-300 hover:shadow-md ${
       highlight 
-        ? "bg-gradient-to-br from-[#fffdfa] to-[#fdf0e6] border-[#f5d0aa] shadow-orange-100/50" 
-        : "bg-white border-stone-200/60 shadow-stone-100/40"
+        ? "bg-[#fffdfa] border-[#f5d0aa]" 
+        : "bg-white border-stone-200/60 shadow-sm"
     }`}>
-      {/* Decorative background element */}
-      <div className={`absolute -right-4 -top-4 w-16 h-16 rounded-full opacity-[0.03] transition-transform duration-700 group-hover:scale-150 ${
-        highlight ? "bg-[#8b3a00]" : "bg-stone-900"
-      }`} />
-      
-      <p className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.1em] mb-2.5 ${
-        highlight ? "text-[#a05020]/70" : "text-stone-400"
-      }`}>
-        <span className={`${highlight ? "text-[#8b3a00]" : "text-stone-300"}`}>{icon}</span>
-        {label}
-      </p>
-      
-      <p className={`text-[26px] font-black tracking-tight leading-none ${
+      <div className="flex items-center gap-3 mb-3">
+        <span className={`${highlight ? "text-[#8b3a00]" : "text-stone-400"}`}>{icon}</span>
+        <p className={`text-[11px] font-black uppercase tracking-wider ${
+          highlight ? "text-[#8b3a00]/70" : "text-stone-400"
+        }`}>
+          {label}
+        </p>
+      </div>
+      <p className={`text-[24px] font-black tracking-tight ${
         highlight ? "text-[#8b3a00]" : "text-stone-900"
       }`}>
         {value ?? "—"}
       </p>
-
-      <div className={`mt-2 h-1 w-8 rounded-full transition-all duration-500 group-hover:w-12 ${
-        highlight ? "bg-[#f5d0aa]" : "bg-stone-100"
-      }`} />
     </div>
   );
 }

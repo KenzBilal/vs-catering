@@ -197,8 +197,7 @@ export const getRegistrationsByCatering = query({
         }
 
         return base;
-      })
-    );
+      });
 
 
     return withUsers.filter(r => r !== null);

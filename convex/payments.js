@@ -42,16 +42,14 @@ export const createPayment = mutation({
     });
 
     // Create notification
-    const catering = await ctx.db.get(args.cateringId);
-
     await ctx.db.insert("notifications", {
       type: "payment",
       category: "individual",
       title: "Payment Pending",
-      message: `₹${args.amount} is pending for your attendance.`,
-      targetUserId: userId,
+      message: `₹${amount} is pending for your attendance at ${catering.place}.`,
+      targetUserId: reg.userId,
       paymentId,
-      amount: args.amount,
+      amount: amount,
       payoutDate: catering?.payoutDate,
       isRead: false,
       createdAt: Date.now(),

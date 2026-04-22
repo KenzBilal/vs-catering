@@ -46,6 +46,11 @@ export default function CreateCatering() {
   };
 
   const handleSubmit = async () => {
+    if (!user || !user._id) {
+      toast.error("User session not loaded. Please try again.");
+      return;
+    }
+
     setErrors({});
     let hasError = false;
     const newErrors = {};

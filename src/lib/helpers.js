@@ -1,8 +1,8 @@
 export const ROLES = {
   service_boy: "Service Boy",
   service_girl: "Service Girl",
-  captain_male: "Captain",
-  captain_female: "Captain",
+  captain_male: "Captain (Male)",
+  captain_female: "Captain (Female)",
 };
 
 export const DRESS_CODE_DEFAULTS = {
@@ -23,14 +23,18 @@ export function getTimeOfDayLabel(time) {
 
 export function formatDate(dateStr) {
   if (!dateStr) return "N/A";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return "N/A";
-  return d.toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "N/A";
+    return d.toLocaleDateString("en-IN", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch (e) {
+    return "N/A";
+  }
 }
 
 export function formatTime12h(timeStr) {
@@ -73,8 +77,6 @@ export function generateWhatsAppMessage(catering, registrationUrl, siteName = "C
 
 
   let dressCode = catering.dressCodeNotes || "";
-  // In WhatsApp, labels should be followed by a colon for better clarity.
-  // The user asked for "bold text should be darker" which in WhatsApp means *text*.
   ["Service Boy", "Service Girl", "Captain"].forEach(label => {
     const reg = new RegExp(`^${label}:`, 'gm');
     dressCode = dressCode.replace(reg, `*${label}:*`);
