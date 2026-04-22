@@ -79,12 +79,14 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
                 Payment scheduled for: <span className="font-bold text-emerald-800">{catering.payoutDate}</span>
               </p>
             </div>
-            <button 
-              onClick={() => navigate(`/admin/settings/payouts?eventId=${catering._id}`)}
-              className="text-[12.5px] font-bold text-emerald-700 hover:text-emerald-900 underline underline-offset-4"
-            >
-              Edit
-            </button>
+            {!registrations?.some(r => r.paymentStatus === "cleared") && (
+              <button 
+                onClick={() => navigate(`/admin/settings/payouts?eventId=${catering._id}`)}
+                className="text-[12.5px] font-bold text-emerald-700 hover:text-emerald-900 underline underline-offset-4"
+              >
+                Edit
+              </button>
+            )}
           </div>
         </div>
       )}

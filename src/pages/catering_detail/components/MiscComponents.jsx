@@ -1,7 +1,7 @@
 import { UserCheck, CreditCard, Edit, IndianRupee } from "lucide-react";
 import toast from "react-hot-toast";
 
-export function AdminActionButtons({ id, navigate, isAdmin, role, catering }) {
+export function AdminActionButtons({ id, navigate, isAdmin, role, catering, paymentStarted }) {
   if (!isAdmin) return null;
 
   return (
@@ -15,18 +15,20 @@ export function AdminActionButtons({ id, navigate, isAdmin, role, catering }) {
         </button>
       </div>
       <div className="flex flex-wrap gap-3">
-        <button 
-          className="btn-secondary flex-1 border-orange-100 text-orange-700 hover:bg-orange-50" 
-          onClick={() => {
-            if (catering?.status !== "ended" && !catering?.attendanceStarted) {
-              toast.error("You can only schedule payouts once attendance has started or the event has ended.");
-              return;
-            }
-            navigate(`/admin/settings/payouts?eventId=${id}`);
-          }}
-        >
-          <IndianRupee size={16} /> Schedule Payout
-        </button>
+        {!paymentStarted && (
+          <button 
+            className="btn-secondary flex-1 border-orange-100 text-orange-700 hover:bg-orange-50" 
+            onClick={() => {
+              if (catering?.status !== "ended" && !catering?.attendanceStarted) {
+                toast.error("You can only schedule payouts once attendance has started or the event has ended.");
+                return;
+              }
+              navigate(`/admin/settings/payouts?eventId=${id}`);
+            }}
+          >
+            <IndianRupee size={16} /> Schedule Payout
+          </button>
+        )}
         {role === "admin" && (
           <button className="btn-secondary" onClick={() => navigate(`/admin/catering/${id}/edit`)}>
             <Edit size={16} /> Edit

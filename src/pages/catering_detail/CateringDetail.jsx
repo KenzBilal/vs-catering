@@ -106,7 +106,14 @@ export default function CateringDetail() {
         />
       )}
 
-      <AdminActionButtons id={id} navigate={navigate} isAdmin={isAdmin} role={user?.role} catering={catering} />
+      <AdminActionButtons 
+        id={id} 
+        navigate={navigate} 
+        isAdmin={isAdmin} 
+        role={user?.role} 
+        catering={catering} 
+        paymentStarted={registrations?.some(r => r.paymentStatus === "cleared")}
+      />
 
       <RegistrationList registrations={registrations} isAdmin={isAdmin} setViewUser={setViewUser} />
 
