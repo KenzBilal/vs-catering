@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { generateWhatsAppMessage } from "../../lib/helpers";
+import { APP_BASE_URL } from "../../lib/appUrl";
 import { useState } from "react";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
@@ -68,7 +69,7 @@ export default function CateringDetail() {
   });
 
   const handleCopyMessage = () => {
-    const url = `${window.location.origin}/catering/${catering._id}`;
+    const url = `${APP_BASE_URL}/catering/${catering._id}`;
     const msg = generateWhatsAppMessage(catering, url);
     navigator.clipboard.writeText(msg).then(() => {
       setCopied(true);

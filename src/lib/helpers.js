@@ -137,3 +137,34 @@ export function isValidRegNumber(reg) {
   if (/^(\d)\1{7}$/.test(reg)) return false;
   return true;
 }
+
+/**
+ * Unified error parser for Convex and general app errors.
+ * Strips internal noise and provides user-friendly messages.
+ */
+export function parseError(e) {
+  if (!e) return "Something went wrong.";
+
+  // Network / fetch failure
+  if (!navigator.onLine) return "You're offline. Check your connection and try again.";
+
+  const raw = e.data || e.message || String(e);
+  if (typeof raw !== "string") return "An unexpected error occurred.";
+
+  // Strip Convex internal prefix: [CONVEX Q(...)] or [CONVEX M(...)]
+  const stripped = raw.replace(/^\[CONVEX [A-Z]\([^)]+\)\]\s*/i, "").trim();
+
+  if (stripped.includes("ConvexError:")) {
+    return stripped.split("ConvexError:")[1].trim();
+  }
+
+  // Known network-level messages
+  if (raw.includes("Failed to fetch") || raw.includes("NetworkError")) {
+    return "Network error — couldn't reach the server. Please try again.";
+  }
+  if (raw.includes("timeout") || raw.includes("timed out")) {
+    return "Request timed out. Please try again.";
+  }
+
+  return stripped || "An unexpected error occurred.";
+}

@@ -37,38 +37,6 @@ export function useQueryWithTimeout(queryResult, timeoutMs = 10000) {
   return { data: queryResult, timedOut };
 }
 
-/**
- * Parses a Convex mutation error into a user-friendly string.
- * Strips internal Convex noise from the message.
- *
- * Usage:
- *   } catch (e) {
- *     setError(parseMutationError(e));
- *   }
- */
-export function parseMutationError(e) {
-  if (!e) return "Something went wrong.";
+import { parseError } from "../lib/helpers";
 
-  // Network / fetch failure
-  if (!navigator.onLine) return "You're offline. Check your connection and try again.";
-
-  const raw = e.data || e.message || String(e);
-  if (typeof raw !== "string") return "An unexpected error occurred.";
-
-  // Strip Convex internal prefix: [CONVEX Q(...)] or [CONVEX M(...)]
-  const stripped = raw.replace(/^\[CONVEX [A-Z]\([^)]+\)\]\s*/i, "").trim();
-
-  if (stripped.includes("ConvexError:")) {
-    return stripped.split("ConvexError:")[1].trim();
-  }
-
-  // Known network-level messages
-  if (raw.includes("Failed to fetch") || raw.includes("NetworkError")) {
-    return "Network error — couldn't reach the server. Please try again.";
-  }
-  if (raw.includes("timeout") || raw.includes("timed out")) {
-    return "Request timed out. Please try again.";
-  }
-
-  return stripped || "An unexpected error occurred.";
-}
+export { parseError as parseMutationError };

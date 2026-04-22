@@ -103,8 +103,7 @@ export default function Signup() {
       // 4. Send verification email
       try {
         const actionCodeSettings = {
-          // Point to our unified handler
-          url: `${window.location.origin}/auth-action?email=${encodeURIComponent(normalizedEmail)}`,
+          url: `${APP_BASE_URL}/auth-action?email=${encodeURIComponent(normalizedEmail)}`,
           handleCodeInApp: true,
         };
         await sendEmailVerification(firebaseUserCred.user, actionCodeSettings);
@@ -127,93 +126,103 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-cream-bg">
-      <div className="w-full max-w-md animate-slide-up">
+      <div className="w-full max-w-md animate-fade-in">
         <div className="flex flex-col items-center mb-8">
-          {siteSettings?.siteLogo ? (
-            <div className="w-12 h-12 rounded-2xl overflow-hidden mb-4 shadow-lg border border-stone-100">
-              <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
-            </div>
-          ) : (
-            <div className="w-12 h-12 bg-stone-900 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-stone-900/20">
-              <UserPlus className="text-cream-50" size={24} />
-            </div>
-          )}
-          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
-            {siteSettings?.siteName ? `Join ${siteSettings.siteName}` : "Create Account"}
+           <div className="relative">
+            {siteSettings?.siteLogo ? (
+              <div className="w-14 h-14 rounded-[20px] overflow-hidden mb-6 shadow-2xl shadow-stone-200 border-2 border-white ring-1 ring-stone-100 animate-scale-up">
+                <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
+              </div>
+            ) : siteSettings === undefined ? (
+              <div className="w-14 h-14 bg-stone-100 rounded-[20px] mb-6 animate-pulse" />
+            ) : (
+              <div className="w-14 h-14 bg-stone-900 rounded-[20px] flex items-center justify-center mb-6 shadow-2xl shadow-stone-900/20 animate-scale-up">
+                <UserPlus className="text-cream-50" size={24} />
+              </div>
+            )}
+          </div>
+          
+          <h1 className="text-2xl font-black text-stone-900 tracking-tight text-center">
+             {siteSettings === undefined ? (
+              <span className="inline-block w-40 h-7 bg-stone-100 rounded-lg animate-pulse" />
+            ) : (
+              siteSettings?.siteName ? `Join ${siteSettings.siteName}` : "Create Account"
+            )}
           </h1>
-          <p className="text-[14.5px] text-stone-500 mt-1 font-medium text-center">Join the catering team</p>
+          <p className="text-[14px] text-stone-500 mt-1 font-medium text-center">Become a part of the catering team</p>
         </div>
 
 
-        <div className="card p-6 sm:p-8 flex flex-col gap-5 shadow-xl shadow-stone-200/50">
+        <div className="card p-8 flex flex-col gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border-stone-200/60 rounded-[32px] bg-white/80 backdrop-blur-xl">
           <form onSubmit={handleSignup} className="flex flex-col gap-5">
             <div>
-              <label className="label">Full Name</label>
+              <label className="label !text-[11px] !font-black !uppercase !tracking-widest !text-stone-400 !mb-2">Full Name</label>
               <div className="relative">
-                <User className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.name ? 'text-red-400' : 'text-stone-400'}`} size={18} />
+                <User className={`absolute left-4 top-1/2 -translate-y-1/2 ${errors.name ? 'text-red-400' : 'text-stone-300'}`} size={18} />
                 <input
                   type="text"
                   placeholder="Your official name"
-                  className={`pl-11 ${errors.name ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
+                  className={`pl-12 py-3 rounded-2xl bg-stone-50/50 border-stone-100 focus:bg-white focus:ring-4 focus:ring-stone-900/5 transition-all ${errors.name ? 'border-red-200 focus:border-red-300 focus:ring-red-50' : ''}`}
                   value={form.name}
                   onChange={(e) => set("name", e.target.value)}
                   disabled={loading}
                 />
               </div>
-              {errors.name && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.name}</p>}
+              {errors.name && <p className="text-[11px] text-red-600 font-bold mt-1.5 ml-1 animate-slide-up">{errors.name}</p>}
             </div>
 
             <div>
-              <label className="label">Email Address</label>
+              <label className="label !text-[11px] !font-black !uppercase !tracking-widest !text-stone-400 !mb-2">Email Address</label>
               <div className="relative">
-                <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.email ? 'text-red-400' : 'text-stone-400'}`} size={18} />
+                <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 ${errors.email ? 'text-red-400' : 'text-stone-300'}`} size={18} />
                 <input
                   type="email"
                   placeholder="name@example.com"
-                  className={`pl-11 ${errors.email ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
+                  className={`pl-12 py-3 rounded-2xl bg-stone-50/50 border-stone-100 focus:bg-white focus:ring-4 focus:ring-stone-900/5 transition-all ${errors.email ? 'border-red-200 focus:border-red-300 focus:ring-red-50' : ''}`}
                   value={form.email}
                   onChange={(e) => set("email", e.target.value)}
                   disabled={loading}
                 />
               </div>
-              {errors.email && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.email}</p>}
+              {errors.email && <p className="text-[11px] text-red-600 font-bold mt-1.5 ml-1 animate-slide-up">{errors.email}</p>}
             </div>
 
-            <div>
-              <label className="label">Password</label>
-              <div className="relative">
-                <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.password ? 'text-red-400' : 'text-stone-400'}`} size={18} />
-                <input
-                  type="password"
-                  placeholder="Min. 6 characters"
-                  className={`pl-11 ${errors.password ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
-                  value={form.password}
-                  onChange={(e) => set("password", e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-              {errors.password && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.password}</p>}
-            </div>
-
-            <div>
-              <label className="label">Phone Number</label>
-              <div className="relative">
-                <Phone className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.phone ? 'text-red-400' : 'text-stone-400'}`} size={18} />
-                <input
-                  type="tel"
-                  placeholder="10-digit mobile number"
-                  className={`pl-11 ${errors.phone ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
-                  value={form.phone}
-                  onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
-                  disabled={loading}
-                />
-              </div>
-              {errors.phone && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.phone}</p>}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <div>
+                  <label className="label !text-[11px] !font-black !uppercase !tracking-widest !text-stone-400 !mb-2">Phone</label>
+                  <div className="relative">
+                    <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 ${errors.phone ? 'text-red-400' : 'text-stone-300'}`} size={17} />
+                    <input
+                      type="tel"
+                      placeholder="10-digits"
+                      className={`pl-11 py-3 rounded-2xl bg-stone-50/50 border-stone-100 focus:bg-white focus:ring-4 focus:ring-stone-900/5 transition-all ${errors.phone ? 'border-red-200 focus:border-red-300 focus:ring-red-50' : ''}`}
+                      value={form.phone}
+                      onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      disabled={loading}
+                    />
+                  </div>
+                  {errors.phone && <p className="text-[10px] text-red-600 font-bold mt-1.5 ml-1 animate-slide-up">{errors.phone}</p>}
+               </div>
+               <div>
+                  <label className="label !text-[11px] !font-black !uppercase !tracking-widest !text-stone-400 !mb-2">Password</label>
+                  <div className="relative">
+                    <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 ${errors.password ? 'text-red-400' : 'text-stone-300'}`} size={17} />
+                    <input
+                      type="password"
+                      placeholder="Min. 6"
+                      className={`pl-11 py-3 rounded-2xl bg-stone-50/50 border-stone-100 focus:bg-white focus:ring-4 focus:ring-stone-900/5 transition-all ${errors.password ? 'border-red-200 focus:border-red-300 focus:ring-red-50' : ''}`}
+                      value={form.password}
+                      onChange={(e) => set("password", e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+                  {errors.password && <p className="text-[10px] text-red-600 font-bold mt-1.5 ml-1 animate-slide-up">{errors.password}</p>}
+               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="label mb-2">Gender</label>
+                <label className="label !text-[11px] !font-black !uppercase !tracking-widest !text-stone-400 !mb-2">Gender</label>
                 <SegmentedControl
                   options={[
                     { label: "Male", value: "male" },
@@ -222,60 +231,62 @@ export default function Signup() {
                   value={form.gender}
                   onChange={(val) => set("gender", val)}
                   disabled={loading}
+                  className="!rounded-2xl !p-1 !bg-stone-50"
                 />
               </div>
 
               <div>
-                <label className="label mb-2">Stay Type</label>
+                <label className="label !text-[11px] !font-black !uppercase !tracking-widest !text-stone-400 !mb-2">Stay</label>
                 <SegmentedControl
                   options={[
                     { label: "Hostel", value: "hostel" },
-                    { label: "Day Scholar", value: "day_scholar" }
+                    { label: "Day", value: "day_scholar" }
                   ]}
                   value={form.stayType}
                   onChange={(val) => set("stayType", val)}
                   disabled={loading}
+                  className="!rounded-2xl !p-1 !bg-stone-50"
                 />
               </div>
             </div>
 
-            <div className="flex items-center gap-2 px-1">
+            <div className="flex items-center gap-3 px-1">
               <input
                 type="checkbox"
                 id="remember_signup"
                 checked={form.rememberMe}
                 onChange={(e) => set("rememberMe", e.target.checked)}
-                className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900/20 cursor-pointer"
+                className="w-5 h-5 rounded-lg border-stone-200 text-stone-900 focus:ring-stone-900/10 cursor-pointer transition-all"
+                disabled={loading}
               />
-              <label htmlFor="remember_signup" className="text-[13.5px] font-medium text-stone-600 cursor-pointer select-none">
+              <label htmlFor="remember_signup" className="text-[13px] font-bold text-stone-500 cursor-pointer select-none">
                 Keep me signed in
               </label>
             </div>
 
-
             <button
               type="submit"
-              className="btn-primary w-full py-3.5 mt-2 text-[15px]"
+              className="btn-primary w-full py-4 rounded-2xl text-[15px] font-black shadow-xl shadow-stone-900/10 hover:shadow-stone-900/20 active:scale-[0.98] transition-all"
               disabled={loading}
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <Loader2 size={18} className="animate-spin" />
-                  Creating Account...
+                  <Loader2 size={20} className="animate-spin" />
+                  Processing...
                 </div>
               ) : (
-                <>
-                  Get Started <ArrowRight size={18} />
-                </>
+                <span className="flex items-center justify-center gap-2">
+                  Create Account <ArrowRight size={20} />
+                </span>
               )}
             </button>
           </form>
         </div>
 
-        <p className="text-[14px] text-center mt-6 font-medium text-stone-500">
+        <p className="text-[14.5px] text-center mt-8 font-bold text-stone-400 tracking-tight">
           Already have an account?{" "}
-          <Link to="/login" className="text-stone-900 font-bold hover:underline underline-offset-4 decoration-2 decoration-cream-300">
-            Sign in
+          <Link to="/login" className="text-stone-900 font-black hover:underline underline-offset-8 decoration-2 decoration-stone-200 transition-all">
+            Sign In
           </Link>
         </p>
       </div>

@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { auth } from "./firebase";
 import { signOut, sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth";
+import { APP_BASE_URL } from "./appUrl";
 
 const AuthContext = createContext(null);
 
@@ -90,7 +91,7 @@ export function AuthProvider({ children }) {
   const resetPassword = async (email) => {
     const actionCodeSettings = {
       // Ensure the reset link points back to our unified AuthActionHandler
-      url: `${window.location.origin}/auth-action`,
+      url: `${APP_BASE_URL}/auth-action`,
       handleCodeInApp: true,
     };
     return await sendPasswordResetEmail(auth, email, actionCodeSettings);

@@ -1,6 +1,7 @@
 import { Share2, CheckCircle2, AlertCircle, PlayCircle, IndianRupee } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { generateWhatsAppMessage } from "../../../lib/helpers";
+import { APP_BASE_URL } from "../../../lib/appUrl";
 import { useMutation, useQuery } from "convex/react";
 
 import { api } from "../../../../convex/_generated/api";
@@ -168,7 +169,7 @@ export default function AdminSummary({ catering, registrations, dropCounts, hand
         <div className="bg-cream-50 border border-cream-200 rounded-xl p-4 text-[13px] text-stone-600 whitespace-pre-wrap font-mono leading-relaxed max-h-[200px] overflow-y-auto">
           {generateWhatsAppMessage(
             catering, 
-            `${window.location.origin}/catering/${catering._id}`,
+            `${APP_BASE_URL}/catering/${catering._id}`,
             siteSettings?.siteName
           )}
         </div>

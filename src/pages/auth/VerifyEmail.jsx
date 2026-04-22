@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Mail, ArrowLeft, RefreshCw, ExternalLink, CheckCircle2 } from "lucide-react";
 import { auth } from "../../lib/firebase";
 import { sendEmailVerification, reload, applyActionCode } from "firebase/auth";
+import { APP_BASE_URL } from "../../lib/appUrl";
 import toast from "react-hot-toast";
 import { useAuth } from "../../lib/AuthContext";
 
@@ -143,7 +144,7 @@ export default function VerifyEmail() {
       if (auth.currentUser) {
         const resendEmail = auth.currentUser.email || emailFromUrl;
         const actionCodeSettings = {
-          url: `${window.location.origin}/verify-email${resendEmail ? `?email=${encodeURIComponent(resendEmail)}` : ""}`,
+          url: `${APP_BASE_URL}/verify-email${resendEmail ? `?email=${encodeURIComponent(resendEmail)}` : ""}`,
           handleCodeInApp: true,
         };
         await sendEmailVerification(auth.currentUser, actionCodeSettings);
