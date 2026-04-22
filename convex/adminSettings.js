@@ -66,12 +66,6 @@ export const getSubAdminPermissions = query({
   },
 });
 
-export const getDropPoints = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("dropPoints").collect();
-  },
-});
 
 export const getMyPermissions = query({
   args: { token: v.string() },
@@ -184,38 +178,6 @@ export const togglePermission = mutation({
   },
 });
 
-export const addDropPoint = mutation({
-  args: { token: v.string(), name: v.string() },
-  handler: async (ctx, { token, name }) => {
-    await requireAdmin(ctx, token);
-    const cleanName = sanitizeString(name).trim();
-    if (!cleanName) throw new ConvexError("Name is required.");
-
-    const existing = await ctx.db
-      .query("dropPoints")
-      .filter(q => q.eq(q.field("name"), cleanName))
-      .first();
-    if (existing) throw new ConvexError("Drop point already exists.");
-
-    await ctx.db.insert("dropPoints", { name: cleanName, isActive: true });
-  },
-});
-
-export const removeDropPoint = mutation({
-  args: { token: v.string(), dropPointId: v.id("dropPoints") },
-  handler: async (ctx, { token, dropPointId }) => {
-    await requireAdmin(ctx, token);
-    await ctx.db.delete(dropPointId);
-  },
-});
-
-export const toggleDropPointStatus = mutation({
-  args: { token: v.string(), dropPointId: v.id("dropPoints"), isActive: v.boolean() },
-  handler: async (ctx, { token, dropPointId, isActive }) => {
-    await requireAdmin(ctx, token);
-    await ctx.db.patch(dropPointId, { isActive });
-  },
-});
 // ─── SITE SETTINGS ──────────────────────────────────────────────────────────
 
 export const getSiteSettings = query({

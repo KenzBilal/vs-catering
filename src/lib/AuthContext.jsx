@@ -17,6 +17,10 @@ export function AuthProvider({ children }) {
     }
   });
 
+  const [rememberMe, setRememberMe] = useState(() => {
+    return !!localStorage.getItem("vs_user");
+  });
+
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [serverValidated, setServerValidated] = useState(false);
 
@@ -59,10 +63,11 @@ export function AuthProvider({ children }) {
 
   const user = serverValidated
     ? (validUser ? { ...validUser, token: storedUser?.token } : null)
-    : storedUser; 
+    : null; // Don't return storedUser until validated to avoid race conditions/stale data
 
   const login = (userData, rememberMe) => {
     setStoredUser(userData);
+    setRememberMe(!!rememberMe);
     if (rememberMe) {
       localStorage.setItem("vs_user", JSON.stringify(userData));
     } else {
@@ -108,6 +113,7 @@ export function AuthProvider({ children }) {
       logout, 
       resetPassword, 
       isGoogleUser,
+      rememberMe,
       loading 
     }}>
       {children}

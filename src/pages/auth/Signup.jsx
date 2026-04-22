@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useConvex } from "convex/react";
+import { useMutation, useConvex, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate, Link } from "react-router-dom";
 import { UserPlus, Mail, Lock, User, Phone, ArrowRight, Loader2 } from "lucide-react";
@@ -16,7 +16,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const convex = useConvex();
   const siteSettings = useQuery(api.adminSettings.getSiteSettings);
-  const createUserMutation = useMutation(api.users.createUser);
+  const createUserAction = useAction(api.auth_actions.verifyAndCreateUser);
 
   const [form, setForm] = useState({
     name: "",
@@ -64,9 +64,8 @@ export default function Signup() {
       });
       
       if (check.exists) {
-        const field = check.reason || "email";
-        const msg = `This ${field} is already registered.`;
-        setErrors({ [field]: msg });
+        const msg = "This email or phone number is already registered.";
+        setErrors({ email: msg, phone: msg });
         toast.error(msg);
         setLoading(false);
         return;
@@ -90,10 +89,11 @@ export default function Signup() {
         return;
       }
 
-      // 3. Create user in Convex
+      // 3. Create user in Convex (with token verification)
       try {
+        const idToken = await firebaseUserCred.user.getIdToken();
         const { password, ...userData } = form;
-        await createUserMutation(userData);
+        await createUserAction({ idToken, userData });
       } catch (convexErr) {
         // Rollback Firebase account if Convex fails to keep them in sync
         try { await deleteUser(firebaseUserCred.user); } catch (_) {}

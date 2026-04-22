@@ -6,34 +6,37 @@ import { sanitizeString } from "./utils";
 
 export const createPayment = mutation({
   args: {
-    cateringId: v.id("caterings"),
     registrationId: v.id("registrations"),
-    role: v.string(),
-    amount: v.number(),
     method: v.union(v.literal("cash"), v.literal("upi")),
     token: v.string(),
   },
-  handler: async (ctx, args) => {
-    await checkPermission(ctx, args.token, "manage_payments");
+  handler: async (ctx, { registrationId, method, token }) => {
+    await checkPermission(ctx, token, "manage_payments");
 
-    if (args.amount < 0) throw new ConvexError("Payment amount cannot be negative.");
-
-    // Derive userId from the registration record — never trust client
-    const reg = await ctx.db.get(args.registrationId);
+    // Derive everything from the registration record — never trust client
+    const reg = await ctx.db.get(registrationId);
     if (!reg) throw new ConvexError("Registration not found.");
-    const userId = reg.userId;
+
+    const catering = await ctx.db.get(reg.cateringId);
+    if (!catering) throw new ConvexError("Event not found.");
+
+    const slot = catering.slots.find(s => s.role === reg.role);
+    const amount = slot?.pay || 0;
 
     // Prevent duplicate payment for same registration
     const duplicate = await ctx.db
       .query("payments")
-      .withIndex("by_registration", (q) => q.eq("registrationId", args.registrationId))
+      .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
       .first();
     if (duplicate) throw new ConvexError("A payment record already exists for this registration.");
 
-    const { token, ...dataToInsert } = args;
     const paymentId = await ctx.db.insert("payments", {
-      ...dataToInsert,
-      userId,
+      cateringId: reg.cateringId,
+      registrationId,
+      userId: reg.userId,
+      role: reg.role,
+      amount,
+      method,
       status: "pending",
       createdAt: Date.now(),
     });
@@ -177,6 +180,7 @@ export const createPaymentGroup = mutation({
         .first();
       
       if (!payment) throw new ConvexError(`Payment record not found for registration ${regId}`);
+      if (payment.cateringId !== args.cateringId) throw new ConvexError("Security Alert: One or more registrations belong to a different event.");
       if (payment.status === "cleared") throw new ConvexError("Cannot group a payment that is already cleared.");
       if (payment.groupId) throw new ConvexError("One or more members are already in another group.");
       
@@ -231,10 +235,15 @@ export const clearPaymentGroup = mutation({
 
     const catering = await ctx.db.get(group.cateringId);
     const headUser = await ctx.db.get(group.headUserId);
+
+    // Batch fetch all users in the group to avoid N+1 queries
+    const userIds = [...new Set(payments.map(p => p.userId))];
+    const users = await Promise.all(userIds.map(uid => ctx.db.get(uid)));
+    const userMap = new Map(users.filter(u => !!u).map(u => [u._id, u]));
     
     const memberNames = [];
     for (const p of payments) {
-      const u = await ctx.db.get(p.userId);
+      const u = userMap.get(p.userId);
       if (u) memberNames.push(u.name);
       
       await ctx.db.patch(p._id, {
@@ -340,14 +349,22 @@ export const getPendingPayments = query({
       .withIndex("by_status", (q) => q.eq("status", "pending"))
       .collect();
 
-    const withDetails = await Promise.all(
-      payments.map(async (p) => {
-        const user = await ctx.db.get(p.userId);
-        const catering = await ctx.db.get(p.cateringId);
-        return { ...p, user, catering };
-      })
-    );
-    return withDetails;
+    // Optimized Batch Fetch
+    const userIds = [...new Set(payments.map(p => p.userId))];
+    const cateringIds = [...new Set(payments.map(p => p.cateringId))];
+    const [users, allCaterings] = await Promise.all([
+      Promise.all(userIds.map(id => ctx.db.get(id))),
+      Promise.all(cateringIds.map(id => ctx.db.get(id)))
+    ]);
+
+    const userMap = new Map(users.filter(u => u).map(u => [u._id, u]));
+    const cateringMap = new Map(allCaterings.filter(c => c).map(c => [c._id, c]));
+
+    return payments.map(p => ({
+      ...p,
+      user: userMap.get(p.userId),
+      catering: cateringMap.get(p.cateringId)
+    }));
   },
 });
 
@@ -435,10 +452,16 @@ export const getStudentFinancialSummary = query({
       })
     );
 
+    const adminSettings = await ctx.db
+      .query("adminSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+
     return {
       totalEarned,
       pendingAmount,
       recentPayments,
+      globalPayoutSettings: adminSettings?.payoutSettings || null,
     };
   },
 });

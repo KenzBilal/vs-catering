@@ -83,7 +83,9 @@ export default defineSchema({
     registeredCount: v.optional(v.number()),
     verifiedCount: v.optional(v.number()),
   })
-    .index("by_created", ["createdAt"]),
+    .index("by_created", ["createdAt"])
+    .index("by_date", ["date"])
+    .index("by_status", ["status"]),
 
   registrations: defineTable({
     userId: v.id("users"),

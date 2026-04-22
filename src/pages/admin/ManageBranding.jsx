@@ -95,7 +95,7 @@ export default function ManageBranding() {
               value={siteName}
               onChange={(e) => setSiteName(e.target.value)}
               placeholder="Enter website name (e.g., VS Catering)"
-              className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-[15px] font-medium focus:ring-2 focus:ring-[#1a5c3a]/10 focus:border-[#1a5c3a] outline-none transition-all"
+              className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-[15px] font-medium focus:ring-2 focus:ring-stone-900/5 focus:border-stone-900 outline-none transition-all"
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-300">
               <Globe size={18} />
@@ -121,7 +121,7 @@ export default function ManageBranding() {
               )}
               {uploading && (
                 <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                  <Loader2 size={24} className="text-[#1a5c3a] animate-spin" />
+                  <Loader2 size={24} className="text-stone-900 animate-spin" />
                 </div>
               )}
             </div>
@@ -149,7 +149,7 @@ export default function ManageBranding() {
         <button
           onClick={handleSave}
           disabled={isSaving || uploading}
-          className="w-full btn-primary py-4 text-[15px] shadow-xl shadow-[#1a5c3a]/20"
+          className="w-full btn-primary py-4 text-[15px] shadow-xl shadow-stone-200"
         >
           {isSaving ? (
             <div className="flex items-center justify-center gap-2">

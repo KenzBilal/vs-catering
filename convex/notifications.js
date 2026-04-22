@@ -25,8 +25,14 @@ export const getMyNotifications = query({
       .order("desc")
       .take(50);
 
-    // Merge and filter for admins (they don't need to see "New Event" global alerts)
-    let merged = [...individual, ...global];
+    const lastReadAt = user.lastReadNotificationsAt || 0;
+
+    // Merge and filter for admins
+    let merged = [
+      ...individual, 
+      ...global.map(n => ({ ...n, isRead: n.isRead || n.createdAt <= lastReadAt }))
+    ];
+
     if (user.role === "admin" || user.role === "sub_admin") {
       merged = merged.filter(n => 
         n.category !== "global" || 

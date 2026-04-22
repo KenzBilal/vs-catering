@@ -34,11 +34,48 @@ export const verifyAndLogin = action({
     const email = firebaseUser.email.toLowerCase();
     const isVerified = firebaseUser.emailVerified;
 
-    // 2. Call internal mutation to complete login
     return await ctx.runMutation(internal.users.loginUserInternal, {
       email,
       rememberMe,
       firebaseVerified: isVerified,
     });
+  },
+});
+
+export const verifyAndCreateUser = action({
+  args: { 
+    idToken: v.string(), 
+    userData: v.object({
+      name: v.string(),
+      email: v.string(),
+      phone: v.string(),
+      stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
+      gender: v.union(v.literal("male"), v.literal("female")),
+      defaultDropPoint: v.string(),
+    })
+  },
+  handler: async (ctx, { idToken, userData }) => {
+    // 1. Verify token
+    const response = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.VITE_FIREBASE_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      }
+    );
+
+    const data = await response.json();
+    if (!response.ok || !data.users || data.users.length === 0) {
+      throw new ConvexError("Invalid authentication token.");
+    }
+
+    const firebaseUser = data.users[0];
+    if (firebaseUser.email.toLowerCase() !== userData.email.toLowerCase()) {
+      throw new ConvexError("Email mismatch: Authentication token does not match provided email.");
+    }
+
+    // 2. Call internal mutation to create user
+    return await ctx.runMutation(internal.users.createUserInternal, userData);
   },
 });

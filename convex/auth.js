@@ -67,11 +67,11 @@ export async function checkPermission(ctx, token, permissionKey) {
 export async function getAllAdmins(ctx) {
   const admins = await ctx.db
     .query("users")
-    .filter((q) => q.eq(q.field("role"), "admin"))
+    .withIndex("by_role", (q) => q.eq("role", "admin"))
     .collect();
   const subAdmins = await ctx.db
     .query("users")
-    .filter((q) => q.eq(q.field("role"), "sub_admin"))
+    .withIndex("by_role", (q) => q.eq("role", "sub_admin"))
     .collect();
   return [...admins, ...subAdmins];
 }

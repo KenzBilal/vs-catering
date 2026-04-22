@@ -1,5 +1,5 @@
 import { v, ConvexError } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { requireAdmin, getUserFromToken, checkPermission } from "./auth";
 
 import { sanitizeString, validatePhone, validateEmail } from "./utils";
@@ -18,7 +18,7 @@ function makeToken() {
 
 // ─── createUser ──────────────────────────────────────────────────────────────
 
-export const createUser = mutation({
+export const createUserInternal = internalMutation({
   args: {
     name: v.string(),
     email: v.string(),
@@ -202,6 +202,15 @@ export const deleteUser = mutation({
       }
     }
 
+    // Cleanup paymentGroups where user was head
+    const groupsAsHead = await ctx.db
+      .query("paymentGroups")
+      .withIndex("by_head", (q) => q.eq("headUserId", userId))
+      .collect();
+    for (const g of groupsAsHead) {
+      await ctx.db.delete(g._id);
+    }
+
     await ctx.db.delete(userId);
   },
 });
@@ -343,10 +352,10 @@ export const checkUserExists = query({
     const cleanPhone = phone.replace(/\D/g, "").slice(-10);
     
     const byEmail = await ctx.db.query("users").withIndex("by_email", (q) => q.eq("email", cleanEmail)).first();
-    if (byEmail) return { exists: true, reason: "email" };
+    if (byEmail) return { exists: true };
 
     const byPhone = await ctx.db.query("users").withIndex("by_phone", (q) => q.eq("phone", cleanPhone)).first();
-    if (byPhone) return { exists: true, reason: "phone" };
+    if (byPhone) return { exists: true };
     
     return { exists: false };
   },

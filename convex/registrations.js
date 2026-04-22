@@ -28,8 +28,19 @@ export const register = mutation({
 
     const catering = await ctx.db.get(args.cateringId);
     if (!catering) throw new ConvexError("Event not found.");
+    
+    // Check registration deadline if set
+    if (catering.registrationDeadline && Date.now() > catering.registrationDeadline) {
+      throw new ConvexError("Registration for this event has closed (deadline passed).");
+    }
+
     if (catering.status === "ended") throw new ConvexError("This event has ended. Registration is closed.");
     if (catering.status === "cancelled") throw new ConvexError("This event has been cancelled.");
+
+    // Mandatory Email Verification Check
+    if (!caller.emailVerified) {
+      throw new ConvexError("Please verify your email address before registering for events.");
+    }
 
     // Duplicate check
     const existing = await ctx.db
@@ -47,13 +58,12 @@ export const register = mutation({
       if (!/^https?:\/\/.+/.test(photoUrl)) throw new ConvexError("Photo URL must be a valid http/https link.");
     }
 
-    // #15: Queue position is per-role
-    const sameRoleRegs = await ctx.db
+    // #15: Queue position is per-role (Optimized with index)
+    const sameRoleDayRegs = await ctx.db
       .query("registrations")
-      .withIndex("by_catering", (q) => q.eq("cateringId", args.cateringId))
+      .withIndex("by_catering_role", (q) => q.eq("cateringId", args.cateringId).eq("role", args.role))
       .collect();
     
-    const sameRoleDayRegs = sameRoleRegs.filter((r) => r.role === args.role);
     const maxPos = sameRoleDayRegs.reduce((max, r) => Math.max(max, r.queuePosition || 0), 0);
     const queuePosition = maxPos + 1;
 
@@ -138,9 +148,10 @@ export const register = mutation({
 // ─── getRegistrationsByCatering ───────────────────────────────────────────────
 
 export const getRegistrationsByCatering = query({
-  args: { cateringId: v.id("caterings"), token: v.optional(v.string()) },
+  args: { cateringId: v.id("caterings"), token: v.string() },
   handler: async (ctx, { cateringId, token }) => {
-    const caller = token ? await getUserFromToken(ctx, token) : null;
+    const caller = await getUserFromToken(ctx, token);
+    if (!caller) throw new ConvexError("Unauthorized: Authentication required to view participant list.");
     
     const isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
 
@@ -211,13 +222,22 @@ export const getRegistrationsByUser = query({
       .query("registrations")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
-    const withCaterings = await Promise.all(
-      regs.map(async (r) => {
-        const catering = await ctx.db.get(r.cateringId);
-        return { ...r, catering };
-      })
-    );
-    return withCaterings;
+    // Optimized Batch Fetch
+    const userIds = [...new Set(payments.map(p => p.userId))];
+    const cateringIds = [...new Set(payments.map(p => p.cateringId))];
+    const [users, allCaterings] = await Promise.all([
+      Promise.all(userIds.map(id => ctx.db.get(id))),
+      Promise.all(cateringIds.map(id => ctx.db.get(id)))
+    ]);
+
+    const userMap = new Map(users.filter(u => u).map(u => [u._id, u]));
+    const cateringMap = new Map(allCaterings.filter(c => c).map(c => [c._id, c]));
+
+    return payments.map(p => ({
+      ...p,
+      user: userMap.get(p.userId),
+      catering: cateringMap.get(p.cateringId)
+    }));
   },
 });
 
@@ -307,15 +327,43 @@ export const markAttendance = mutation({
       }
       
       // Explicit Attendance Notification
-      const reg = await ctx.db.get(registrationId);
-      const catering = await ctx.db.get(reg.cateringId);
+      const regFinal = await ctx.db.get(registrationId);
+      const catFinal = await ctx.db.get(regFinal.cateringId);
       await ctx.db.insert("notifications", {
         type: "catering",
         category: "individual",
-        title: "Attendance",
-        message: `Marked as ${status} for ${catering.place}`,
-        targetUserId: reg.userId,
-        cateringId: reg.cateringId,
+        title: "Attendance Updated",
+        message: `Your status has been updated to ${status} for ${catFinal.place}`,
+        targetUserId: regFinal.userId,
+        cateringId: regFinal.cateringId,
+        isRead: false,
+        createdAt: Date.now(),
+      });
+    } else {
+      // If changed to absent/rejected, delete any PENDING payment to avoid orphaned records
+      const pendingPayment = await ctx.db
+        .query("payments")
+        .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
+        .filter((q) => q.eq(q.field("status"), "pending"))
+        .first();
+
+      if (pendingPayment) {
+        if (pendingPayment.groupId) {
+          throw new ConvexError("Cannot change attendance: Member is part of a payment group. Disband the group first.");
+        }
+        await ctx.db.delete(pendingPayment._id);
+      }
+
+      // Explicit Attendance Notification
+      const regFinal = await ctx.db.get(registrationId);
+      const catFinal = await ctx.db.get(regFinal.cateringId);
+      await ctx.db.insert("notifications", {
+        type: "catering",
+        category: "individual",
+        title: "Attendance Updated",
+        message: `Your status has been updated to ${status} for ${catFinal.place}`,
+        targetUserId: regFinal.userId,
+        cateringId: regFinal.cateringId,
         isRead: false,
         createdAt: Date.now(),
       });
@@ -384,10 +432,21 @@ export const changeRole = mutation({
         const newAmount = slot?.pay || 0;
 
         if (payment.amount !== newAmount) {
+          const oldAmount = payment.amount;
           await ctx.db.patch(payment._id, { 
             amount: newAmount,
             role: role 
           });
+
+          // Reconcile group total if member is part of a payout group
+          if (payment.groupId) {
+            const group = await ctx.db.get(payment.groupId);
+            if (group) {
+              await ctx.db.patch(group._id, {
+                totalAmount: (group.totalAmount - oldAmount) + newAmount
+              });
+            }
+          }
 
           // Notify student of adjustment
           await ctx.db.insert("notifications", {

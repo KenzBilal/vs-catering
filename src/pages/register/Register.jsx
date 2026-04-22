@@ -21,7 +21,7 @@ const MAX_PHOTO_SIZE_MB = 5;
 
 export default function Register() {
   const { id } = useParams();
-  const { user, token, login } = useAuth();
+  const { user, token, login, rememberMe } = useAuth();
   const navigate = useNavigate();
 
   const cateringRaw = useQuery(api.caterings.getCatering, { cateringId: id, token });
@@ -127,9 +127,9 @@ export default function Register() {
           defaultDropPoint: dropPoint,
           stayType: user.stayType,
         });
-        login({ ...user, defaultDropPoint: dropPoint, photoStorageId: photoStorageId || user.photoStorageId });
+        login({ ...user, defaultDropPoint: dropPoint, photoStorageId: photoStorageId || user.photoStorageId }, rememberMe);
       } catch (prefErr) {
-        if (photoStorageId) login({ ...user, photoStorageId });
+        if (photoStorageId) login({ ...user, photoStorageId }, rememberMe);
       }
 
       setDone(true);

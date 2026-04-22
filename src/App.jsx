@@ -54,9 +54,9 @@ import CompleteProfile from "./pages/auth/CompleteProfile";
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
 if (!convexUrl) {
-  console.error("VITE_CONVEX_URL is missing! The app will not be able to connect to the database.");
+  throw new Error("VITE_CONVEX_URL is missing! Check your .env file.");
 }
-const convex = new ConvexReactClient(convexUrl || "https://dummy.convex.cloud");
+const convex = new ConvexReactClient(convexUrl);
 
 function BrandingWrapper({ children }) {
   const siteSettings = useQuery(api.adminSettings.getSiteSettings);

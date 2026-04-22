@@ -273,20 +273,23 @@ export const listCaterings = query({
     const caller = token ? await getUserFromToken(ctx, token) : null;
     const isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
 
-    const all = await ctx.db.query("caterings").order("desc").collect();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const thirtyDaysAgo = new Date(today);
+    const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split("T")[0];
+
+    // Fetch recent and upcoming caterings from database (Scalable)
+    const all = await ctx.db
+      .query("caterings")
+      .withIndex("by_date", (q) => q.gte("date", thirtyDaysAgoStr))
+      .collect();
+
+    // Sort descending by date in memory (since we have few recent ones)
+    all.sort((a, b) => b.date.localeCompare(a.date));
 
     const cateringsWithStats = [];
     for (const c of all) {
       const eventDateStr = c.date || (c.dates && c.dates[0]);
       if (!eventDateStr) continue;
-
-      const eventDate = new Date(eventDateStr);
-      eventDate.setHours(0, 0, 0, 0);
-      if (c.status !== "cancelled" && eventDate < thirtyDaysAgo) continue;
 
       let stats = {};
       if (isAdmin) {
@@ -374,19 +377,19 @@ export const getFinishedCaterings = query({
       .order("desc")
       .collect();
 
-    const result = [];
-    for (const c of caterings) {
-      const hasPending = await ctx.db
+    const cateringIds = caterings.map(c => c._id);
+    // Batch check for pending payments
+    const pendingPayments = await Promise.all(
+      cateringIds.map(id => ctx.db
         .query("payments")
-        .withIndex("by_catering", (q) => q.eq("cateringId", c._id))
+        .withIndex("by_catering", (q) => q.eq("cateringId", id))
         .filter((q) => q.eq(q.field("status"), "pending"))
-        .first();
-      
-      if (hasPending) {
-        result.push(c);
-      }
-    }
-    return result;
+        .first()
+      )
+    );
+
+    const hasPendingSet = new Set(pendingPayments.filter(p => !!p).map(p => p.cateringId));
+    return caterings.filter(c => hasPendingSet.has(c._id));
   },
 });
 

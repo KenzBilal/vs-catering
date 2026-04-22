@@ -25,6 +25,21 @@ export default function FinancialSummary({ data }) {
               <p className="text-[11px] text-stone-500 font-medium">From {recentPayments.length} events</p>
             </div>
           </div>
+
+          {/* Global Payout Info Overlay/Tag */}
+          {data?.globalPayoutSettings?.nextPayoutDate && (
+            <div className="absolute top-0 right-0 p-4">
+              <div className="bg-[#1a5c3a] text-white px-3 py-2 rounded-xl border border-white/10 shadow-lg animate-pulse-subtle">
+                <p className="text-[9px] font-black uppercase tracking-widest opacity-70">Next Payout</p>
+                <p className="text-[14px] font-bold">{data.globalPayoutSettings.nextPayoutDate}</p>
+                {data.globalPayoutSettings.payoutNote && (
+                  <p className="text-[10px] mt-1 opacity-80 leading-tight max-w-[120px] italic">
+                    "{data.globalPayoutSettings.payoutNote}"
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
