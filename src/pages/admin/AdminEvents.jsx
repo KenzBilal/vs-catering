@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { useNavigate } from "react-router-dom";
 import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRoleLabel, formatTime12h } from "../../lib/helpers";
 import { useState } from "react";
-import { Plus, Search, UserCheck, CreditCard, CalendarDays, Clock, Users, Edit, XCircle, AlertTriangle, PlayCircle } from "lucide-react";
+import { Plus, Search, UserCheck, CreditCard, CalendarDays, Clock, Users, Edit, XCircle, AlertTriangle } from "lucide-react";
 
 import { useAuth } from "../../lib/AuthContext";
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
@@ -185,26 +185,6 @@ export default function AdminEvents() {
                 {/* Actions */}
                 <div className="flex gap-2 flex-wrap sm:flex-nowrap shrink-0">
 
-                  {(() => {
-                    const eventDate = new Date(c.dates[0] + "T" + c.specificTime);
-                    const now = new Date();
-                    const diffHours = (eventDate - now) / (1000 * 60 * 60);
-                    const isNear = diffHours <= 48 && c.status !== "ended" && c.status !== "cancelled";
-                    
-                    if (isNear && !c.attendanceStarted) {
-                      return (
-                        <button
-                          className={`btn-secondary py-1.5 px-3 text-[12px] flex items-center gap-1.5 ${
-                            c.verificationStatus === "active" ? "bg-[#e8f5ee] text-[#1a5c3a] border-[#1a5c3a]/20" : "bg-stone-900 text-white border-stone-900 hover:bg-stone-800"
-                          }`}
-                          onClick={() => navigate(`/catering/${c._id}`)}
-                        >
-                          <PlayCircle size={14} /> {c.verificationStatus === "active" ? "Re-verify" : "Verify"}
-                        </button>
-                      );
-                    }
-                    return null;
-                  })()}
                   {c.status !== "cancelled" && c.status !== "ended" && !c.attendanceStarted && canManageCaterings && (
                     <button
                       className="btn-secondary py-1.5 px-3 text-[12px]"

@@ -7,7 +7,7 @@ import CustomSelect from "../../components/ui/CustomSelect";
 import { useState } from "react";
 import {
   Plus, UserCheck, CreditCard, AlertCircle, BarChart3,
-  TrendingUp, CalendarDays, Users, IndianRupee, Clock, ArrowRight, PlayCircle
+  TrendingUp, CalendarDays, Users, IndianRupee, Clock, ArrowRight
 } from "lucide-react";
 
 import { useQueryWithTimeout } from "../../hooks/useQueryWithTimeout";
@@ -230,31 +230,6 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                      {(() => {
-                        const eventDate = new Date(c.dates[0] + "T" + c.specificTime);
-                        const now = new Date();
-                        const diffHours = (eventDate - now) / (1000 * 60 * 60);
-                        const isNear = diffHours <= 48 && c.status !== "ended" && c.status !== "cancelled";
-                        
-                        if (isNear && !c.attendanceStarted) {
-
-                          return (
-                            <button
-                              className={`p-1.5 rounded-lg border transition-all ${
-                                c.verificationStatus === "active"
-                                  ? "bg-[#e8f5ee] border-[#1a5c3a]/20 text-[#1a5c3a]"
-                                  : "bg-stone-900 border-stone-900 text-white"
-                              }`}
-                              onClick={() => navigate(`/catering/${c._id}`)}
-                              title={c.verificationStatus === "active" ? "Verification Active" : "Start Verification"}
-                            >
-                              <PlayCircle size={14} />
-                            </button>
-                          );
-                        }
-
-                        return null;
-                      })()}
                       <button
                         className="p-1.5 rounded-lg bg-cream-50 border border-cream-200 text-stone-500 hover:text-stone-900 hover:bg-cream-100 transition-colors"
                         onClick={() => navigate(`/admin/catering/${c._id}/attendance`)}
