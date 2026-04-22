@@ -18,8 +18,8 @@ export function AdminActionButtons({ id, navigate, isAdmin, role, catering }) {
         <button 
           className="btn-secondary flex-1 border-orange-100 text-orange-700 hover:bg-orange-50" 
           onClick={() => {
-            if (catering?.status !== "ended") {
-              toast.error("You can only schedule payouts for events that have ended.");
+            if (catering?.status !== "ended" && !catering?.attendanceStarted) {
+              toast.error("You can only schedule payouts once attendance has started or the event has ended.");
               return;
             }
             navigate(`/admin/settings/payouts?eventId=${id}`);

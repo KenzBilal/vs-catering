@@ -92,8 +92,9 @@ export default function AttendancePage() {
           </div>
           <button
             onClick={() => {
-              if (catering?.status !== "ended") {
-                toast.error("You can only schedule payouts for events that have ended.");
+              const hasAttendance = registrations?.some(r => r.status !== "registered");
+              if (catering?.status !== "ended" && !hasAttendance) {
+                toast.error("You can only schedule payouts once attendance has started or the event has ended.");
                 return;
               }
               navigate(`/admin/settings/payouts?eventId=${id}`);
