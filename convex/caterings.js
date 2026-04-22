@@ -4,18 +4,16 @@ import { requireAdmin, requireSubAdmin, getUserFromToken, checkPermission } from
 
 import { sanitizeString } from "./utils";
 
-function computeStatus(dates) {
+function computeStatus(dateStr) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const eventDate = new Date(dates[0]);
+  const eventDate = new Date(dateStr);
   eventDate.setHours(0, 0, 0, 0);
-  const lastDate = new Date(dates[dates.length - 1]);
-  lastDate.setHours(0, 0, 0, 0);
 
-  if (lastDate < today) return "ended";
+  if (eventDate < today) return "ended";
   if (eventDate.getTime() === today.getTime()) return "today";
   if (eventDate.getTime() === tomorrow.getTime()) return "tomorrow";
   return "upcoming";
@@ -35,25 +33,18 @@ function validateSlots(slots) {
   }
 }
 
-function validateDates(dates, isTwoDay) {
-  if (dates.length === 0) throw new ConvexError("At least one date is required.");
+function validateDate(dateStr) {
+  if (!dateStr) throw new ConvexError("Date is required.");
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  const d1 = new Date(dates[0]);
-  if (isNaN(d1.getTime())) throw new ConvexError("Invalid date format.");
-  if (d1 < today) throw new ConvexError("Cannot create an event for a past date.");
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) throw new ConvexError("Invalid date format.");
+  if (d < today) throw new ConvexError("Cannot create an event for a past date.");
   
   const maxFuture = new Date();
   maxFuture.setFullYear(maxFuture.getFullYear() + 1);
-  if (d1 > maxFuture) throw new ConvexError("Cannot schedule events more than 1 year in advance.");
-
-  if (isTwoDay) {
-    if (dates.length < 2) throw new ConvexError("Second date is required for two-day events.");
-    const d2 = new Date(dates[1]);
-    if (isNaN(d2.getTime())) throw new ConvexError("Invalid second date format.");
-    if (d2 <= d1) throw new ConvexError("Second date must be after the first date.");
-  }
+  if (d > maxFuture) throw new ConvexError("Cannot schedule events more than 1 year in advance.");
 }
 
 export const createCatering = mutation({
@@ -62,15 +53,11 @@ export const createCatering = mutation({
     place: v.string(),
     timeOfDay: v.union(v.literal("day"), v.literal("night")),
     specificTime: v.string(),
-    dates: v.array(v.string()),
-    isTwoDay: v.boolean(),
-    sameSlotsForBothDays: v.boolean(),
-    joinRule: v.union(v.literal("any_day"), v.literal("both_days")),
+    date: v.string(),
     photoRequired: v.boolean(),
     dressCodeNotes: v.string(),
     limitSlots: v.boolean(),
     slots: v.array(v.object({
-      day: v.number(),
       role: v.string(),
       limit: v.number(),
       pay: v.number(),
@@ -85,11 +72,11 @@ export const createCatering = mutation({
     const dressCodeNotes = sanitizeString(args.dressCodeNotes).slice(0, 2000);
     if (!place) throw new ConvexError("Place is required.");
     
-    validateDates(args.dates, args.isTwoDay);
+    validateDate(args.date);
     validateSlots(args.slots);
 
     const { token, place: _p, dressCodeNotes: _d, ...rest } = args;
-    const status = computeStatus(args.dates);
+    const status = computeStatus(args.date);
 
     const cateringId = await ctx.db.insert("caterings", {
       ...rest,
@@ -108,7 +95,7 @@ export const createCatering = mutation({
       message: `${place} is now open for registration.`,
       cateringId,
       cateringTitle: place,
-      cateringDate: args.dates[0],
+      cateringDate: args.date,
       isRead: false,
       createdAt: Date.now(),
     });
@@ -183,7 +170,7 @@ export const updateCatering = mutation({
         message: `Event at ${sanitized.place || existing.place} is now at ${sanitized.specificTime || existing.specificTime}.`,
         cateringId,
         cateringTitle: sanitized.place || existing.place,
-        cateringDate: existing.dates[0],
+        cateringDate: existing.date,
         isRead: false,
         createdAt: Date.now(),
       });
@@ -225,7 +212,7 @@ export const cancelCatering = mutation({
       message: `The event at ${existing.place} has been cancelled.`,
       cateringId,
       cateringTitle: existing.place,
-      cateringDate: existing.dates[0],
+      cateringDate: existing.date,
       isRead: false,
     });
   },
@@ -295,9 +282,9 @@ export const listCaterings = query({
 
     const cateringsWithStats = [];
     for (const c of all) {
-      const lastDate = new Date(c.dates[c.dates.length - 1]);
-      lastDate.setHours(0, 0, 0, 0);
-      if (c.status !== "cancelled" && lastDate < thirtyDaysAgo) continue;
+      const eventDate = new Date(c.date);
+      eventDate.setHours(0, 0, 0, 0);
+      if (c.status !== "cancelled" && eventDate < thirtyDaysAgo) continue;
 
       let stats = {};
       if (isAdmin) {
@@ -347,7 +334,7 @@ export const refreshStatuses = internalMutation({
     const all = await ctx.db.query("caterings").collect();
     for (const c of all) {
       if (c.status === "cancelled") continue; // never auto-update cancelled
-      const status = computeStatus(c.dates);
+      const status = computeStatus(c.date);
       if (status !== c.status) {
         await ctx.db.patch(c._id, { status });
       }

@@ -113,9 +113,7 @@ export default function MyEvents() {
                   </Link>
                   <p className="text-[13px] font-medium text-stone-500 mt-0.5 flex items-center gap-1.5">
                     <CalendarDays size={13} />
-                    {reg.catering?.isTwoDay
-                      ? `${formatDate(reg.catering.dates[0])} – ${formatDate(reg.catering.dates[1])}`
-                      : reg.catering ? formatDate(reg.catering.dates[0]) : ""}
+                    {reg.catering ? formatDate(reg.catering.date) : ""}
                   </p>
                 </div>
                 {reg.catering && (

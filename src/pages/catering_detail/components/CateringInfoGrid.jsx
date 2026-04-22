@@ -5,13 +5,6 @@ export default function CateringInfoGrid({ catering }) {
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
       <InfoItem icon={<MapPin size={16}/>} label="Pickup" value="Main Gate" />
       <InfoItem icon={<Camera size={16}/>} label="Photo Required" value={catering.photoRequired ? "Yes" : "No"} />
-      {catering.isTwoDay && (
-        <InfoItem
-          icon={<AlertCircle size={16}/>}
-          label="Joining Rule"
-          value={catering.joinRule === "both_days" ? "Both Days" : "Either Day"}
-        />
-      )}
     </div>
   );
 }

@@ -13,7 +13,6 @@ export const register = mutation({
   args: {
     token: v.string(),
     cateringId: v.id("caterings"),
-    days: v.array(v.number()),
     role: v.string(),
     dropPoint: v.string(),
     photoUrl: v.optional(v.string()), // Legacy
@@ -47,18 +46,17 @@ export const register = mutation({
       if (!/^https?:\/\/.+/.test(photoUrl)) throw new ConvexError("Photo URL must be a valid http/https link.");
     }
 
-    // #15: Queue position is per-role per-day
-    const primaryDay = args.days[0];
+    // #15: Queue position is per-role
     const sameRoleRegs = await ctx.db
       .query("registrations")
       .withIndex("by_catering", (q) => q.eq("cateringId", args.cateringId))
       .collect();
     
-    const sameRoleDayRegs = sameRoleRegs.filter((r) => r.role === args.role && r.days.includes(primaryDay));
+    const sameRoleDayRegs = sameRoleRegs.filter((r) => r.role === args.role);
     const maxPos = sameRoleDayRegs.reduce((max, r) => Math.max(max, r.queuePosition || 0), 0);
     const queuePosition = maxPos + 1;
 
-    const slot = catering.slots.find((s) => s.role === args.role && s.day === primaryDay);
+    const slot = catering.slots.find((s) => s.role === args.role);
     
     // Conditional confirmation logic based on limitSlots toggle
     let isConfirmed = true;
@@ -103,7 +101,6 @@ export const register = mutation({
     const registrationId = await ctx.db.insert("registrations", {
       userId: caller._id,
       cateringId: args.cateringId,
-      days: args.days,
       role: args.role,
       dropPoint: sanitizeString(args.dropPoint).slice(0, 100),
       ...(photoUrl ? { photoUrl } : {}),
@@ -270,14 +267,13 @@ export const markAttendance = mutation({
       if (!existingPayment) {
         const reg = await ctx.db.get(registrationId);
         const catering = await ctx.db.get(reg.cateringId);
-        const slot = catering.slots.find(s => s.role === reg.role && s.day === reg.days[0]);
+        const slot = catering.slots.find(s => s.role === reg.role);
         const amount = slot?.pay || 0;
 
         const paymentId = await ctx.db.insert("payments", {
           userId: reg.userId,
           cateringId: reg.cateringId,
           registrationId: reg._id,
-          day: reg.days[0],
           role: reg.role,
           amount: amount,
           method: "cash", // Default to cash, admin can change later
@@ -374,7 +370,7 @@ export const changeRole = mutation({
       
       if (payment && payment.status === "pending") {
         const catering = await ctx.db.get(updatedReg.cateringId);
-        const slot = catering.slots.find(s => s.role === role && s.day === updatedReg.days[0]);
+        const slot = catering.slots.find(s => s.role === role);
         const newAmount = slot?.pay || 0;
 
         if (payment.amount !== newAmount) {
@@ -456,20 +452,20 @@ export const cancelRegistration = mutation({
 
     // #19: Waitlist promotion — only if limitSlots is true
     if (catering?.limitSlots && wasConfirmed) {
-      const slot = catering?.slots.find((s) => s.role === reg.role && s.day === reg.days[0]);
+      const slot = catering?.slots.find((s) => s.role === reg.role);
       if (slot) {
-        // Find all unconfirmed registrations for same role/day, order by queuePosition
+        // Find all unconfirmed registrations for same role, order by queuePosition
         const allRegs = await ctx.db
           .query("registrations")
           .withIndex("by_catering", (q) => q.eq("cateringId", reg.cateringId))
           .collect();
           
         const waitlisted = allRegs
-          .filter((r) => r.role === reg.role && r.days.includes(reg.days[0]) && !r.isConfirmed)
+          .filter((r) => r.role === reg.role && !r.isConfirmed)
           .sort((a, b) => a.queuePosition - b.queuePosition);
 
         const confirmedCount = allRegs.filter(
-          (r) => r.role === reg.role && r.days.includes(reg.days[0]) && r.isConfirmed
+          (r) => r.role === reg.role && r.isConfirmed
         ).length;
 
         if (waitlisted.length > 0 && confirmedCount < slot.limit) {

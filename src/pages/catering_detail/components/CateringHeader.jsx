@@ -15,9 +15,7 @@ export default function CateringHeader({ catering }) {
       <div className="flex flex-wrap items-center gap-4 mt-2 text-[14px] text-stone-500 font-medium">
         <span className="flex items-center gap-1.5">
           <CalendarDays size={16} />
-          {catering.isTwoDay
-            ? `${formatDate(catering.dates[0])} and ${formatDate(catering.dates[1])}`
-            : formatDate(catering.dates[0])}
+          {formatDate(catering.date)}
         </span>
         <span className="flex items-center gap-1.5">
           <Clock size={16} />

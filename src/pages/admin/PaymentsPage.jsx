@@ -64,20 +64,19 @@ export default function PaymentsPage() {
     return !isMember;
   });
 
-  const getPayForRole = (role, day) => {
-    const slot = catering?.slots.find((s) => s.role === role && s.day === day);
+  const getPayForRole = (role) => {
+    const slot = catering?.slots.find((s) => s.role === role);
     return slot?.pay || 0;
   };
 
   const handleCreatePayment = async (reg) => {
-    const pay = getPayForRole(reg.role, reg.days[0]);
+    const pay = getPayForRole(reg.role);
     const method = methods[reg._id] || "cash";
     setSaving((s) => ({ ...s, [reg._id]: true }));
     try {
       await createPayment({
         cateringId: id,
         registrationId: reg._id,
-        day: reg.days[0],
         role: reg.role,
         amount: pay,
         method,
@@ -199,7 +198,7 @@ export default function PaymentsPage() {
           <span className="flex items-center gap-1.5"><MapPin size={16} /> {catering?.place}</span>
           <span className="flex items-center gap-1.5">
             <CalendarDays size={16} /> 
-            {catering ? (catering.isTwoDay ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}` : formatDate(catering.dates[0])) : ""}
+            {catering ? formatDate(catering.date) : ""}
           </span>
         </div>
       </div>
@@ -257,7 +256,7 @@ export default function PaymentsPage() {
         <div className="flex flex-col gap-4">
         {displayRegs.map((reg) => {
           const payment = getPaymentForReg(reg._id);
-          const pay = getPayForRole(reg.role, reg.days[0]);
+          const pay = getPayForRole(reg.role);
           const isLead = payment?.group && payment?.group?.headUserId === reg.userId;
 
           return (
@@ -487,7 +486,7 @@ export default function PaymentsPage() {
                            </div>
                            <div>
                              <p className={`text-[14px] font-bold ${isSelected ? 'text-cream-50' : 'text-stone-900'}`}>{r.user?.name}</p>
-                             <p className={`text-[11px] font-medium ${isSelected ? 'text-cream-200/60' : 'text-stone-400'}`}>{getRoleLabel(r.role)} • {formatCurrency(getPayForRole(r.role, r.days[0]))}</p>
+                             <p className={`text-[11px] font-medium ${isSelected ? 'text-cream-200/60' : 'text-stone-400'}`}>{getRoleLabel(r.role)} • {formatCurrency(getPayForRole(r.role))}</p>
                            </div>
                          </div>
                          {isSelected && <CheckCircle2 size={20} className="text-cream-50" />}
@@ -502,8 +501,8 @@ export default function PaymentsPage() {
                   <p className="text-[13px] font-bold text-stone-500">Members: <span className="text-stone-900">{selectedMembers.length + 1}</span></p>
                   <p className="text-lg font-black text-stone-900">
                     {formatCurrency(
-                      (selectedMembers.reduce((sum, rid) => sum + getPayForRole(registrations.find(r => r._id === rid).role, registrations.find(r => r._id === rid).days[0]), 0)) + 
-                      getPayForRole(groupHead.role, groupHead.days[0])
+                      (selectedMembers.reduce((sum, rid) => sum + getPayForRole(registrations.find(r => r._id === rid).role), 0)) + 
+                      getPayForRole(groupHead.role)
                     )}
                   </p>
                </div>
@@ -556,7 +555,7 @@ export default function PaymentsPage() {
                                   {reg.user?.name}
                                   {isLead && <span className="text-[10px] bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded uppercase font-black">Lead</span>}
                                 </p>
-                                <p className="text-[11px] font-medium text-stone-400">{getRoleLabel(reg.role)} • {formatCurrency(getPayForRole(reg.role, reg.days[0]))}</p>
+                                <p className="text-[11px] font-medium text-stone-400">{getRoleLabel(reg.role)} • {formatCurrency(getPayForRole(reg.role))}</p>
                              </div>
                           </div>
                           

@@ -8,7 +8,6 @@ export const createPayment = mutation({
   args: {
     cateringId: v.id("caterings"),
     registrationId: v.id("registrations"),
-    day: v.number(),
     role: v.string(),
     amount: v.number(),
     method: v.union(v.literal("cash"), v.literal("upi")),

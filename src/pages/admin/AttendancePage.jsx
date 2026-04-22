@@ -87,7 +87,7 @@ export default function AttendancePage() {
             <span className="flex items-center gap-1.5"><MapPin size={16} /> {catering?.place}</span>
             <span className="flex items-center gap-1.5">
               <CalendarDays size={16} /> 
-              {catering ? (catering.isTwoDay ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}` : formatDate(catering.dates[0])) : ""}
+              {catering ? formatDate(catering.date) : ""}
             </span>
           </div>
           <button

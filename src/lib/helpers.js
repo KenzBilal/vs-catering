@@ -59,14 +59,11 @@ export function generateWhatsAppMessage(catering, registrationUrl, siteName = "C
     return `${d.getDate()}-${months[d.getMonth()]}`;
   };
 
-  const headerDate = catering.isTwoDay
-    ? `${formatDateHeader(catering.dates[0])} & ${formatDateHeader(catering.dates[1])}`
-    : formatDateHeader(catering.dates[0]);
+  const headerDate = formatDateHeader(catering.date);
 
   const roles = activeSlots.map((s) => {
     const label = getRoleLabel(s.role);
-    const dayLabel = catering.isTwoDay ? ` (Day ${s.day + 1})` : "";
-    return `*${label}${dayLabel}:* ${s.limit} required — ₹${s.pay}`;
+    return `*${label}:* ${s.limit} required — ₹${s.pay}`;
   });
 
   let dressCode = catering.dressCodeNotes;

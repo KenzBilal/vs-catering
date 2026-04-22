@@ -10,7 +10,7 @@ export default function CateringSlots({ catering, roleCounts }) {
       </div>
       <div className="flex flex-col gap-3">
         {catering.slots.filter(s => s.limit > 0).map((s, i) => {
-          const key = `${s.role}-${s.day}`;
+          const key = s.role;
           const filled = roleCounts[key] || 0;
           const confirmed = Math.min(filled, s.limit);
           const waiting = Math.max(0, filled - s.limit);
@@ -20,11 +20,6 @@ export default function CateringSlots({ catering, roleCounts }) {
               <div>
                 <p className="font-semibold text-[15px] text-stone-900 flex items-center gap-2">
                   {getRoleLabel(s.role)}
-                  {catering.isTwoDay && (
-                    <span className="text-[11px] bg-cream-200 text-stone-600 px-2 py-0.5 rounded-full font-bold">
-                      Day {s.day + 1}
-                    </span>
-                  )}
                 </p>
                 <p className="text-[13px] text-stone-500 font-medium mt-1">
                   <span className={confirmed >= s.limit ? "text-[#1a5c3a]" : ""}>{confirmed}/{s.limit} confirmed</span>

@@ -120,7 +120,7 @@ export default function ManagePayouts() {
                   <div className="min-w-0">
                     <h3 className="font-bold text-[16px] text-stone-900 truncate">{event.place}</h3>
                     <p className="text-[12px] font-medium text-stone-400">
-                      {formatDate(event.dates[0])} {event.isTwoDay ? `– ${formatDate(event.dates[1])}` : ""}
+                      {formatDate(event.date)}
                     </p>
                   </div>
                 </div>

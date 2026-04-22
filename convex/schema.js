@@ -51,14 +51,10 @@ export default defineSchema({
     place: v.string(),
     timeOfDay: v.union(v.literal("day"), v.literal("night")),
     specificTime: v.string(),
-    dates: v.array(v.string()),
-    isTwoDay: v.boolean(),
-    sameSlotsForBothDays: v.boolean(),
-    joinRule: v.union(v.literal("any_day"), v.literal("both_days")),
+    date: v.string(),
     photoRequired: v.boolean(),
     dressCodeNotes: v.string(),
     slots: v.array(v.object({
-      day: v.number(),
       role: v.string(),
       limit: v.number(),
       pay: v.number(),
@@ -88,7 +84,6 @@ export default defineSchema({
   registrations: defineTable({
     userId: v.id("users"),
     cateringId: v.id("caterings"),
-    days: v.array(v.number()),
     role: v.string(),
     dropPoint: v.string(),
     photoUrl: v.optional(v.string()), // Legacy
@@ -119,7 +114,6 @@ export default defineSchema({
     userId: v.id("users"),
     cateringId: v.id("caterings"),
     registrationId: v.id("registrations"),
-    day: v.number(),
     role: v.string(),
     amount: v.number(),
     method: v.union(v.literal("cash"), v.literal("upi")),

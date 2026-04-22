@@ -144,9 +144,6 @@ export default function EditCatering() {
   }
 
 
-  const day0Slots = slots.filter((s) => s.day === 0);
-  const day1Slots = slots.filter((s) => s.day === 1);
-
   return (
     <div style={{ maxWidth: 680 }}>
       <button
@@ -212,7 +209,7 @@ export default function EditCatering() {
         {/* Roles & Pay */}
         <div className="card bg-white p-6">
           <h3 className="font-bold text-[15px] text-stone-800 mb-5">
-            {catering.isTwoDay ? "Roles & Pay (Day 1)" : "Roles & Pay"}
+            Roles & Pay
           </h3>
           
           <div className="mb-6 p-4 bg-stone-50 border border-cream-200 rounded-xl">
@@ -224,16 +221,7 @@ export default function EditCatering() {
             />
           </div>
 
-          <SlotEditor slots={day0Slots} allSlots={slots} updateSlot={updateSlot} />
-
-          {catering.isTwoDay && day1Slots.length > 0 && (
-            <>
-              <h3 className="font-bold text-[15px] text-stone-800 mt-8 mb-5 pt-6 border-t border-cream-100">
-                Roles & Pay (Day 2)
-              </h3>
-              <SlotEditor slots={day1Slots} allSlots={slots} updateSlot={updateSlot} isDay1 />
-            </>
-          )}
+          <SlotEditor slots={slots} updateSlot={updateSlot} />
         </div>
 
         {/* Requirements */}
@@ -278,7 +266,7 @@ export default function EditCatering() {
   );
 }
 
-function SlotEditor({ slots, allSlots, updateSlot, isDay1 = false }) {
+function SlotEditor({ slots, updateSlot }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-[1fr_90px_100px] gap-3">
@@ -286,10 +274,7 @@ function SlotEditor({ slots, allSlots, updateSlot, isDay1 = false }) {
         <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wide text-center">Slots</p>
         <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wide text-center">Pay (₹)</p>
       </div>
-      {slots.map((s) => {
-        const realIndex = allSlots.findIndex(
-          (sl) => sl.role === s.role && sl.day === s.day
-        );
+      {slots.map((s, index) => {
         return (
           <div key={s.role} className="grid grid-cols-[1fr_90px_100px] gap-3 items-center">
             <div className="px-3 py-2.5 bg-cream-50 border border-cream-200 rounded-xl text-[14px] text-stone-700 font-medium">
@@ -299,13 +284,13 @@ function SlotEditor({ slots, allSlots, updateSlot, isDay1 = false }) {
               type="number"
               value={s.limit || ""}
               min={0}
-              onChange={(e) => updateSlot(realIndex, "limit", e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) => updateSlot(index, "limit", e.target.value === "" ? "" : Number(e.target.value))}
             />
             <input
               type="number"
               value={s.pay || ""}
               min={0}
-              onChange={(e) => updateSlot(realIndex, "pay", e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) => updateSlot(index, "pay", e.target.value === "" ? "" : Number(e.target.value))}
             />
           </div>
         );

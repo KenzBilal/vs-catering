@@ -106,9 +106,7 @@ export default function History() {
                   <p className="text-[12.5px] font-medium text-stone-500 flex items-center gap-1.5 mt-0.5">
                     <CalendarDays size={12} />
                     {reg.catering
-                      ? reg.catering.isTwoDay
-                        ? `${formatDate(reg.catering.dates[0])} – ${formatDate(reg.catering.dates[1])}`
-                        : formatDate(reg.catering.dates[0])
+                      ? formatDate(reg.catering.date)
                       : ""}
                   </p>
                 </div>

@@ -63,7 +63,7 @@ export default function CateringDetail() {
 
   const roleCounts = {};
   (registrations || []).forEach((r) => {
-    const key = `${r.role}-${r.days?.[0]}`;
+    const key = r.role;
     roleCounts[key] = (roleCounts[key] || 0) + 1;
   });
 

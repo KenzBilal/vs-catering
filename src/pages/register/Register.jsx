@@ -35,7 +35,6 @@ export default function Register() {
 
   const [role, setRole] = useState("");
   const [dropPoint, setDropPoint] = useState(user?.defaultDropPoint || "Main Gate");
-  const [selectedDays, setSelectedDays] = useState([0]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -72,13 +71,6 @@ export default function Register() {
     return false;
   });
 
-  const daysToRegister = catering.isTwoDay && catering.joinRule === "both_days" ? [0, 1] : selectedDays;
-
-  const handleDayToggle = (day) => {
-    if (catering.joinRule === "both_days") return;
-    setSelectedDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
-    if(errors.days) setErrors(e=>({...e, days:""}));
-  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -97,7 +89,6 @@ export default function Register() {
     const newErrors = {};
 
     if (!role) { newErrors.role = "Please select a role."; hasError = true; }
-    if (daysToRegister.length === 0) { newErrors.days = "Please select at least one day."; hasError = true; }
     if (catering.photoRequired && !selectedFile && !user?.photoStorageId) {
       newErrors.photo = "Please upload a photo to register."; hasError = true;
     }
@@ -126,7 +117,6 @@ export default function Register() {
       await registerMutation({
         token,
         cateringId: id,
-        days: daysToRegister,
         role,
         dropPoint,
         ...(photoStorageId ? { photoStorageId } : {}),
@@ -175,7 +165,7 @@ export default function Register() {
         <p className="text-[14.5px] font-medium text-stone-500 flex items-center gap-1.5">
           <MapPin size={16} className="text-stone-400" />
           {catering.place} <span className="mx-1">•</span>
-          {catering.isTwoDay ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}` : formatDate(catering.dates[0])}
+          {formatDate(catering.date)}
         </p>
       </div>
 
@@ -190,13 +180,6 @@ export default function Register() {
         />
 
         <DressCodeWheel catering={catering} selectedRole={role} />
-
-        <DaySelector 
-          catering={catering} 
-          selectedDays={selectedDays} 
-          handleDayToggle={handleDayToggle} 
-          errors={errors} 
-        />
 
         <div>
           <label className="label">Drop Point</label>

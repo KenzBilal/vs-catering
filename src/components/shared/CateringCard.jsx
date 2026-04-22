@@ -16,9 +16,7 @@ export default function CateringCard({ catering }) {
             <div className="flex flex-wrap items-center gap-3 text-[13px] font-medium text-stone-500">
               <span className="flex items-center gap-1.5">
                 <CalendarDays size={14} />
-                {catering.isTwoDay
-                  ? `${formatDate(catering.dates[0])} – ${formatDate(catering.dates[1])}`
-                  : formatDate(catering.dates[0])}
+                {formatDate(catering.date)}
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock size={14} />
@@ -31,7 +29,6 @@ export default function CateringCard({ catering }) {
 
         <div className="pt-4 border-t border-cream-100 flex flex-wrap gap-2">
           {catering.slots
-            .filter((s) => s.day === 0)
             .map((s, i) => (
               <div
                 key={i}

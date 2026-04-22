@@ -214,9 +214,7 @@ export default function AdminDashboard() {
                     <div className="min-w-0">
                       <p className="font-bold text-[14.5px] text-stone-900 truncate group-hover:text-stone-800 transition-colors">{c.place}</p>
                       <p className="text-[12.5px] font-medium text-stone-500 mt-0.5">
-                        {c.isTwoDay
-                          ? `${formatDate(c.dates[0])} – ${formatDate(c.dates[1])}`
-                          : formatDate(c.dates[0])}
+                        {formatDate(c.date)}
                         <span className="mx-1.5">·</span>{formatTime12h(c.specificTime)}
                       </p>
                       <div className="flex gap-2.5 mt-2">

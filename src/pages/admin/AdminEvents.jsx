@@ -127,7 +127,6 @@ export default function AdminEvents() {
       <div className="flex flex-col gap-3">
         {filtered.map((c) => {
           const totalSlots = c.slots
-            .filter((s) => s.day === 0)
             .reduce((sum, s) => sum + s.limit, 0);
 
           return (
@@ -144,9 +143,7 @@ export default function AdminEvents() {
                   <div className="flex flex-wrap items-center gap-4 text-[13px] font-medium text-stone-500">
                     <span className="flex items-center gap-1.5">
                       <CalendarDays size={14} />
-                      {c.isTwoDay
-                        ? `${formatDate(c.dates[0])} – ${formatDate(c.dates[1])}`
-                        : formatDate(c.dates[0])}
+                      {formatDate(c.date)}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Clock size={14} /> {formatTime12h(c.specificTime)}
@@ -170,7 +167,7 @@ export default function AdminEvents() {
                   {/* Role pay summary */}
                   <div className="flex flex-wrap gap-2 mt-3">
                     {c.slots
-                      .filter((s) => s.day === 0 && s.limit > 0)
+                      .filter((s) => s.limit > 0)
                       .map((s, i) => (
                         <span
                           key={i}
