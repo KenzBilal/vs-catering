@@ -2,7 +2,7 @@ import { v, ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin, getUserFromToken, checkPermission } from "./auth";
 
-import { sanitizeString, validatePhone, validateRegistrationNumber, validateEmail } from "./utils";
+import { sanitizeString, validatePhone, validateEmail } from "./utils";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const RATE_LIMIT_MAX = 5;
@@ -26,7 +26,6 @@ export const createUser = mutation({
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     gender: v.union(v.literal("male"), v.literal("female")),
     defaultDropPoint: v.string(),
-    registrationNumber: v.optional(v.string()),
     rememberMe: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -35,10 +34,6 @@ export const createUser = mutation({
 
     const phone = args.phone.replace(/\D/g, "").slice(-10);
     if (!validatePhone(phone)) throw new ConvexError("Enter a valid 10-digit mobile number.");
-
-    if (args.registrationNumber && !validateRegistrationNumber(args.registrationNumber)) {
-      throw new ConvexError("Enter a valid 8-digit registration number.");
-    }
 
     const name = sanitizeString(args.name).slice(0, 50);
     if (name.length < 2) throw new ConvexError("Name is too short.");
@@ -56,10 +51,9 @@ export const createUser = mutation({
       stayType: args.stayType,
       gender: args.gender,
       defaultDropPoint: sanitizeString(args.defaultDropPoint).slice(0, 100),
-      registrationNumber: args.registrationNumber,
       role: "student",
       createdAt: Date.now(),
-      emailVerified: false, // New field
+      emailVerified: false, 
     });
 
     const user = await ctx.db.get(userId);
@@ -133,7 +127,7 @@ export const loginUser = mutation({
       return { _id: user._id, email: user.email, emailVerified: false };
     }
 
-    // #25: Delete old sessions for this user to prevent session pile-up
+    // Delete old sessions for this user to prevent session pile-up
     const oldSessions = await ctx.db
       .query("sessions")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
@@ -143,7 +137,6 @@ export const loginUser = mutation({
     }
 
     const token = makeToken();
-    // #8: Flexible session expiry
     const duration = rememberMe ? 1000 * 60 * 60 * 24 * 30 : 1000 * 60 * 60 * 24;
     const expiresAt = Date.now() + duration;
     await ctx.db.insert("sessions", { userId: user._id, token, expiresAt });
@@ -164,7 +157,7 @@ export const logoutUser = mutation({
   },
 });
 
-// #13: Admin mutation to delete a user with cascade session cleanup
+// Admin mutation to delete a user with cascade session cleanup
 export const deleteUser = mutation({
   args: { userId: v.id("users"), token: v.string() },
   handler: async (ctx, { userId, token }) => {
@@ -221,7 +214,6 @@ export const getUser = query({
     const caller = await getUserFromToken(ctx, token);
     if (!caller) throw new ConvexError("Unauthorized");
 
-    // Only allow self or admin/sub-admin
     let canViewAll = false;
     try {
       await checkPermission(ctx, token, "manage_users");
@@ -237,7 +229,6 @@ export const getUser = query({
     const user = await ctx.db.get(userId);
     if (!user) return null;
 
-    // Filter sensitive fields for sub-admins if they are viewing others
     if (caller.role === "sub_admin" && caller._id !== userId) {
       return {
         _id: user._id,
@@ -253,7 +244,7 @@ export const getUser = query({
   },
 });
 
-// ─── updatePreferences — derives userId from token (fixes #2) ────────────────
+// ─── updatePreferences ────────────────
 
 export const updatePreferences = mutation({
   args: {
@@ -261,26 +252,15 @@ export const updatePreferences = mutation({
     defaultDropPoint: v.string(),
     stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
     photoStorageId: v.optional(v.id("_storage")),
-    registrationNumber: v.optional(v.string()),
   },
-  handler: async (ctx, { token, defaultDropPoint, stayType, photoStorageId, registrationNumber }) => {
-    // Derive userId server-side — never trust client
+  handler: async (ctx, { token, defaultDropPoint, stayType, photoStorageId }) => {
     const caller = await getUserFromToken(ctx, token);
     if (!caller) throw new ConvexError("Not authenticated.");
 
-    // Helper for role checks
-    const isAdmin = caller.role === "admin" || caller.role === "sub_admin";
-
-    if (registrationNumber && !validateRegistrationNumber(registrationNumber)) {
-      throw new ConvexError("Enter a valid 8-digit registration number.");
-    }
-
-    // If new photo provided, delete the old one to save space
     if (photoStorageId && caller.photoStorageId && photoStorageId !== caller.photoStorageId) {
       try {
         await ctx.storage.delete(caller.photoStorageId);
       } catch (e) {
-        // Ignore errors if the file was already gone
         console.error("Failed to delete old photo:", e);
       }
     }
@@ -289,7 +269,6 @@ export const updatePreferences = mutation({
       defaultDropPoint: sanitizeString(defaultDropPoint).slice(0, 100),
       stayType,
       ...(photoStorageId ? { photoStorageId } : {}),
-      registrationNumber,
     });
   },
 });
@@ -307,7 +286,6 @@ export const setUserRole = mutation({
     await requireAdmin(ctx, token);
     await ctx.db.patch(userId, { role });
     
-    // Notify the user about the role change
     const user = await ctx.db.get(userId);
     await ctx.db.insert("notifications", {
       type: "role",
@@ -341,7 +319,7 @@ export const updateAdminPreferences = mutation({
   },
 });
 
-// ─── getAllStudents — authenticated + students only (fixes #1 #22) ─────────────
+// ─── getAllStudents ─────────────
 
 
 export const getAllStudents = query({
@@ -350,17 +328,12 @@ export const getAllStudents = query({
     const caller = await checkPermission(ctx, token, "manage_users");
     
     const users = await ctx.db.query("users").collect();
-    // #5: Sub-admins only see students to protect admin PII
     if (caller.role === "sub_admin") {
       return users.filter((u) => u.role === "student");
     }
     return users;
   },
 });
-
-// ─── resolveLoginEmail — resolves phone or email identifier for Firebase login ─
-// Uses indexed lookup for performance (#13) and returns only the email string,
-// not the full user object, to minimise data exposure (#7)
 
 // #9: Pre-check for existing account to avoid orphaned Firebase accounts
 export const checkUserExists = query({

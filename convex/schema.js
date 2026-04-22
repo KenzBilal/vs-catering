@@ -11,7 +11,6 @@ export default defineSchema({
     defaultDropPoint: v.string(),
     photoStorageId: v.optional(v.union(v.id("_storage"), v.null())),
 
-    registrationNumber: v.optional(v.string()),
     role: v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student")),
     lastReadNotificationsAt: v.optional(v.number()),
     adminPreferences: v.optional(v.object({

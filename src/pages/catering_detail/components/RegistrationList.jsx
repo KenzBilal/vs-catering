@@ -27,7 +27,6 @@ export default function RegistrationList({ registrations, isAdmin, setViewUser }
                   photo: r.photoStorageId || r.user?.photoStorageId,
                   phone: r.user?.phone,
                   stayType: r.user?.stayType,
-                  registrationNumber: r.user?.registrationNumber
                 })}
                 className="flex items-center gap-3 p-2.5 rounded-xl border border-cream-100 hover:border-stone-300 hover:bg-white transition-all text-left group"
               >

@@ -44,6 +44,7 @@ export default function SettingsMenu() {
       icon: <Layout size={20} className="text-stone-400" />,
       href: "/admin/settings/branding",
       color: "bg-purple-50",
+      superAdminOnly: true,
     },
     {
       id: "drop-points",
@@ -52,8 +53,8 @@ export default function SettingsMenu() {
       icon: <MapPin size={20} className="text-stone-400" />,
       href: "/admin/settings/drop-points",
       color: "bg-orange-50",
+      superAdminOnly: true,
     },
-
     {
       id: "sub-admins",
       title: "Sub-Admins",
@@ -61,6 +62,7 @@ export default function SettingsMenu() {
       icon: <ShieldCheck size={20} className="text-stone-400" />,
       href: "/admin/settings/sub-admins",
       color: "bg-blue-50",
+      superAdminOnly: true,
     },
     {
       id: "payouts",
@@ -69,6 +71,7 @@ export default function SettingsMenu() {
       icon: <IndianRupee size={20} className="text-stone-400" />,
       href: "/admin/settings/payouts",
       color: "bg-stone-50",
+      superAdminOnly: true,
     },
     {
       id: "interface",
@@ -80,6 +83,8 @@ export default function SettingsMenu() {
     },
   ];
 
+  const filteredOptions = options.filter(opt => !opt.superAdminOnly || user?.role === "admin");
+
   return (
     <div className="pb-12">
       <div className="mb-8">
@@ -87,7 +92,7 @@ export default function SettingsMenu() {
       </div>
 
       <div className="grid gap-3 max-w-2xl">
-        {options.map((opt) => (
+        {filteredOptions.map((opt) => (
           <Link
             key={opt.id}
             to={opt.href}

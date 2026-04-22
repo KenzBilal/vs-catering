@@ -19,7 +19,9 @@ import AdminShell   from "./components/admin/AdminShell";
 import Dashboard    from "./pages/home/Home";
 import MyEvents     from "./pages/my_events/MyEvents";
 import History      from "./pages/history/History";
-import Settings     from "./pages/settings/Settings";
+import SettingsMenuStudent from "./pages/settings/SettingsMenu";
+import PersonalSettingsStudent from "./pages/settings/PersonalSettings";
+import PreferenceSettings from "./pages/settings/PreferenceSettings";
 import CateringDetail from "./pages/catering_detail/CateringDetail";
 import Register     from "./pages/register/Register";
 import NotificationsPage from "./pages/notifications/NotificationsPage";
@@ -154,7 +156,9 @@ function AppRoutes() {
       <Route path="/"           element={isAdmin ? <Navigate to="/admin" replace /> : <StudentPage page={<Dashboard />} />} />
       <Route path="/my-events"  element={<StudentPage page={<MyEvents />} />} />
       <Route path="/history"    element={<StudentPage page={<History />} />} />
-      <Route path="/settings"   element={<StudentPage page={<Settings />} />} />
+      <Route path="/settings"   element={<StudentPage page={<SettingsMenuStudent />} />} />
+      <Route path="/settings/personal" element={<StudentPage page={<PersonalSettingsStudent />} />} />
+      <Route path="/settings/preferences" element={<StudentPage page={<PreferenceSettings />} />} />
       <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
       {/* These stay outside shell (full-page detail views) */}
@@ -175,7 +179,7 @@ function AppRoutes() {
       <Route path="/admin/users"                    element={<ProtectedAdminRoute permission="manage_users"><AdminUsers /></ProtectedAdminRoute>} />
       
       {/* Settings Sub-Routes (Super Admin Only) */}
-      <Route path="/admin/settings"             element={<ProtectedRoute superAdminOnly><AdminShell><SettingsMenu /></AdminShell></ProtectedRoute>} />
+      <Route path="/admin/settings"             element={<ProtectedRoute adminOnly><AdminShell><SettingsMenu /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/drop-points" element={<ProtectedRoute superAdminOnly><AdminShell><ManageDropPoints /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/personal"    element={<ProtectedRoute adminOnly><AdminShell><PersonalSettings /></AdminShell></ProtectedRoute>} />
       <Route path="/admin/settings/sub-admins"  element={<ProtectedRoute superAdminOnly><AdminShell><ManageSubAdmins /></AdminShell></ProtectedRoute>} />

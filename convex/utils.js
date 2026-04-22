@@ -12,16 +12,6 @@ export function sanitizeString(str) {
 }
 
 /**
- * Validates a registration number (8 digits, no repeating all same digits).
- */
-export function validateRegistrationNumber(regNum) {
-  if (!regNum) return true; // Optional field
-  if (!/^\d{8}$/.test(regNum)) return false;
-  if (/^(\d)\1{7}$/.test(regNum)) return false; // Prevents 11111111, 22222222, etc.
-  return true;
-}
-
-/**
  * Validates a phone number (10 digits).
  */
 export function validatePhone(phone) {

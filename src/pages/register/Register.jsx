@@ -137,7 +137,6 @@ export default function Register() {
           token,
           defaultDropPoint: dropPoint,
           stayType: user.stayType,
-          registrationNumber: user.registrationNumber,
         });
         login({ ...user, defaultDropPoint: dropPoint, photoStorageId: photoStorageId || user.photoStorageId });
       } catch (prefErr) {

@@ -34,9 +34,6 @@ export default function UserProfileModal({ viewUser, setViewUser }) {
           
           <div className="mt-8 flex flex-col gap-3">
             <ModalRow icon={<Phone size={16}/>} label="Phone" value={viewUser.phone} />
-            {viewUser.registrationNumber && (
-              <ModalRow icon={<Hash size={16}/>} label="Reg Number" value={viewUser.registrationNumber} />
-            )}
             <ModalRow 
               icon={viewUser.stayType === "hostel" ? <Home size={16}/> : <MapPin size={16}/>} 
               label="Accommodation" 
