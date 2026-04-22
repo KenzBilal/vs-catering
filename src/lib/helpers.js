@@ -61,12 +61,10 @@ export function generateWhatsAppMessage(catering, registrationUrl, siteName = "C
     const d = new Date(dStr);
     if (isNaN(d.getTime())) return "N/A";
     const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const day = d.getDate();
-    const month = months[d.getMonth()];
-    return `${day}-${month}`;
+    return `${d.getDate()}-${months[d.getMonth()]}`;
   };
 
-  const headerDate = formatDateHeader(catering.date);
+  const headerDate = formatDateHeader(catering.date || (catering.dates && catering.dates[0]));
 
   const roles = activeSlots.map((s) => {
     const label = getRoleLabel(s.role);
