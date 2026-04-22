@@ -17,7 +17,6 @@ export function AuthProvider({ children }) {
   });
 
   const [firebaseUser, setFirebaseUser] = useState(null);
-  // #26: Track whether we are still waiting for server validation
   const [serverValidated, setServerValidated] = useState(false);
 
   const validUser = useQuery(
@@ -51,17 +50,15 @@ export function AuthProvider({ children }) {
     }
 
     if (validUser === null && storedUser !== null) {
-      // Token is invalid/expired, clear storage
       setStoredUser(null);
       localStorage.removeItem("vs_user");
       sessionStorage.removeItem("vs_user");
     }
   }, [validUser, permissions, storedUser]);
 
-  // #26: Use server-validated user data once available, fallback to stored only during loading
   const user = serverValidated
     ? (validUser ? { ...validUser, token: storedUser?.token } : null)
-    : storedUser; // show stored data while loading to avoid flicker
+    : storedUser; 
 
   const login = (userData, rememberMe) => {
     setStoredUser(userData);
@@ -73,7 +70,6 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    // #18: Sign out from Firebase so the Firebase session is cleared too
     try {
       await signOut(auth);
     } catch (e) {
@@ -92,7 +88,12 @@ export function AuthProvider({ children }) {
   };
 
   const resetPassword = async (email) => {
-    return await sendPasswordResetEmail(auth, email);
+    const actionCodeSettings = {
+      // Ensure the reset link points back to our custom ResetPassword page
+      url: `${window.location.origin}/reset-password`,
+      handleCodeInApp: true,
+    };
+    return await sendPasswordResetEmail(auth, email, actionCodeSettings);
   };
 
   const isGoogleUser = firebaseUser?.providerData?.some(p => p.providerId === "google.com");
