@@ -52,36 +52,45 @@ export function formatCurrency(amount) {
 
 export function generateWhatsAppMessage(catering, registrationUrl, siteName = "Catering") {
   const activeSlots = catering.slots.filter(s => Number(s.limit) > 0);
+  
+  const formatDateHeader = (dStr) => {
+    const d = new Date(dStr);
+    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    return `${d.getDate()}-${months[d.getMonth()]}`;
+  };
+
+  const headerDate = catering.isTwoDay
+    ? `${formatDateHeader(catering.dates[0])} & ${formatDateHeader(catering.dates[1])}`
+    : formatDateHeader(catering.dates[0]);
+
   const roles = activeSlots.map((s) => {
     const label = getRoleLabel(s.role);
     const dayLabel = catering.isTwoDay ? ` (Day ${s.day + 1})` : "";
-    return `${label}${dayLabel}: ${s.limit} required — ${formatCurrency(s.pay)} per person`;
+    return `*${label}${dayLabel}:* ${s.limit} required — ₹${s.pay}`;
   });
 
+  let dressCode = catering.dressCodeNotes;
+  // Bold standard labels in dress code if they exist at start of lines
+  ["Service Boy", "Service Girl", "Captain", "Service Staff"].forEach(label => {
+    const reg = new RegExp(`^${label}:`, 'gm');
+    dressCode = dressCode.replace(reg, `*${label}:*`);
+  });
 
-  const dateStr = catering.isTwoDay
-    ? `${formatDate(catering.dates[0])} and ${formatDate(catering.dates[1])}`
-    : formatDate(catering.dates[0]);
+  return `*${siteName} — (${headerDate})*
 
-  return `${siteName} — New Work Posted
+*Place:* ${catering.place}
+*Time:* ${formatTime12h(catering.specificTime)} (${getTimeOfDayLabel(catering.timeOfDay)})
+*Pickup:* Main Gate
 
-Place: ${catering.place}
-Date: ${dateStr}
-Time: ${formatTime12h(catering.specificTime)} (${getTimeOfDayLabel(catering.timeOfDay)})
-Pickup: Main Gate
-
-Roles and Pay:
+*Roles and Pay:*
 ${roles.join("\n")}
 
-Dress Code:
-${catering.dressCodeNotes}
+*Dress Code;*
+${dressCode}
 
-Photo required: ${catering.photoRequired ? "Yes" : "No"}
+*Photo required:* ${catering.photoRequired ? "Yes" : "No"}
 
-Register here: ${registrationUrl}
-
-Register on the website to confirm your spot. First ${activeSlots.length > 0 ? Math.min(...activeSlots.map((s) => s.limit)) : 0} per role are confirmed. Others go on waiting list.`;
-
+*Register here:* ${registrationUrl}`;
 }
 
 
