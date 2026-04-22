@@ -91,7 +91,13 @@ export default function AttendancePage() {
             </span>
           </div>
           <button
-            onClick={() => navigate("/admin/settings/payouts")}
+            onClick={() => {
+              if (catering?.status !== "ended") {
+                toast.error("You can only schedule payouts for events that have ended.");
+                return;
+              }
+              navigate(`/admin/settings/payouts?eventId=${id}`);
+            }}
             className="flex items-center gap-1.5 text-[12px] font-bold text-[#8b3a00] bg-[#fdf0e6] px-3 py-1.5 rounded-xl border border-[#f5d0aa] hover:bg-white transition-all active:scale-95"
           >
             <IndianRupee size={14} /> Schedule Payout

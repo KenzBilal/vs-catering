@@ -106,7 +106,7 @@ export default function CateringDetail() {
         />
       )}
 
-      <AdminActionButtons id={id} navigate={navigate} isAdmin={isAdmin} role={user?.role} />
+      <AdminActionButtons id={id} navigate={navigate} isAdmin={isAdmin} role={user?.role} catering={catering} />
 
       <RegistrationList registrations={registrations} isAdmin={isAdmin} setViewUser={setViewUser} />
 
