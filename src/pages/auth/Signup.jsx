@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useConvex } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate, Link } from "react-router-dom";
-import { UserPlus, Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
+import { UserPlus, Mail, Lock, User, Phone, ArrowRight, Loader2 } from "lucide-react";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import { isValidEmail, isValidPhone } from "../../lib/helpers";
 import { auth } from "../../lib/firebase";
@@ -57,64 +57,67 @@ export default function Signup() {
     
     setLoading(true);
     try {
-      // #9: Pre-check in Convex before calling Firebase to minimize orphaned accounts
+      // 1. Pre-check in Convex to avoid duplicate records
       const check = await convex.query(api.users.checkUserExists, { 
         email: form.email.toLowerCase().trim(),
         phone: form.phone.trim()
       });
       
       if (check.exists) {
-        setErrors({ [check.reason]: `This ${check.reason} is already registered.` });
+        const field = check.reason || "email";
+        const msg = `This ${field} is already registered.`;
+        setErrors({ [field]: msg });
+        toast.error(msg);
         setLoading(false);
         return;
       }
 
       const normalizedEmail = form.email.toLowerCase().trim();
 
-      // 1. Create account in Firebase
-      const firebaseUserCred = await createUserWithEmailAndPassword(auth, normalizedEmail, form.password);
-
-      // 2. Create user in Convex — if this fails, roll back Firebase account
-      const { password, ...userData } = form;
-      let result;
+      // 2. Create account in Firebase
+      let firebaseUserCred;
       try {
-        result = await createUserMutation(userData);
+        firebaseUserCred = await createUserWithEmailAndPassword(auth, normalizedEmail, form.password);
+      } catch (fbErr) {
+        if (fbErr.code === "auth/email-already-in-use") {
+          const msg = "This email is already registered. Please sign in instead.";
+          setErrors({ email: msg });
+          toast.error(msg);
+        } else {
+          toast.error(fbErr.message || "Authentication service error.");
+        }
+        setLoading(false);
+        return;
+      }
+
+      // 3. Create user in Convex
+      try {
+        const { password, ...userData } = form;
+        await createUserMutation(userData);
       } catch (convexErr) {
-        // #29: Rollback — delete Firebase account so the email is freed
+        // Rollback Firebase account if Convex fails to keep them in sync
         try { await deleteUser(firebaseUserCred.user); } catch (_) {}
         throw convexErr;
       }
-      toast.success("Account created successfully!");
-      
-      // 3. Send verification link via Firebase (redirects to in-app verify page)
+
+      // 4. Send verification email
       try {
-        if (firebaseUserCred.user) {
-          const actionCodeSettings = {
-            url: `${APP_BASE_URL}/verify-email?email=${encodeURIComponent(normalizedEmail)}`,
-            handleCodeInApp: true,
-          };
-          await sendEmailVerification(firebaseUserCred.user, actionCodeSettings);
-        }
+        const actionCodeSettings = {
+          // Point back to the current origin to ensure the link works in the current environment
+          url: `${window.location.origin}/verify-email?email=${encodeURIComponent(normalizedEmail)}`,
+          handleCodeInApp: true,
+        };
+        await sendEmailVerification(firebaseUserCred.user, actionCodeSettings);
+        toast.success("Account created! Verification email sent.");
       } catch (emailErr) {
-        console.error("Failed to send verification email:", emailErr);
+        console.error("Verification email failed:", emailErr);
+        toast.error("Account created, but verification email failed to send. You can try again from the verification page.");
       }
 
       navigate(`/verify-email?email=${encodeURIComponent(normalizedEmail)}`, { replace: true });
     } catch (e) {
-      console.error("Signup Error Object:", e);
-      const errorCode = e.code || "";
-      let msg = e.message || "Failed to create account.";
-      
-      if (errorCode === "auth/email-already-in-use") msg = "This email is already registered in Firebase. Delete the old account from Firebase Console → Authentication → Users first, then retry.";
-      if (errorCode === "auth/invalid-email") msg = "Invalid email address.";
-      if (errorCode === "auth/weak-password") msg = "Password is too weak. Use at least 6 characters.";
-      if (errorCode === "auth/operation-not-allowed") msg = "Email/Password sign-in is not enabled. Go to Firebase Console → Authentication → Sign-in method → Enable Email/Password.";
-      
-      const rawMsg = e.data || e.message || "";
-      if (typeof rawMsg === "string" && rawMsg.includes("ConvexError:")) {
-        msg = rawMsg.split("ConvexError:")[1].trim();
-      }
-      
+      const rawMsg = e.data || e.message || "Failed to create account.";
+      const msg = typeof rawMsg === "string" ? rawMsg.replace(/.*ConvexError:\s*/, "") : "Registration error.";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -255,7 +258,12 @@ export default function Signup() {
               className="btn-primary w-full py-3.5 mt-2 text-[15px]"
               disabled={loading}
             >
-              {loading ? "Creating Account..." : (
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 size={18} className="animate-spin" />
+                  Creating Account...
+                </div>
+              ) : (
                 <>
                   Get Started <ArrowRight size={18} />
                 </>

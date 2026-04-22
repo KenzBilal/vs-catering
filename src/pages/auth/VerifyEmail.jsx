@@ -7,7 +7,6 @@ import { auth } from "../../lib/firebase";
 import { sendEmailVerification, reload, applyActionCode } from "firebase/auth";
 import toast from "react-hot-toast";
 import { useAuth } from "../../lib/AuthContext";
-import { APP_BASE_URL } from "../../lib/appUrl";
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
@@ -16,14 +15,6 @@ export default function VerifyEmail() {
   const oobCode = searchParams.get("oobCode");
   const mode = searchParams.get("mode");
   const continueUrl = searchParams.get("continueUrl");
-  const emailFromContinueUrl = (() => {
-    if (!continueUrl) return null;
-    try {
-      return new URL(continueUrl, APP_BASE_URL).searchParams.get("email");
-    } catch {
-      return null;
-    }
-  })();
   const { login } = useAuth();
 
   const [loading, setLoading] = useState(false);
@@ -50,8 +41,6 @@ export default function VerifyEmail() {
             await reload(auth.currentUser);
           }
           
-          // If user is still signed in, sync with Convex and auto-login.
-          // Otherwise, verification succeeded and user can log in manually.
           const userEmail = auth.currentUser?.email;
           if (userEmail) {
             const result = await loginUserMutation({ 
@@ -143,9 +132,9 @@ export default function VerifyEmail() {
     setResending(true);
     try {
       if (auth.currentUser) {
-        const resendEmail = auth.currentUser.email || emailFromUrl || emailFromContinueUrl;
+        const resendEmail = auth.currentUser.email || emailFromUrl;
         const actionCodeSettings = {
-          url: `${APP_BASE_URL}/verify-email${resendEmail ? `?email=${encodeURIComponent(resendEmail)}` : ""}`,
+          url: `${window.location.origin}/verify-email${resendEmail ? `?email=${encodeURIComponent(resendEmail)}` : ""}`,
           handleCodeInApp: true,
         };
         await sendEmailVerification(auth.currentUser, actionCodeSettings);
@@ -157,7 +146,7 @@ export default function VerifyEmail() {
       }
     } catch (err) {
       console.error("Resend Error:", err);
-      toast.error("Failed to resend link.");
+      toast.error("Failed to resend link. Please try again in a few minutes.");
     } finally {
       setResending(false);
     }
@@ -177,7 +166,6 @@ export default function VerifyEmail() {
     );
   }
 
-  // Show loading while processing verification code from email link
   if (processingCode || (loading && oobCode)) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-cream-bg">
@@ -205,7 +193,7 @@ export default function VerifyEmail() {
           <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Verify Your Email</h1>
           <p className="text-[14.5px] text-stone-500 mt-1 font-medium text-center px-4">
             We've sent a verification link to <br />
-            <span className="text-stone-900 font-bold">{auth.currentUser?.email || emailFromUrl || emailFromContinueUrl || "your email"}</span>
+            <span className="text-stone-900 font-bold">{auth.currentUser?.email || emailFromUrl || "your email"}</span>
           </p>
         </div>
 

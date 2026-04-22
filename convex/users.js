@@ -370,9 +370,12 @@ export const checkUserExists = query({
     const cleanPhone = phone.replace(/\D/g, "").slice(-10);
     
     const byEmail = await ctx.db.query("users").withIndex("by_email", (q) => q.eq("email", cleanEmail)).first();
+    if (byEmail) return { exists: true, reason: "email" };
+
     const byPhone = await ctx.db.query("users").withIndex("by_phone", (q) => q.eq("phone", cleanPhone)).first();
+    if (byPhone) return { exists: true, reason: "phone" };
     
-    return { exists: !!(byEmail || byPhone) };
+    return { exists: false };
   },
 });
 
