@@ -52,7 +52,7 @@ export async function checkPermission(ctx, token, permissionKey) {
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .first();
     
-    if (!settings) return user; // Fallback to basic access if not initialized
+    if (!settings) throw new ConvexError("System settings not initialized. Access denied.");
     
     const perm = settings.subAdminPermissions.find(p => p.permission === permissionKey);
     if (perm && perm.enabled) return user;

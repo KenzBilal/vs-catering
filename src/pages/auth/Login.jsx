@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -11,17 +11,15 @@ import ConvexImage from "../../components/shared/ConvexImage";
 
 
 export default function Login() {
-  const { login } = useAuth();
+  const { auth, login, siteSettings } = useAuth();
   const navigate = useNavigate();
-
   const [identifier, setIdentifier] = useState(""); // phone or email
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [rememberMe, setRememberMe] = useState(true);
-
-  const loginUserMutation = useMutation(api.users.loginUser);
+  const loginUserAction = useAction(api.auth_actions.verifyAndLogin);
 
   // Detect if the user typed a phone number (10 digits) or email
   const isPhone = /^\d{10}$/.test(identifier.replace(/\D/g, ""));
@@ -76,13 +74,13 @@ export default function Login() {
     setLoading(true);
     try {
       // 1. Authenticate with Firebase using the resolved email
-      await signInWithEmailAndPassword(auth, firebaseEmail, password);
+      const userCred = await signInWithEmailAndPassword(auth, firebaseEmail, password);
+      const idToken = await userCred.user.getIdToken();
 
-      // 2. Create a session in Convex — pass verification status
-      const result = await loginUserMutation({ 
-        email: firebaseEmail, 
+      // 2. Create a session in Convex — pass ID Token for verification
+      const result = await loginUserAction({ 
+        idToken,
         rememberMe,
-        firebaseVerified: auth.currentUser?.emailVerified 
       });
 
       if (result === null) {
@@ -124,22 +122,18 @@ export default function Login() {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
 
-      const credential = await signInWithPopup(auth, provider);
-      const email = credential.user?.email?.toLowerCase().trim();
-      const name = credential.user?.displayName?.trim() || "";
+      const userCred = await signInWithPopup(auth, provider);
+      const idToken = await userCred.user.getIdToken();
 
-      if (!email) {
-        throw new Error("No email found for selected Google account.");
-      }
-
-      const result = await loginUserMutation({
-        email,
-        rememberMe,
-        firebaseVerified: true,
+      const result = await loginUserAction({ 
+        idToken,
+        rememberMe: true, 
       });
 
       if (result === null) {
         toast.success("Google account verified. Complete your profile to continue.");
+        const email = userCred.user?.email?.toLowerCase().trim();
+        const name = userCred.user?.displayName?.trim() || "";
         navigate(`/complete-profile?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`, { replace: true });
         return;
       }
@@ -172,129 +166,136 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-cream-bg">
-      <div className="w-full max-w-md animate-slide-up">
-        <div className="flex flex-col items-center mb-8">
-          {siteSettings?.siteLogo ? (
-            <div className="w-12 h-12 rounded-2xl overflow-hidden mb-4 shadow-lg border border-stone-100">
-              <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
-            </div>
-          ) : (
-            <div className="w-12 h-12 bg-stone-900 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-stone-900/20">
-              <Utensils className="text-cream-50" size={24} />
-            </div>
-          )}
-          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
-            {siteSettings?.siteName ? `Welcome to ${siteSettings.siteName}` : "Welcome Back"}
+      <div className="w-full max-w-md animate-fade-in">
+        <div className="flex flex-col items-center mb-10">
+          <div className="relative">
+            {siteSettings?.siteLogo ? (
+              <div className="w-16 h-16 rounded-[24px] overflow-hidden mb-6 shadow-2xl shadow-stone-200 border-2 border-white ring-1 ring-stone-100 animate-scale-up">
+                <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
+              </div>
+            ) : siteSettings === undefined ? (
+              <div className="w-16 h-16 bg-stone-100 rounded-[24px] mb-6 animate-pulse" />
+            ) : (
+              <div className="w-16 h-16 bg-stone-900 rounded-[24px] flex items-center justify-center mb-6 shadow-2xl shadow-stone-900/20 animate-scale-up">
+                <Utensils className="text-cream-50" size={28} />
+              </div>
+            )}
+          </div>
+          
+          <h1 className="text-3xl font-black text-stone-900 tracking-tight text-center">
+            {siteSettings === undefined ? (
+              <span className="inline-block w-48 h-8 bg-stone-100 rounded-lg animate-pulse" />
+            ) : (
+              siteSettings?.siteName ? `Welcome to ${siteSettings.siteName}` : "Portal Access"
+            )}
           </h1>
 
-          <p className="text-[14.5px] text-stone-500 mt-1 font-medium text-center">
-            Sign in with your phone, email, or Google
+          <p className="text-[15px] text-stone-500 mt-2 font-medium text-center max-w-[280px] leading-relaxed">
+            Please sign in to manage your events and registrations
           </p>
         </div>
 
-        <div className="card p-6 sm:p-8 flex flex-col gap-5 shadow-xl shadow-stone-200/50">
-          <form onSubmit={handleLogin} className="flex flex-col gap-5">
+        <div className="card p-8 flex flex-col gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border-stone-200/60 rounded-[32px] bg-white/80 backdrop-blur-xl">
+          <form onSubmit={handleLogin} className="flex flex-col gap-6">
 
             {/* Identifier field — phone or email */}
             <div>
-              <label className="label">Phone Number or Email</label>
+              <label className="label !text-[11px] !font-black !uppercase !tracking-widest !text-stone-400 !mb-2.5">Access ID</label>
               <div className="relative">
                 {isPhone
-                  ? <Phone className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.identifier ? 'text-red-400' : 'text-stone-400'}`} size={18} />
-                  : <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.identifier ? 'text-red-400' : 'text-stone-400'}`} size={18} />
+                  ? <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${errors.identifier ? 'text-red-400' : 'text-stone-300'}`} size={18} />
+                  : <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${errors.identifier ? 'text-red-400' : 'text-stone-300'}`} size={18} />
                 }
                 <input
                   type="text"
-                  placeholder="Phone or email"
+                  placeholder="Phone number or email"
                   value={identifier}
-                  className={`pl-11 ${errors.identifier ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
+                  className={`pl-12 py-3.5 rounded-2xl bg-stone-50/50 border-stone-100 focus:bg-white focus:ring-4 focus:ring-stone-900/5 transition-all ${errors.identifier ? 'border-red-200 focus:border-red-300 focus:ring-red-50' : ''}`}
                   onChange={(e) => { setIdentifier(e.target.value); if(errors.identifier) setErrors(e=>({...e, identifier: ""})); }}
                   disabled={loading || googleLoading}
                   autoComplete="username"
                 />
               </div>
-              {errors.identifier && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.identifier}</p>}
-              {/* Subtle indicator */}
-              {identifier.trim().length > 0 && !errors.identifier && (
-                <p className="text-[11.5px] font-medium text-stone-400 mt-1.5 ml-1">
-                  {isPhone ? "🔢 Signing in with phone number" : "✉️ Signing in with email"}
-                </p>
-              )}
+              {errors.identifier && <p className="text-[12px] text-red-600 font-bold mt-2 ml-1 animate-slide-up">{errors.identifier}</p>}
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="label !mb-0">Password</label>
-                <Link to="/forgot-password" size="sm" className="text-[12.5px] font-bold text-stone-400 hover:text-stone-900 transition-colors">
-                  Forgot Password?
+              <div className="flex justify-between items-center mb-2.5">
+                <label className="label !text-[11px] !font-black !uppercase !tracking-widest !text-stone-400 !mb-0">Secure Password</label>
+                <Link to="/forgot-password" element="span" className="text-[11px] font-black uppercase tracking-widest text-stone-400 hover:text-stone-900 transition-colors">
+                  Reset?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.password ? 'text-red-400' : 'text-stone-400'}`} size={18} />
+                <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${errors.password ? 'text-red-400' : 'text-stone-300'}`} size={18} />
                 <input
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  className={`pl-11 ${errors.password ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`}
+                  className={`pl-12 py-3.5 rounded-2xl bg-stone-50/50 border-stone-100 focus:bg-white focus:ring-4 focus:ring-stone-900/5 transition-all ${errors.password ? 'border-red-200 focus:border-red-300 focus:ring-red-50' : ''}`}
                   onChange={(e) => { setPassword(e.target.value); if(errors.password) setErrors(e=>({...e, password: ""})); }}
                   disabled={loading || googleLoading}
                   autoComplete="current-password"
                 />
               </div>
-              {errors.password && <p className="text-[12.5px] text-red-600 font-medium mt-1.5 ml-1">{errors.password}</p>}
+              {errors.password && <p className="text-[12px] text-red-600 font-bold mt-2 ml-1 animate-slide-up">{errors.password}</p>}
             </div>
 
-            <div className="flex items-center gap-2 px-1">
-              <input
-                type="checkbox"
-                id="remember"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900/20 cursor-pointer"
-                disabled={loading || googleLoading}
-              />
-              <label htmlFor="remember" className="text-[13.5px] font-medium text-stone-600 cursor-pointer select-none">
-                Keep me signed in
+            <div className="flex items-center gap-3 px-1">
+              <div className="relative flex items-center">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-5 h-5 rounded-lg border-stone-200 text-stone-900 focus:ring-stone-900/10 cursor-pointer transition-all"
+                  disabled={loading || googleLoading}
+                />
+              </div>
+              <label htmlFor="remember" className="text-[13.5px] font-bold text-stone-500 cursor-pointer select-none">
+                Remember my session
               </label>
             </div>
 
             <button
               type="submit"
-              className="btn-primary w-full py-3.5 mt-1 text-[15px]"
+              className="btn-primary w-full py-4 rounded-2xl text-[15px] font-black shadow-xl shadow-stone-900/10 hover:shadow-stone-900/20 active:scale-[0.98] transition-all"
               disabled={loading || googleLoading}
             >
-              {loading ? "Signing in..." : (
-                <>
-                  Sign In <ArrowRight size={18} />
-                </>
+              {loading ? "Accessing..." : (
+                <span className="flex items-center justify-center gap-2">
+                  Sign In <ArrowRight size={20} />
+                </span>
               )}
             </button>
 
-            <div className="relative my-1">
-              <div className="h-px bg-stone-200" />
-              <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-cream-50 px-3 text-[11px] uppercase tracking-wide text-stone-400 font-semibold">
-                or
+            <div className="relative my-2">
+              <div className="h-px bg-stone-100" />
+              <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-white px-4 text-[10px] font-black uppercase tracking-[0.2em] text-stone-300">
+                Secure Auth
               </span>
             </div>
 
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              className="btn-secondary w-full py-3.5 text-[15px]"
+              className="btn-secondary w-full py-4 rounded-2xl text-[14px] font-black border-stone-100 hover:bg-stone-50 hover:border-stone-200 transition-all active:scale-[0.98]"
               disabled={loading || googleLoading}
             >
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 3.9 1.5l2.7-2.6C16.9 3.4 14.7 2.5 12 2.5A9.5 9.5 0 0 0 2.5 12 9.5 9.5 0 0 0 12 21.5c5.5 0 9.1-3.9 9.1-9.4 0-.6-.1-1.1-.2-1.9H12z"/>
-              </svg>
-              {googleLoading ? "Connecting Google..." : "Continue with Google"}
+              <span className="flex items-center justify-center gap-3">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                  <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 3.9 1.5l2.7-2.6C16.9 3.4 14.7 2.5 12 2.5A9.5 9.5 0 0 0 2.5 12 9.5 9.5 0 0 0 12 21.5c5.5 0 9.1-3.9 9.1-9.4 0-.6-.1-1.1-.2-1.9H12z"/>
+                </svg>
+                {googleLoading ? "Connecting..." : "Continue with Google"}
+              </span>
             </button>
           </form>
         </div>
 
-        <p className="text-[14px] text-center mt-6 font-medium text-stone-500">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-stone-900 font-bold hover:underline underline-offset-4 decoration-2 decoration-cream-300">
-            Create one
+        <p className="text-[14.5px] text-center mt-10 font-bold text-stone-400 tracking-tight">
+          New here?{" "}
+          <Link to="/signup" className="text-stone-900 font-black hover:underline underline-offset-8 decoration-2 decoration-stone-200 transition-all">
+            Create an Account
           </Link>
         </p>
       </div>

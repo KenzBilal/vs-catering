@@ -32,7 +32,7 @@ export default function ManageBranding() {
 
     setUploading(true);
     try {
-      const postUrl = await generateUploadUrl();
+      const postUrl = await generateUploadUrl({ token });
       const result = await fetch(postUrl, {
         method: "POST",
         headers: { "Content-Type": file.type },

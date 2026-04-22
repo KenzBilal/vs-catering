@@ -102,7 +102,7 @@ export default function Register() {
       let photoStorageId = undefined;
       if (selectedFile) {
         setUploading(true);
-        const postUrl = await generateUploadUrl();
+        const postUrl = await generateUploadUrl({ token });
         const result = await fetch(postUrl, {
           method: "POST",
           headers: { "Content-Type": selectedFile.type },

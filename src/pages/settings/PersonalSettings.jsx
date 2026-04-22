@@ -21,7 +21,7 @@ export default function PersonalSettings() {
     if (!file) return;
     setUploading(true);
     try {
-      const postUrl = await generateUploadUrl();
+      const postUrl = await generateUploadUrl({ token });
       const result = await fetch(postUrl, {
         method: "POST",
         headers: { "Content-Type": file.type },

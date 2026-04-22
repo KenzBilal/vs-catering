@@ -64,7 +64,7 @@ export const createUser = mutation({
 
 // ─── loginUser ───────────────────────────────────────────────────────────────
 
-export const loginUser = mutation({
+export const loginUserInternal = internalMutation({
   args: { email: v.string(), rememberMe: v.optional(v.boolean()), firebaseVerified: v.optional(v.boolean()) },
   handler: async (ctx, { email, rememberMe, firebaseVerified }) => {
     const cleanEmail = email.toLowerCase().trim();
