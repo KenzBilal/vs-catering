@@ -49,6 +49,7 @@ import Signup from "./pages/auth/Signup";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import ResetPassword from "./pages/auth/ResetPassword";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import AuthActionHandler from "./pages/auth/AuthActionHandler";
 import CompleteProfile from "./pages/auth/CompleteProfile";
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
@@ -154,6 +155,7 @@ function AppRoutes() {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/auth-action" element={<AuthActionHandler />} />
       <Route path="/complete-profile" element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <CompleteProfile />} />
 
       {/* ── Student portal ───────────────────────────── */}

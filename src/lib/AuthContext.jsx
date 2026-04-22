@@ -89,8 +89,8 @@ export function AuthProvider({ children }) {
 
   const resetPassword = async (email) => {
     const actionCodeSettings = {
-      // Ensure the reset link points back to our custom ResetPassword page
-      url: `${window.location.origin}/reset-password`,
+      // Ensure the reset link points back to our unified AuthActionHandler
+      url: `${window.location.origin}/auth-action`,
       handleCodeInApp: true,
     };
     return await sendPasswordResetEmail(auth, email, actionCodeSettings);

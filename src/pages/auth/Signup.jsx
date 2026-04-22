@@ -103,8 +103,8 @@ export default function Signup() {
       // 4. Send verification email
       try {
         const actionCodeSettings = {
-          // Point back to the current origin to ensure the link works in the current environment
-          url: `${window.location.origin}/verify-email?email=${encodeURIComponent(normalizedEmail)}`,
+          // Point to our unified handler
+          url: `${window.location.origin}/auth-action?email=${encodeURIComponent(normalizedEmail)}`,
           handleCodeInApp: true,
         };
         await sendEmailVerification(firebaseUserCred.user, actionCodeSettings);
