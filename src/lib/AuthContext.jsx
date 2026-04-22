@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { auth } from "./firebase";
-import { signOut, sendPasswordResetEmail } from "firebase/auth";
+import { signOut, sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth";
 
 const AuthContext = createContext(null);
 
@@ -16,6 +16,7 @@ export function AuthProvider({ children }) {
     }
   });
 
+  const [firebaseUser, setFirebaseUser] = useState(null);
   // #26: Track whether we are still waiting for server validation
   const [serverValidated, setServerValidated] = useState(false);
 
@@ -32,6 +33,13 @@ export function AuthProvider({ children }) {
   const logoutUserMutation = useMutation(api.users.logoutUser);
 
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setFirebaseUser(u);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (storedUser?.token && (validUser === undefined || permissions === undefined)) {
@@ -87,8 +95,19 @@ export function AuthProvider({ children }) {
     return await sendPasswordResetEmail(auth, email);
   };
 
+  const isGoogleUser = firebaseUser?.providerData?.some(p => p.providerId === "google.com");
+
   return (
-    <AuthContext.Provider value={{ user, token: storedUser?.token, permissions: permissions || [], login, logout, resetPassword, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token: storedUser?.token, 
+      permissions: permissions || [], 
+      login, 
+      logout, 
+      resetPassword, 
+      isGoogleUser,
+      loading 
+    }}>
       {children}
     </AuthContext.Provider>
   );

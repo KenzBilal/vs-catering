@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../lib/AuthContext";
-import { Save, CheckCircle2, User, MapPin, Camera, Hash, Loader2, KeyRound, Mail } from "lucide-react";
+import { Save, CheckCircle2, User, MapPin, Camera, Hash, Loader2, KeyRound, Mail, AlertCircle } from "lucide-react";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import CustomSelect from "../../components/ui/CustomSelect";
 import ConvexImage from "../../components/shared/ConvexImage";
@@ -19,7 +19,7 @@ const ROLE_BADGE = {
 };
 
 export default function Settings() {
-  const { user, token, login, resetPassword } = useAuth();
+  const { user, token, login, resetPassword, isGoogleUser } = useAuth();
   const dropPointsRaw = useQuery(api.dropPoints.getDropPoints, { token });
   const { data: dropPoints, timedOut } = useQueryWithTimeout(dropPointsRaw);
   const updatePrefs = useMutation(api.users.updatePreferences);
@@ -88,6 +88,10 @@ export default function Settings() {
 
   const handleResetPassword = async () => {
     if (!user?.email) return;
+    if (isGoogleUser) {
+      toast.error("Accounts managed by Google do not have a separate password. Please manage your security in your Google Account settings.");
+      return;
+    }
     setResetting(true);
     try {
       await resetPassword(user.email);
@@ -162,19 +166,28 @@ export default function Settings() {
       {/* Security Card */}
       <div className="card bg-white p-6 mb-4">
         <h3 className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-4">Security</h3>
-        <div className="flex items-center justify-between gap-4">
-          <div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="max-w-[70%]">
             <p className="text-[14px] font-bold text-stone-800">Password</p>
-            <p className="text-[12px] text-stone-500 font-medium mt-0.5">Reset your account password via email.</p>
+            {isGoogleUser ? (
+              <div className="mt-1 flex items-start gap-2 text-[12px] text-stone-500 font-medium leading-relaxed">
+                <AlertCircle size={14} className="mt-0.5 shrink-0 text-stone-400" />
+                <p>You are signed in via Google. Manage your security and password directly in your Google Account settings.</p>
+              </div>
+            ) : (
+              <p className="text-[12px] text-stone-500 font-medium mt-0.5">Reset your account password via email.</p>
+            )}
           </div>
-          <button 
-            className="flex items-center gap-2 px-4 py-2 bg-cream-50 hover:bg-cream-100 text-stone-700 border border-cream-200 rounded-xl text-[13px] font-bold transition-all active:scale-95 disabled:opacity-50"
-            onClick={handleResetPassword}
-            disabled={resetting}
-          >
-            {resetting ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
-            Reset
-          </button>
+          {!isGoogleUser && (
+            <button 
+              className="flex items-center gap-2 px-4 py-2 bg-cream-50 hover:bg-cream-100 text-stone-700 border border-cream-200 rounded-xl text-[13px] font-bold transition-all active:scale-95 disabled:opacity-50"
+              onClick={handleResetPassword}
+              disabled={resetting}
+            >
+              {resetting ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
+              Reset
+            </button>
+          )}
         </div>
       </div>
 

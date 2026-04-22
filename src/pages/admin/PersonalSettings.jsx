@@ -1,16 +1,20 @@
 import { useAuth } from "../../lib/AuthContext";
 import { useState } from "react";
-import { ArrowLeft, KeyRound, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, KeyRound, Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function PersonalSettings() {
-  const { user, resetPassword } = useAuth();
+  const { user, resetPassword, isGoogleUser } = useAuth();
   const navigate = useNavigate();
   const [resettingPwd, setResettingPwd] = useState(false);
 
   const handleResetPassword = async () => {
     if (!user?.email) return;
+    if (isGoogleUser) {
+      toast.error("Accounts managed by Google do not have a separate password. Please manage security in your Google Account settings.");
+      return;
+    }
     setResettingPwd(true);
     try {
       await resetPassword(user.email);
@@ -68,24 +72,33 @@ export default function PersonalSettings() {
         <div className="bg-white p-6 border border-cream-200 rounded-2xl shadow-sm">
           <h3 className="text-[12px] font-bold text-stone-400 uppercase tracking-widest mb-4">Security</h3>
           
-          <div className="flex items-center justify-between gap-4">
-            <div>
+          <div className="flex items-start justify-between gap-4">
+            <div className="max-w-[70%]">
               <p className="text-[14px] font-bold text-stone-900">Account Password</p>
-              <p className="text-[12.5px] font-medium text-stone-500 mt-0.5">Receive a secure link to update your password.</p>
+              {isGoogleUser ? (
+                <div className="mt-1 flex items-start gap-2 text-[12.5px] text-stone-500 font-medium leading-relaxed">
+                  <AlertCircle size={15} className="mt-0.5 shrink-0 text-stone-400" />
+                  <p>You are signed in with Google. Passwords for Google accounts are managed directly by Google. Visit your Google Account security settings to update it.</p>
+                </div>
+              ) : (
+                <p className="text-[12.5px] font-medium text-stone-500 mt-0.5">Receive a secure link to update your password.</p>
+              )}
             </div>
             
-            <button 
-              onClick={handleResetPassword}
-              disabled={resettingPwd}
-              className="flex items-center gap-2 px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white text-[13px] font-bold rounded-xl shadow-lg shadow-stone-100 transition-all active:scale-95 disabled:opacity-50"
-            >
-              {resettingPwd ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <KeyRound size={16} />
-              )}
-              Reset
-            </button>
+            {!isGoogleUser && (
+              <button 
+                onClick={handleResetPassword}
+                disabled={resettingPwd}
+                className="flex items-center gap-2 px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white text-[13px] font-bold rounded-xl shadow-lg shadow-stone-100 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {resettingPwd ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <KeyRound size={16} />
+                )}
+                Reset
+              </button>
+            )}
           </div>
         </div>
       </div>
