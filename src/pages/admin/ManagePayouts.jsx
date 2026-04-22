@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 export default function ManagePayouts() {
   const { token } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const eventIdFromQuery = searchParams.get("eventId");
 
   const finishedEvents = useQuery(api.caterings.getFinishedCaterings, { token });
@@ -32,9 +32,11 @@ export default function ManagePayouts() {
         setSelectedEvent(target);
         setPayoutDate(target.payoutDate || "");
         setPayoutNote(target.payoutNote || "");
+        // Clear the query param so we don't get stuck in a loop
+        setSearchParams({});
       }
     }
-  }, [finishedEvents, eventIdFromQuery, selectedEvent]);
+  }, [finishedEvents, eventIdFromQuery, selectedEvent, setSearchParams]);
 
   const filteredEvents = (finishedEvents || []).filter(e => 
     e.place.toLowerCase().includes(search.toLowerCase())
