@@ -11,7 +11,7 @@ import ConvexImage from "../../components/shared/ConvexImage";
 
 
 export default function Login() {
-  const { auth, login, siteSettings } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState(""); // phone or email
   const [password, setPassword] = useState("");
