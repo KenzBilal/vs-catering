@@ -25,7 +25,8 @@ export default defineSchema({
   })
 
     .index("by_email", ["email"])
-    .index("by_phone", ["phone"]),
+    .index("by_phone", ["phone"])
+    .index("by_role", ["role"]),
 
   sessions: defineTable({
     userId: v.id("users"),
@@ -78,6 +79,9 @@ export default defineSchema({
     verificationDeadline: v.optional(v.number()),
     createdBy: v.id("users"),
     createdAt: v.number(),
+    // Denormalized counts for performance
+    registeredCount: v.optional(v.number()),
+    verifiedCount: v.optional(v.number()),
   })
     .index("by_created", ["createdAt"]),
 

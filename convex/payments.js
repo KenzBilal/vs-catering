@@ -130,17 +130,28 @@ export const getPaymentsByCatering = query({
       .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
       .collect();
 
-    const withUsers = await Promise.all(
-      payments.map(async (p) => {
-        const user = await ctx.db.get(p.userId);
-        const group = p.groupId ? await ctx.db.get(p.groupId) : null;
-        let groupHead = null;
-        if (group) {
-          groupHead = await ctx.db.get(group.headUserId);
-        }
-        return { ...p, user, group, groupHead };
-      })
-    );
+    const userIds = [...new Set(payments.map(p => p.userId))];
+    const groupIds = [...new Set(payments.filter(p => p.groupId).map(p => p.groupId))];
+    
+    const [users, groups] = await Promise.all([
+      Promise.all(userIds.map(id => ctx.db.get(id))),
+      Promise.all(groupIds.map(id => ctx.db.get(id)))
+    ]);
+
+    const userMap = new Map(users.filter(u => u).map(u => [u._id, u]));
+    const groupMap = new Map(groups.filter(g => g).map(g => [g._id, g]));
+
+    // Fetch group heads for all groups
+    const headIds = [...new Set(groups.filter(g => g).map(g => g.headUserId))];
+    const heads = await Promise.all(headIds.map(id => ctx.db.get(id)));
+    const headMap = new Map(heads.filter(h => h).map(h => [h._id, h]));
+
+    const withUsers = payments.map((p) => {
+      const user = userMap.get(p.userId);
+      const group = p.groupId ? groupMap.get(p.groupId) : null;
+      const groupHead = group ? headMap.get(group.headUserId) : null;
+      return { ...p, user, group, groupHead };
+    });
     return withUsers;
   },
 });

@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { requireSubAdmin, getUserFromToken, checkPermission, getAllAdmins } from "./auth";
 
 import { sanitizeString } from "./utils";
+import { syncCateringCounters } from "./caterings_util";
 
 const VALID_ROLES = ["service_boy", "service_girl", "captain_male", "captain_female"];
 // ─── register — userId derived from token (fixes #4) ──────────────────────────
@@ -128,6 +129,7 @@ export const register = mutation({
       }
     }
 
+    await syncCateringCounters(ctx, args.cateringId);
     return registrationId;
 
   },
@@ -147,16 +149,23 @@ export const getRegistrationsByCatering = query({
       .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
       .collect();
     
-    const withUsers = await Promise.all(
-      regs.map(async (r) => {
-        const user = await ctx.db.get(r.userId);
+    // Optimization: Batch fetch users
+    const userIds = [...new Set(regs.map(r => r.userId))];
+    const users = await Promise.all(userIds.map(id => ctx.db.get(id)));
+    const userMap = new Map(users.filter(u => u).map(u => [u._id, u]));
+
+    // Optimization: Batch fetch payments
+    const payments = await ctx.db
+      .query("payments")
+      .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
+      .collect();
+    const paymentMap = new Map(payments.map(p => [p.registrationId, p]));
+
+    const withUsers = regs.map((r) => {
+        const user = userMap.get(r.userId);
         if (!user) return null;
 
-        const payment = await ctx.db
-          .query("payments")
-          .withIndex("by_registration", (q) => q.eq("registrationId", r._id))
-          .first();
-
+        const payment = paymentMap.get(r._id);
         const base = { ...r, user, paymentStatus: payment?.status || "pending" };
 
         // If not admin, hide sensitive data
@@ -256,6 +265,7 @@ export const markAttendance = mutation({
         ? { rejectionReason: sanitizeString(rejectionReason).slice(0, 300) }
         : {}),
     });
+    await syncCateringCounters(ctx, reg.cateringId);
 
     // AUTO-PAYMENT: Create pending payment when marked as attended
     if (status === "attended") {
@@ -434,6 +444,7 @@ export const cancelRegistration = mutation({
 
     const wasConfirmed = reg.isConfirmed;
     await ctx.db.delete(registrationId);
+    await syncCateringCounters(ctx, reg.cateringId);
 
     // Notify Admins of Cancellation
     const admins = await getAllAdmins(ctx);
@@ -527,6 +538,7 @@ export const verifyAttendance = mutation({
       }
     }
 
+    await syncCateringCounters(ctx, reg.cateringId);
     return { success: true };
   },
 });

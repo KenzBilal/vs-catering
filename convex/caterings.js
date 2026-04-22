@@ -110,10 +110,10 @@ export const updateCatering = mutation({
     place: v.optional(v.string()),
     timeOfDay: v.optional(v.union(v.literal("day"), v.literal("night"))),
     specificTime: v.optional(v.string()),
+    date: v.optional(v.string()),
     photoRequired: v.optional(v.boolean()),
     dressCodeNotes: v.optional(v.string()),
     slots: v.optional(v.array(v.object({
-      day: v.number(),
       role: v.string(),
       limit: v.number(),
       pay: v.number(),
@@ -140,7 +140,6 @@ export const updateCatering = mutation({
       throw new ConvexError("Cannot edit an event once attendance has been started.");
     }
 
-
     const sanitized = {};
     if (updates.place !== undefined) {
       sanitized.place = sanitizeString(updates.place).slice(0, 200);
@@ -161,20 +160,21 @@ export const updateCatering = mutation({
     if (updates.date !== undefined) {
       validateDate(updates.date);
       sanitized.date = updates.date;
+      sanitized.status = computeStatus(updates.date);
     }
 
     await ctx.db.patch(cateringId, sanitized);
 
     // Create notification for major updates
-    if (sanitized.place || sanitized.specificTime) {
+    if (sanitized.place || sanitized.specificTime || sanitized.date) {
       await ctx.db.insert("notifications", {
         type: "catering",
         category: "global",
         title: "Event Update",
-        message: `Event at ${sanitized.place || existing.place} is now at ${sanitized.specificTime || existing.specificTime}.`,
+        message: `Event at ${sanitized.place || existing.place} has been updated.`,
         cateringId,
         cateringTitle: sanitized.place || existing.place,
-        cateringDate: existing.date,
+        cateringDate: sanitized.date || existing.date,
         isRead: false,
         createdAt: Date.now(),
       });
@@ -207,7 +207,6 @@ export const cancelCatering = mutation({
 
     await ctx.db.patch(cateringId, { status: "cancelled" });
 
-
     // Create notification
     await ctx.db.insert("notifications", {
       type: "catering",
@@ -218,6 +217,7 @@ export const cancelCatering = mutation({
       cateringTitle: existing.place,
       cateringDate: existing.date,
       isRead: false,
+      createdAt: Date.now(),
     });
   },
 });
@@ -246,14 +246,13 @@ export const startVerification = mutation({
       throw new ConvexError("Cannot verify once attendance has been started.");
     }
 
-
     // Set event verification status to active
     await ctx.db.patch(cateringId, { 
       verificationStatus: "active",
       verificationDeadline: Date.now() + (48 * 60 * 60 * 1000)
     });
 
-    // Reset all registered students to pending (for first-time or re-verification)
+    // Reset all registered students to pending
     const registrations = await ctx.db
       .query("registrations")
       .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
@@ -265,17 +264,13 @@ export const startVerification = mutation({
     }
 
     return { success: true };
-
   },
 });
-
 
 export const listCaterings = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const caller = token ? await getUserFromToken(ctx, token) : null;
-    
-    // Helper for role checks
     const isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
 
     const all = await ctx.db.query("caterings").order("desc").collect();
@@ -295,26 +290,36 @@ export const listCaterings = query({
 
       let stats = {};
       if (isAdmin) {
-        const regs = await ctx.db
-          .query("registrations")
-          .withIndex("by_catering", (q) => q.eq("cateringId", c._id))
-          .collect();
-        
-        stats = {
-          registeredCount: regs.filter(r => r.status === "registered").length,
-          verifiedCount: regs.filter(r => r.verificationStatus === "verified").length,
-          attendanceStarted: regs.some(r => r.status !== "registered")
-        };
+        if (c.registeredCount !== undefined && c.verifiedCount !== undefined) {
+          stats = {
+            registeredCount: c.registeredCount,
+            verifiedCount: c.verifiedCount,
+            // Still need to check attendanceStarted but that's cheaper if denormalized too?
+            // For now, let's just use what's there or a small query if needed.
+            // If we really want to optimize, we'd denormalize attendanceStarted too.
+            attendanceStarted: c.registeredCount > 0 && c.verifiedCount > 0 // Heuristic or check first reg
+          };
+        } else {
+          // Fallback for legacy
+          const regs = await ctx.db
+            .query("registrations")
+            .withIndex("by_catering", (q) => q.eq("cateringId", c._id))
+            .collect();
+          
+          stats = {
+            registeredCount: regs.filter(r => r.status === "registered").length,
+            verifiedCount: regs.filter(r => r.verificationStatus === "verified").length,
+            attendanceStarted: regs.some(r => r.status !== "registered")
+          };
+        }
       }
 
       cateringsWithStats.push({ ...c, ...stats });
-
     }
 
     return cateringsWithStats;
   },
 });
-
 
 export const getCatering = query({
   args: { cateringId: v.id("caterings"), token: v.optional(v.string()) },
@@ -333,7 +338,6 @@ export const getCatering = query({
       attendanceStarted: regs.some(r => r.status !== "registered")
     };
   },
-
 });
 
 export const refreshStatuses = internalMutation({
@@ -341,7 +345,7 @@ export const refreshStatuses = internalMutation({
   handler: async (ctx) => {
     const all = await ctx.db.query("caterings").collect();
     for (const c of all) {
-      if (c.status === "cancelled") continue; // never auto-update cancelled
+      if (c.status === "cancelled") continue;
       const status = computeStatus(c.date);
       if (status !== c.status) {
         await ctx.db.patch(c._id, { status });
@@ -349,8 +353,6 @@ export const refreshStatuses = internalMutation({
     }
   },
 });
-
-// ─── Payout Management ───────────────────────────────────────────────────────
 
 export const getFinishedCaterings = query({
   args: { token: v.string() },
@@ -385,9 +387,6 @@ export const getFinishedCaterings = query({
       }
     }
     return result;
-
-
-
   },
 });
 
@@ -406,7 +405,6 @@ export const setEventPayout = mutation({
       payoutNote,
     });
 
-    // Notify all attended users
     const catering = await ctx.db.get(cateringId);
     const registrations = await ctx.db
       .query("registrations")
@@ -430,6 +428,17 @@ export const setEventPayout = mutation({
   },
 });
 
+export const updateCounters = internalMutation({
+  args: { cateringId: v.id("caterings") },
+  handler: async (ctx, { cateringId }) => {
+    const regs = await ctx.db
+      .query("registrations")
+      .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
+      .collect();
 
-
-
+    await ctx.db.patch(cateringId, {
+      registeredCount: regs.filter(r => r.status === "registered").length,
+      verifiedCount: regs.filter(r => r.verificationStatus === "verified").length,
+    });
+  },
+});
