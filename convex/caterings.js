@@ -273,8 +273,13 @@ export const listCaterings = query({
   args: { paginationOpts: paginationOptsValidator, token: v.optional(v.string()) },
   handler: async (ctx, args) => {
     try {
-      const caller = args.token ? await getUserFromToken(ctx, args.token) : null;
-      const isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
+      let isAdmin = false;
+      try {
+        const caller = await getAuthUser(ctx);
+        isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
+      } catch (authErr) {
+        console.warn("Auth check skipped:", authErr);
+      }
 
       const results = await ctx.db
         .query("caterings")
@@ -311,7 +316,7 @@ export const listCaterings = query({
       return { ...results, page: cateringsWithStats };
     } catch (e) {
       console.error("listCaterings error:", e);
-      throw new Error("Failed to load caterings");
+      return { page: [], continue: false, hasMore: false };
     }
   },
 });

@@ -81,3 +81,21 @@ export const updateRegistrationPhoto = internalMutation({
     await ctx.db.patch(registrationId, { photoStorageId, photoUrl: undefined });
   }
 });
+
+export const clearAllData = mutation({
+  args: { token: v.optional(v.string()) },
+  handler: async (ctx, { token }) => {
+    await requireAdmin(ctx, token);
+    
+    const tables = ["caterings", "registrations", "payments", "paymentGroups", "notifications", "dropPoints"];
+    
+    for (const table of tables) {
+      const docs = await ctx.db.query(table).collect();
+      for (const doc of docs) {
+        await ctx.db.delete(doc._id);
+      }
+    }
+    
+    return { success: true, message: "All data cleared" };
+  },
+});
