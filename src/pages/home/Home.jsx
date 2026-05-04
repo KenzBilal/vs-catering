@@ -22,7 +22,8 @@ export default function Dashboard() {
   );
   const financialSummary = useQuery(api.payments.getStudentFinancialSummary, loading ? undefined : { token: token || "" });
 
-  const { data: caterings, timedOut: cateringTimeout } = useQueryWithTimeout(cateringsRaw);
+  const { data: cateringsData, timedOut: cateringTimeout } = useQueryWithTimeout(cateringsRaw);
+  const caterings = cateringsData?.page; // Extract paginated array
   const { data: registrations } = useQueryWithTimeout(registrationsRaw);
   const [filter, setFilter] = useState("All");
 
@@ -67,7 +68,7 @@ export default function Dashboard() {
 
       <HomeFilters filter={filter} setFilter={setFilter} />
 
-      {caterings === undefined ? (
+      {cateringsData === undefined ? (
         <LoadingState rows={3} />
       ) : filtered.length === 0 ? (
         <EmptyState 

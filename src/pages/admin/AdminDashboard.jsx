@@ -30,12 +30,13 @@ export default function AdminDashboard() {
   const [year, setYear] = useState(now.getFullYear());
   const analyticsRaw = useQuery(api.payments.getMonthlyAnalytics, canManagePayments ? { month, year, token } : "skip");
 
-  const { data: caterings, timedOut: catTimeout } = useQueryWithTimeout(cateringsRaw);
+  const { data: cateringsData, timedOut: catTimeout } = useQueryWithTimeout(cateringsRaw);
+  const caterings = cateringsData?.page; // Extract paginated array
   const { data: pendingPayments, timedOut: payTimeout } = useQueryWithTimeout(pendingPaymentsRaw);
   const { data: analytics, timedOut: anaTimeout } = useQueryWithTimeout(analyticsRaw);
 
   const isLoading = 
-    (canManageCaterings && caterings === undefined && !catTimeout) ||
+    (canManageCaterings && cateringsData === undefined && !catTimeout) ||
     (canManagePayments && pendingPayments === undefined && !payTimeout) ||
     (canManagePayments && analytics === undefined && !anaTimeout);
 
