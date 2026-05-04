@@ -16,11 +16,11 @@ import FinancialSummary from "./components/FinancialSummary";
 
 export default function Dashboard() {
   const { user, token, loading } = useAuth();
-  const cateringsRaw = useQuery(api.caterings.listCaterings, loading ? "skip" : { token: token || undefined });
+  const cateringsRaw = useQuery(api.caterings.listCaterings, loading ? undefined : { token: token || undefined });
   const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, 
-    user ? { userId: user._id, token } : "skip"
+    user ? { userId: user._id, token } : undefined
   );
-  const financialSummary = useQuery(api.payments.getStudentFinancialSummary, loading ? "skip" : { token: token || "" });
+  const financialSummary = useQuery(api.payments.getStudentFinancialSummary, loading ? undefined : { token: token || "" });
 
   const { data: caterings, timedOut: cateringTimeout } = useQueryWithTimeout(cateringsRaw);
   const { data: registrations } = useQueryWithTimeout(registrationsRaw);

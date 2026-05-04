@@ -214,21 +214,17 @@ export const getRegistrationsByUser = query({
       .query("registrations")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
-    // Optimized Batch Fetch
-    const userIds = [...new Set(payments.map(p => p.userId))];
-    const cateringIds = [...new Set(payments.map(p => p.cateringId))];
-    const [users, allCaterings] = await Promise.all([
-      Promise.all(userIds.map(id => ctx.db.get(id))),
-      Promise.all(cateringIds.map(id => ctx.db.get(id)))
-    ]);
 
-    const userMap = new Map(users.filter(u => u).map(u => [u._id, u]));
-    const cateringMap = new Map(allCaterings.filter(c => c).map(c => [c._id, c]));
+    // Fetch caterings for each registration
+    const cateringIds = [...new Set(regs.map(r => r.cateringId))];
+    const caterings = await Promise.all(
+      cateringIds.map(id => ctx.db.get(id))
+    );
+    const cateringMap = new Map(caterings.filter(c => c).map(c => [c._id, c]));
 
-    return payments.map(p => ({
-      ...p,
-      user: userMap.get(p.userId),
-      catering: cateringMap.get(p.cateringId)
+    return regs.map(r => ({
+      ...r,
+      catering: cateringMap.get(r.cateringId)
     }));
   },
 });
