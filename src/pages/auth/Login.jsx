@@ -73,8 +73,12 @@ export default function Login() {
       formData.set("password", password);
       formData.set("flow", "signIn");
 
-      const result = await signIn("password", formData);
-      console.log("Login result:", result);
+      await signIn("password", formData);
+      console.log("Login successful, waiting for session...");
+      
+      // Wait a moment for session to be established
+      await new Promise(r => setTimeout(r, 500));
+      
       navigate("/", { replace: true });
     } catch (err) {
       console.error("Login Error:", err);
