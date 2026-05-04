@@ -270,7 +270,10 @@ export const startVerification = mutation({
 import { paginationOptsValidator } from "convex/server";
 
 export const listCaterings = query({
-  args: { paginationOpts: paginationOptsValidator, token: v.optional(v.string()) },
+  args: { 
+    paginationOpts: v.optional(paginationOptsValidator),
+    token: v.optional(v.string()) 
+  },
   handler: async (ctx, args) => {
     try {
       let isAdmin = false;
@@ -281,11 +284,13 @@ export const listCaterings = query({
         console.warn("Auth check skipped:", authErr);
       }
 
+      const paginationOpts = args.paginationOpts || { numItems: 50, cursor: null };
+      
       const results = await ctx.db
         .query("caterings")
         .withIndex("by_date")
         .order("desc")
-        .paginate(args.paginationOpts);
+        .paginate(paginationOpts);
 
       const cateringsWithStats = [];
       for (const c of results.page) {
