@@ -66,13 +66,15 @@ export default function Login() {
 
     setLoading(true);
     try {
+      console.log("Attempting login with:", finalEmail);
       // ✅ Use FormData — required by Convex Auth Password provider
       const formData = new FormData();
       formData.set("email", finalEmail);
       formData.set("password", password);
       formData.set("flow", "signIn");
 
-      await signIn("password", formData);
+      const result = await signIn("password", formData);
+      console.log("Login result:", result);
       navigate("/", { replace: true });
     } catch (err) {
       console.error("Login Error:", err);
