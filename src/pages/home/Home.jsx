@@ -15,12 +15,12 @@ import EventCard from "./components/EventCard";
 import FinancialSummary from "./components/FinancialSummary";
 
 export default function Dashboard() {
-  const { user, token } = useAuth();
-  const cateringsRaw = useQuery(api.caterings.listCaterings, { token: token || undefined });
+  const { user, token, loading } = useAuth();
+  const cateringsRaw = useQuery(api.caterings.listCaterings, loading ? "skip" : { token: token || undefined });
   const registrationsRaw = useQuery(api.registrations.getRegistrationsByUser, 
     user ? { userId: user._id, token } : "skip"
   );
-  const financialSummary = useQuery(api.payments.getStudentFinancialSummary, { token: token || "" });
+  const financialSummary = useQuery(api.payments.getStudentFinancialSummary, loading ? "skip" : { token: token || "" });
 
   const { data: caterings, timedOut: cateringTimeout } = useQueryWithTimeout(cateringsRaw);
   const { data: registrations } = useQueryWithTimeout(registrationsRaw);

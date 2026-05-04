@@ -28,9 +28,14 @@ export const { auth, signIn, signOut, store } = convexAuth({
 
 // Helper to get user ID and user doc
 export async function getAuthUser(ctx) {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) return null;
-  return await ctx.db.get(userId);
+  try {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+    return await ctx.db.get(userId);
+  } catch (e) {
+    console.error("getAuthUser error:", e);
+    return null;
+  }
 }
 
 // Retro-compatible helper so we don't break existing files passing "token" arg
