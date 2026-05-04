@@ -2,12 +2,40 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate, Link } from "react-router-dom";
-import { UserPlus, Mail, Lock, User, Phone, ArrowRight, Loader2 } from "lucide-react";
-import SegmentedControl from "../../components/ui/SegmentedControl";
-import { isValidEmail, isValidPhone } from "../../lib/helpers";
+import { User, Mail, Lock, Phone, ArrowRight, Loader2 } from "lucide-react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import toast from "react-hot-toast";
 import ConvexImage from "../../components/shared/ConvexImage";
+
+const FIELD_CLS = (err) =>
+  `w-full pl-10 pr-4 py-[11px] rounded-xl bg-cream-50 border text-[14px] outline-none transition-all duration-200 placeholder:text-stone-400/70 focus:bg-white focus:border-stone-400 focus:shadow-[0_0_0_3px_rgba(28,25,22,0.06)] ${
+    err ? "border-red-300 bg-red-50/60" : "border-cream-300"
+  }`;
+
+const ICON_CLS = (err) =>
+  `absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none ${err ? "text-red-400" : "text-stone-400"}`;
+
+function SegmentPill({ options, value, onChange, disabled }) {
+  return (
+    <div className="flex rounded-xl overflow-hidden border border-cream-300 bg-cream-50 p-0.5 gap-0.5">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(o.value)}
+          className={`flex-1 py-2 text-[13px] font-semibold rounded-[10px] transition-all duration-150 ${
+            value === o.value
+              ? "bg-stone-800 text-white shadow-sm"
+              : "text-stone-500 hover:text-stone-700 hover:bg-cream-100"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -23,7 +51,7 @@ export default function Signup() {
     gender: "male",
     defaultDropPoint: "Main Gate",
   });
-  
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -32,47 +60,52 @@ export default function Signup() {
     if (errors[k]) setErrors((e) => ({ ...e, [k]: "" }));
   };
 
+  const validate = () => {
+    const e = {};
+    if (!form.name.trim()) e.name = "Required";
+    if (!form.email.trim()) e.email = "Required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Invalid email";
+    if (form.password.length < 6) e.password = "Min 6 characters";
+    const digits = form.phone.replace(/\D/g, "");
+    if (!digits) e.phone = "Required";
+    else if (digits.length !== 10) e.phone = "Must be 10 digits";
+    return e;
+  };
+
   const handleSignup = async (e) => {
     e?.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setErrors({});
-    let hasError = false;
-    const newErrors = {};
-    
-    if (!form.name.trim()) { newErrors.name = "Required"; hasError = true; }
-    if (!form.email.trim()) { newErrors.email = "Required"; hasError = true; }
-    else if (!isValidEmail(form.email)) { newErrors.email = "Invalid email"; hasError = true; }
-    if (form.password.length < 6) { newErrors.password = "Min 6 chars"; hasError = true; }
-    if (!form.phone.trim()) { newErrors.phone = "Required"; hasError = true; }
-    else if (!isValidPhone(form.phone)) { newErrors.phone = "Invalid phone"; hasError = true; }
-    
-    if (hasError) {
-      setErrors(newErrors);
-      return;
-    }
-    
     setLoading(true);
-    try {
-      await signIn("password", {
-        email: form.email.toLowerCase().trim(),
-        password: form.password,
-        name: form.name.trim(),
-        phone: form.phone.trim(),
-        gender: form.gender,
-        stayType: form.stayType,
-        defaultDropPoint: form.defaultDropPoint,
-        flow: "signUp"
-      });
 
-      toast.success("Account created successfully.");
+    // ✅ CRITICAL: Convex Auth Password provider requires FormData
+    const formData = new FormData();
+    formData.set("email", form.email.toLowerCase().trim());
+    formData.set("password", form.password);
+    formData.set("name", form.name.trim());
+    formData.set("phone", form.phone.replace(/\D/g, "").slice(-10));
+    formData.set("gender", form.gender);
+    formData.set("stayType", form.stayType);
+    formData.set("defaultDropPoint", form.defaultDropPoint);
+    formData.set("flow", "signUp");
+
+    try {
+      await signIn("password", formData);
+      toast.success("Account created.");
       navigate("/", { replace: true });
-    } catch (e) {
-      console.error("Signup error:", e);
-      const msg = typeof e.data === "string" ? e.data : e.message || "Failed to create account.";
-      if (msg.includes("already exists") || msg.includes("already registered")) {
-         setErrors({ email: "Email already registered" });
-         toast.error("This email is already registered.");
+    } catch (err) {
+      console.error("Signup error:", err);
+      const raw = err?.data || err?.message || "";
+      const msg = typeof raw === "string"
+        ? raw.replace(/^.*ConvexError:\s*/i, "").replace(/^Error:\s*/i, "")
+        : "Failed to create account.";
+
+      if (msg.toLowerCase().includes("already")) {
+        setErrors({ email: "Email already registered" });
+        toast.error("This email is already registered.");
       } else {
-         toast.error(msg.replace(/^ConvexError: /, ""));
+        toast.error(msg || "Failed to create account.");
       }
     } finally {
       setLoading(false);
@@ -80,143 +113,142 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-cream-bg">
-      <div className="w-full max-w-md animate-fade-in">
-        <div className="flex flex-col items-center mb-8">
-           <div className="relative">
-            {siteSettings?.siteLogo ? (
-              <div className="w-14 h-14 rounded-2xl overflow-hidden mb-5 shadow-sm border border-stone-100 animate-scale-up">
-                <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
-              </div>
-            ) : siteSettings === undefined ? (
-              <div className="w-14 h-14 bg-stone-100 rounded-2xl mb-5 animate-pulse" />
-            ) : null}
-          </div>
-          
-          <h1 className="text-2xl font-bold text-stone-900 tracking-tight text-center">
-            Create Account
-          </h1>
+    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ background: "var(--cream-bg)" }}>
+      <div className="w-full max-w-md" style={{ animation: "fade-in 0.2s ease-out forwards" }}>
+
+        {/* Header */}
+        <div className="flex flex-col items-center mb-7">
+          {siteSettings === undefined ? (
+            <div className="w-12 h-12 rounded-2xl bg-cream-200 animate-pulse mb-4" />
+          ) : siteSettings?.siteLogo ? (
+            <div className="w-12 h-12 rounded-2xl overflow-hidden mb-4 border border-cream-300 shadow-sm">
+              <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-12 h-12 rounded-2xl bg-stone-800 flex items-center justify-center mb-4 shadow-sm">
+              <User size={22} className="text-white" />
+            </div>
+          )}
+          <h1 className="text-[22px] font-bold text-stone-900 tracking-tight">Create Account</h1>
+          <p className="text-[13px] text-stone-400 mt-1 font-medium">Fill in your details to get started</p>
         </div>
 
-        <div className="card p-8 flex flex-col gap-6 shadow-sm border border-stone-200/60 rounded-3xl bg-white">
-          <form onSubmit={handleSignup} className="flex flex-col gap-5">
-            <div>
-              <label className="text-[12px] font-semibold text-stone-500 mb-1.5 block">Full Name</label>
+        {/* Card */}
+        <div className="card rounded-2xl">
+          <form onSubmit={handleSignup} noValidate>
+
+            {/* Full Name */}
+            <div className="mb-4">
+              <label className="label">Full Name</label>
               <div className="relative">
-                <User className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.name ? 'text-red-400' : 'text-stone-400'}`} size={16} />
+                <User size={15} className={ICON_CLS(errors.name)} />
                 <input
                   type="text"
-                  placeholder="Official name"
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-stone-400 focus:ring-0 transition-all text-[14px] ${errors.name ? 'border-red-300 bg-red-50/50' : ''}`}
+                  className={FIELD_CLS(errors.name)}
+                  placeholder="Your official name"
                   value={form.name}
                   onChange={(e) => set("name", e.target.value)}
                   disabled={loading}
+                  autoComplete="name"
                 />
               </div>
-              {errors.name && <p className="text-[11px] text-red-500 font-medium mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-[11.5px] text-red-500 font-medium mt-1">{errors.name}</p>}
             </div>
 
-            <div>
-              <label className="text-[12px] font-semibold text-stone-500 mb-1.5 block">Email Address</label>
+            {/* Email */}
+            <div className="mb-4">
+              <label className="label">Email Address</label>
               <div className="relative">
-                <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.email ? 'text-red-400' : 'text-stone-400'}`} size={16} />
+                <Mail size={15} className={ICON_CLS(errors.email)} />
                 <input
                   type="email"
+                  className={FIELD_CLS(errors.email)}
                   placeholder="name@example.com"
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-stone-400 focus:ring-0 transition-all text-[14px] ${errors.email ? 'border-red-300 bg-red-50/50' : ''}`}
                   value={form.email}
                   onChange={(e) => set("email", e.target.value)}
                   disabled={loading}
+                  autoComplete="email"
                 />
               </div>
-              {errors.email && <p className="text-[11px] text-red-500 font-medium mt-1">{errors.email}</p>}
+              {errors.email && <p className="text-[11.5px] text-red-500 font-medium mt-1">{errors.email}</p>}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-               <div>
-                  <label className="text-[12px] font-semibold text-stone-500 mb-1.5 block">Phone</label>
-                  <div className="relative">
-                    <Phone className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.phone ? 'text-red-400' : 'text-stone-400'}`} size={16} />
-                    <input
-                      type="tel"
-                      placeholder="10-digits"
-                      className={`w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-stone-400 focus:ring-0 transition-all text-[14px] ${errors.phone ? 'border-red-300 bg-red-50/50' : ''}`}
-                      value={form.phone}
-                      onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
-                      disabled={loading}
-                    />
-                  </div>
-                  {errors.phone && <p className="text-[11px] text-red-500 font-medium mt-1">{errors.phone}</p>}
-               </div>
-               <div>
-                  <label className="text-[12px] font-semibold text-stone-500 mb-1.5 block">Password</label>
-                  <div className="relative">
-                    <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.password ? 'text-red-400' : 'text-stone-400'}`} size={16} />
-                    <input
-                      type="password"
-                      placeholder="Min. 6 chars"
-                      className={`w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-stone-400 focus:ring-0 transition-all text-[14px] ${errors.password ? 'border-red-300 bg-red-50/50' : ''}`}
-                      value={form.password}
-                      onChange={(e) => set("password", e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
-                  {errors.password && <p className="text-[11px] text-red-500 font-medium mt-1">{errors.password}</p>}
-               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            {/* Phone + Password side by side */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
-                <label className="text-[12px] font-semibold text-stone-500 mb-1.5 block">Gender</label>
-                <SegmentedControl
-                  options={[
-                    { label: "Male", value: "male" },
-                    { label: "Female", value: "female" }
-                  ]}
+                <label className="label">Phone</label>
+                <div className="relative">
+                  <Phone size={15} className={ICON_CLS(errors.phone)} />
+                  <input
+                    type="tel"
+                    className={FIELD_CLS(errors.phone)}
+                    placeholder="10 digits"
+                    value={form.phone}
+                    onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    disabled={loading}
+                    autoComplete="tel"
+                  />
+                </div>
+                {errors.phone && <p className="text-[11.5px] text-red-500 font-medium mt-1">{errors.phone}</p>}
+              </div>
+              <div>
+                <label className="label">Password</label>
+                <div className="relative">
+                  <Lock size={15} className={ICON_CLS(errors.password)} />
+                  <input
+                    type="password"
+                    className={FIELD_CLS(errors.password)}
+                    placeholder="Min. 6 chars"
+                    value={form.password}
+                    onChange={(e) => set("password", e.target.value)}
+                    disabled={loading}
+                    autoComplete="new-password"
+                  />
+                </div>
+                {errors.password && <p className="text-[11.5px] text-red-500 font-medium mt-1">{errors.password}</p>}
+              </div>
+            </div>
+
+            {/* Gender + Stay */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div>
+                <label className="label">Gender</label>
+                <SegmentPill
+                  options={[{ label: "Male", value: "male" }, { label: "Female", value: "female" }]}
                   value={form.gender}
-                  onChange={(val) => set("gender", val)}
+                  onChange={(v) => set("gender", v)}
                   disabled={loading}
-                  className="!rounded-xl !p-1 !bg-stone-50 border border-stone-200 text-[13px]"
                 />
               </div>
-
               <div>
-                <label className="text-[12px] font-semibold text-stone-500 mb-1.5 block">Stay</label>
-                <SegmentedControl
-                  options={[
-                    { label: "Hostel", value: "hostel" },
-                    { label: "Day", value: "day_scholar" }
-                  ]}
+                <label className="label">Stay Type</label>
+                <SegmentPill
+                  options={[{ label: "Hostel", value: "hostel" }, { label: "Day", value: "day_scholar" }]}
                   value={form.stayType}
-                  onChange={(val) => set("stayType", val)}
+                  onChange={(v) => set("stayType", v)}
                   disabled={loading}
-                  className="!rounded-xl !p-1 !bg-stone-50 border border-stone-200 text-[13px]"
                 />
               </div>
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
-              className="w-full py-3 mt-2 rounded-xl bg-stone-900 text-white text-[14px] font-semibold hover:bg-stone-800 transition-colors active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              className="btn-primary w-full py-3 text-[14px]"
               disabled={loading}
             >
               {loading ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Creating...
-                </>
+                <><Loader2 size={17} className="animate-spin" /> Creating account...</>
               ) : (
-                <>
-                  Create Account <ArrowRight size={18} />
-                </>
+                <>Create Account <ArrowRight size={17} /></>
               )}
             </button>
           </form>
         </div>
 
-        <p className="text-[14px] text-center mt-6 font-medium text-stone-500">
+        <p className="text-[13.5px] text-center mt-5 text-stone-400 font-medium">
           Already have an account?{" "}
-          <Link to="/login" className="text-stone-900 font-semibold hover:text-stone-700 transition-colors">
+          <Link to="/login" className="text-stone-800 font-bold hover:text-stone-600 transition-colors">
             Sign In
           </Link>
         </p>

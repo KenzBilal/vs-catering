@@ -9,13 +9,12 @@ export const { auth, signIn, signOut, store } = convexAuth({
       profile(params) {
         return {
           email: params.email,
-          name: params.name,
-          phone: params.phone,
-          stayType: params.stayType,
-          gender: params.gender,
-          defaultDropPoint: params.defaultDropPoint,
+          name: params.name ?? undefined,
+          phone: params.phone ?? undefined,
+          stayType: params.stayType ?? undefined,
+          gender: params.gender ?? undefined,
+          defaultDropPoint: params.defaultDropPoint ?? undefined,
           role: "student",
-          emailVerified: false,
         };
       },
     }),

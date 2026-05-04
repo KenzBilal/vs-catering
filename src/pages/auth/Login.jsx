@@ -2,174 +2,185 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate, Link } from "react-router-dom";
-import { Mail, Lock, ArrowRight, Phone, Loader2 } from "lucide-react";
+import { Mail, Lock, Phone, ArrowRight, Loader2, User } from "lucide-react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import toast from "react-hot-toast";
 import ConvexImage from "../../components/shared/ConvexImage";
 
+const FIELD_CLS = (err) =>
+  `w-full pl-10 pr-4 py-[11px] rounded-xl bg-cream-50 border text-[14px] outline-none transition-all duration-200 placeholder:text-stone-400/70 focus:bg-white focus:border-stone-400 focus:shadow-[0_0_0_3px_rgba(28,25,22,0.06)] ${
+    err ? "border-red-300 bg-red-50/60" : "border-cream-300"
+  }`;
+
+const ICON_CLS = (err) =>
+  `absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none ${err ? "text-red-400" : "text-stone-400"}`;
+
 export default function Login() {
   const navigate = useNavigate();
+  const siteSettings = useQuery(api.adminSettings.getSiteSettings);
+  const { signIn } = useAuthActions();
+
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const { signIn } = useAuthActions();
 
-  const isPhone = /^\d{10}$/.test(identifier.replace(/\D/g, ""));
+  const digits = identifier.replace(/\D/g, "");
+  const isPhone = /^\d{10}$/.test(digits);
 
+  // Reactively resolve phone → email in the background
   const resolvedEmail = useQuery(
     api.users.resolveLoginEmail,
-    identifier.trim().length >= 6 ? { identifier: identifier.trim() } : "skip"
+    identifier.trim().length >= 5 ? { identifier: identifier.trim() } : "skip"
   );
 
   const handleLogin = async (e) => {
     e?.preventDefault();
     setErrors({});
-    
-    let hasError = false;
-    const newErrors = {};
 
-    if (!identifier.trim()) { newErrors.identifier = "Required"; hasError = true; }
-    if (!password.trim()) { newErrors.password = "Required"; hasError = true; }
-
-    if (hasError) {
-      setErrors(newErrors);
-      return;
-    }
+    const errs = {};
+    if (!identifier.trim()) errs.identifier = "Required";
+    if (!password.trim()) errs.password = "Required";
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
 
     let finalEmail = identifier.toLowerCase().trim();
 
     if (isPhone) {
       if (resolvedEmail === undefined) {
+        // Wait a moment for the query to resolve
         setLoading(true);
-        const start = Date.now();
-        while (Date.now() - start < 1500) {
+        const deadline = Date.now() + 2000;
+        while (Date.now() < deadline) {
+          await new Promise(r => setTimeout(r, 80));
           if (resolvedEmail !== undefined) break;
-          await new Promise(r => setTimeout(r, 100));
         }
+      }
+
+      if (!resolvedEmail) {
         setLoading(false);
-        if (resolvedEmail === undefined) {
-          toast.error("Lookup timeout. Please try again.");
-          return;
-        }
+        setErrors({ identifier: "No account found with this phone number." });
+        return;
       }
       finalEmail = resolvedEmail;
     }
 
-    if (isPhone && !finalEmail) {
-      setErrors({ identifier: "Account not found." });
-      return;
-    }
-
     setLoading(true);
     try {
-      await signIn("password", { email: finalEmail, password, flow: "signIn" });
+      // ✅ Use FormData — required by Convex Auth Password provider
+      const formData = new FormData();
+      formData.set("email", finalEmail);
+      formData.set("password", password);
+      formData.set("flow", "signIn");
+
+      await signIn("password", formData);
       navigate("/", { replace: true });
-    } catch (e) {
-      console.error("Login Error:", e);
-      let msg = "Invalid credentials.";
-      const rawMsg = e.data || e.message || "";
-      if (typeof rawMsg === "string" && rawMsg.includes("ConvexError:")) {
-        msg = rawMsg.split("ConvexError:")[1].trim();
-      }
-      toast.error(msg);
+    } catch (err) {
+      console.error("Login Error:", err);
+      const raw = err?.data || err?.message || "";
+      const msg = typeof raw === "string"
+        ? raw.replace(/^.*ConvexError:\s*/i, "").replace(/^Error:\s*/i, "")
+        : "";
+      toast.error(msg || "Invalid email or password.");
     } finally {
       setLoading(false);
     }
   };
 
-  const siteSettings = useQuery(api.adminSettings.getSiteSettings);
-
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-cream-bg">
-      <div className="w-full max-w-sm animate-fade-in">
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative">
-            {siteSettings?.siteLogo ? (
-              <div className="w-14 h-14 rounded-2xl overflow-hidden mb-5 shadow-sm border border-stone-100 animate-scale-up">
-                <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
-              </div>
-            ) : siteSettings === undefined ? (
-              <div className="w-14 h-14 bg-stone-100 rounded-2xl mb-5 animate-pulse" />
-            ) : null}
-          </div>
-          
-          <h1 className="text-2xl font-bold text-stone-900 tracking-tight text-center">
-             {siteSettings === undefined ? (
-              <span className="inline-block w-32 h-7 bg-stone-100 rounded-lg animate-pulse" />
+    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ background: "var(--cream-bg)" }}>
+      <div className="w-full max-w-sm" style={{ animation: "fade-in 0.2s ease-out forwards" }}>
+
+        {/* Header */}
+        <div className="flex flex-col items-center mb-7">
+          {siteSettings === undefined ? (
+            <div className="w-12 h-12 rounded-2xl bg-cream-200 animate-pulse mb-4" />
+          ) : siteSettings?.siteLogo ? (
+            <div className="w-12 h-12 rounded-2xl overflow-hidden mb-4 border border-cream-300 shadow-sm">
+              <ConvexImage storageId={siteSettings.siteLogo} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-12 h-12 rounded-2xl bg-stone-800 flex items-center justify-center mb-4 shadow-sm">
+              <User size={22} className="text-white" />
+            </div>
+          )}
+
+          <h1 className="text-[22px] font-bold text-stone-900 tracking-tight">
+            {siteSettings === undefined ? (
+              <span className="inline-block w-28 h-6 bg-cream-200 rounded-lg animate-pulse" />
             ) : (
               siteSettings?.siteName || "Sign In"
             )}
           </h1>
+          <p className="text-[13px] text-stone-400 mt-1 font-medium">Enter your credentials to continue</p>
         </div>
 
-        <div className="card p-8 flex flex-col gap-6 shadow-sm border border-stone-200/60 rounded-3xl bg-white">
-          <form onSubmit={handleLogin} className="flex flex-col gap-5">
+        {/* Card */}
+        <div className="card rounded-2xl">
+          <form onSubmit={handleLogin} noValidate>
 
-            <div>
-              <label className="text-[12px] font-semibold text-stone-500 mb-1.5 block">Access ID</label>
+            {/* Identifier */}
+            <div className="mb-4">
+              <label className="label">Email or Phone</label>
               <div className="relative">
                 {isPhone
-                  ? <Phone className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.identifier ? 'text-red-400' : 'text-stone-400'}`} size={16} />
-                  : <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.identifier ? 'text-red-400' : 'text-stone-400'}`} size={16} />
+                  ? <Phone size={15} className={ICON_CLS(errors.identifier)} />
+                  : <Mail size={15} className={ICON_CLS(errors.identifier)} />
                 }
                 <input
                   type="text"
+                  className={FIELD_CLS(errors.identifier)}
                   placeholder="Phone number or email"
                   value={identifier}
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-stone-400 focus:ring-0 transition-all text-[14px] ${errors.identifier ? 'border-red-300 bg-red-50/50' : ''}`}
-                  onChange={(e) => { setIdentifier(e.target.value); if(errors.identifier) setErrors(e=>({...e, identifier: ""})); }}
+                  onChange={(e) => { setIdentifier(e.target.value); if (errors.identifier) setErrors(v => ({ ...v, identifier: "" })); }}
                   disabled={loading}
                   autoComplete="username"
+                  inputMode={isPhone ? "numeric" : "email"}
                 />
               </div>
-              {errors.identifier && <p className="text-[11px] text-red-500 font-medium mt-1">{errors.identifier}</p>}
+              {errors.identifier && <p className="text-[11.5px] text-red-500 font-medium mt-1">{errors.identifier}</p>}
             </div>
 
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="text-[12px] font-semibold text-stone-500 block">Password</label>
-                <Link to="/forgot-password" element="span" className="text-[11px] font-medium text-stone-400 hover:text-stone-700 transition-colors">
-                  Reset
+            {/* Password */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="label mb-0">Password</label>
+                <Link to="/forgot-password" className="text-[12px] text-stone-400 hover:text-stone-600 font-semibold transition-colors">
+                  Forgot?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.password ? 'text-red-400' : 'text-stone-400'}`} size={16} />
+                <Lock size={15} className={ICON_CLS(errors.password)} />
                 <input
                   type="password"
+                  className={FIELD_CLS(errors.password)}
                   placeholder="Enter password"
                   value={password}
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-stone-400 focus:ring-0 transition-all text-[14px] ${errors.password ? 'border-red-300 bg-red-50/50' : ''}`}
-                  onChange={(e) => { setPassword(e.target.value); if(errors.password) setErrors(e=>({...e, password: ""})); }}
+                  onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors(v => ({ ...v, password: "" })); }}
                   disabled={loading}
                   autoComplete="current-password"
                 />
               </div>
-              {errors.password && <p className="text-[11px] text-red-500 font-medium mt-1">{errors.password}</p>}
+              {errors.password && <p className="text-[11.5px] text-red-500 font-medium mt-1">{errors.password}</p>}
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
-              className="w-full py-3 mt-2 rounded-xl bg-stone-900 text-white text-[14px] font-semibold hover:bg-stone-800 transition-colors active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              className="btn-primary w-full py-3 text-[14px]"
               disabled={loading}
             >
               {loading ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Authenticating...
-                </>
+                <><Loader2 size={17} className="animate-spin" /> Authenticating...</>
               ) : (
-                <>
-                  Sign In <ArrowRight size={18} />
-                </>
+                <>Sign In <ArrowRight size={17} /></>
               )}
             </button>
           </form>
         </div>
 
-        <p className="text-[14px] text-center mt-6 font-medium text-stone-500">
+        <p className="text-[13.5px] text-center mt-5 text-stone-400 font-medium">
           New here?{" "}
-          <Link to="/signup" className="text-stone-900 font-semibold hover:text-stone-700 transition-colors">
+          <Link to="/signup" className="text-stone-800 font-bold hover:text-stone-600 transition-colors">
             Create an Account
           </Link>
         </p>
