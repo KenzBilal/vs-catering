@@ -190,3 +190,33 @@ export const resolveLoginEmail = query({
     return user ? user.email : null;
   },
 });
+
+/**
+ * Bootstrap the first admin user. 
+ * This only works if no admin exists in the database.
+ */
+export const bootstrapAdmin = mutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const existingAdmin = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("role"), "admin"))
+      .first();
+
+    if (existingAdmin) {
+      throw new ConvexError("An admin already exists. Use the admin panel to manage roles.");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email.toLowerCase().trim()))
+      .first();
+
+    if (!user) {
+      throw new ConvexError("User not found. Please sign up first.");
+    }
+
+    await ctx.db.patch(user._id, { role: "admin" });
+    return { success: true, message: `${user.name} has been promoted to Admin.` };
+  },
+});
