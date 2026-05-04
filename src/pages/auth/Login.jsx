@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Phone, ArrowRight, Loader2, User } from "lucide-react";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useAuthActions, useConvexAuth } from "@convex-dev/auth/react";
 import toast from "react-hot-toast";
 import ConvexImage from "../../components/shared/ConvexImage";
 
@@ -17,8 +17,16 @@ const ICON_CLS = (err) =>
 
 export default function Login() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useConvexAuth();
   const siteSettings = useQuery(api.adminSettings.getSiteSettings);
   const { signIn } = useAuthActions();
+
+  // Auto-redirect when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
