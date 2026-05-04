@@ -19,6 +19,15 @@ export const getCurrentUser = query({
   },
 });
 
+// Debug: list all users
+export const listAllUsers = query({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    return users.map(u => ({ _id: u._id, email: u.email, name: u.name, role: u.role }));
+  },
+});
+
 
 
 // ─── getUser ─────────────────────────────────────────────────────────────────
