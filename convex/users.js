@@ -160,10 +160,10 @@ export const checkUserExists = query({
     const cleanEmail = email.toLowerCase().trim();
     const cleanPhone = phone.replace(/\D/g, "").slice(-10);
     
-    const byEmail = await ctx.db.query("users").withIndex("by_email", (q) => q.eq("email", cleanEmail)).first();
+    const byEmail = await ctx.db.query("users").withIndex("email", (q) => q.eq("email", cleanEmail)).first();
     if (byEmail) return { exists: true };
 
-    const byPhone = await ctx.db.query("users").withIndex("by_phone", (q) => q.eq("phone", cleanPhone)).first();
+    const byPhone = await ctx.db.query("users").withIndex("phone", (q) => q.eq("phone", cleanPhone)).first();
     if (byPhone) return { exists: true };
     
     return { exists: false };
@@ -179,13 +179,13 @@ export const resolveLoginEmail = query({
     if (isPhone) {
       const user = await ctx.db
         .query("users")
-        .withIndex("by_phone", (q) => q.eq("phone", cleanedDigits))
+        .withIndex("phone", (q) => q.eq("phone", cleanedDigits))
         .first();
       return user ? user.email : null;
     }
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", cleaned.toLowerCase()))
+      .withIndex("email", (q) => q.eq("email", cleaned.toLowerCase()))
       .first();
     return user ? user.email : null;
   },
@@ -209,7 +209,7 @@ export const bootstrapAdmin = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", email.toLowerCase().trim()))
+      .withIndex("email", (q) => q.eq("email", email.toLowerCase().trim()))
       .first();
 
     if (!user) {

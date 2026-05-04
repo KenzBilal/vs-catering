@@ -29,8 +29,8 @@ export default defineSchema({
     emailVerified: v.optional(v.boolean()),
   })
 
-    .index("by_email", ["email"])
-    .index("by_phone", ["phone"])
+    .index("email", ["email"])
+    .index("phone", ["phone"])
     .index("by_role", ["role"]),
 
 
