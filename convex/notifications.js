@@ -6,7 +6,7 @@ import { getUserFromToken, requireAdmin } from "./auth";
 // ─── QUERIES ────────────────────────────────────────────────────────────────
 
 export const getMyNotifications = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user) return [];
@@ -48,7 +48,7 @@ export const getMyNotifications = query({
 });
 
 export const getUnreadCount = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user) return 0;
@@ -82,7 +82,7 @@ export const getUnreadCount = query({
 });
 
 export const getPayoutSettings = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user) throw new ConvexError("Unauthorized.");
@@ -99,7 +99,7 @@ export const getPayoutSettings = query({
 // ─── MUTATIONS ──────────────────────────────────────────────────────────────
 
 export const markAsRead = mutation({
-  args: { token: v.string(), notificationId: v.id("notifications") },
+  args: { token: v.optional(v.string()), notificationId: v.id("notifications") },
   handler: async (ctx, { token, notificationId }) => {
     const user = await getUserFromToken(ctx, token);
     const notification = await ctx.db.get(notificationId);
@@ -113,7 +113,7 @@ export const markAsRead = mutation({
 });
 
 export const markAllAsRead = mutation({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user) return;
@@ -136,7 +136,7 @@ export const markAllAsRead = mutation({
 
 export const setPayoutSettings = mutation({
   args: { 
-    token: v.string(), 
+    token: v.optional(v.string()), 
     payoutDate: v.optional(v.string()), 
     note: v.optional(v.string()) 
   },

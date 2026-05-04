@@ -63,7 +63,7 @@ export const createCatering = mutation({
       pay: v.number(),
     })),
     createdBy: v.id("users"),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkPermission(ctx, args.token, "manage_caterings");
@@ -119,7 +119,7 @@ export const updateCatering = mutation({
       pay: v.number(),
     }))),
     limitSlots: v.optional(v.boolean()),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { cateringId, token, ...updates }) => {
     await checkPermission(ctx, token, "manage_caterings");
@@ -185,7 +185,7 @@ export const updateCatering = mutation({
 export const cancelCatering = mutation({
   args: {
     cateringId: v.id("caterings"),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { cateringId, token }) => {
     await checkPermission(ctx, token, "manage_caterings");
@@ -225,7 +225,7 @@ export const cancelCatering = mutation({
 export const startVerification = mutation({
   args: {
     cateringId: v.id("caterings"),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { cateringId, token }) => {
     await checkPermission(ctx, token, "manage_caterings");
@@ -358,7 +358,7 @@ export const refreshStatuses = internalMutation({
 });
 
 export const getFinishedCaterings = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     await checkPermission(ctx, token, "manage_payments");
     
@@ -398,7 +398,7 @@ export const setEventPayout = mutation({
     cateringId: v.id("caterings"),
     payoutDate: v.string(),
     payoutNote: v.optional(v.string()),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { cateringId, payoutDate, payoutNote, token }) => {
     await checkPermission(ctx, token, "manage_payments");

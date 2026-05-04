@@ -8,7 +8,7 @@ export const createPayment = mutation({
   args: {
     registrationId: v.id("registrations"),
     method: v.union(v.literal("cash"), v.literal("upi")),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { registrationId, method, token }) => {
     await checkPermission(ctx, token, "manage_payments");
@@ -64,7 +64,7 @@ export const clearPayment = mutation({
   args: {
     paymentId: v.id("payments"),
     upiRef: v.optional(v.string()),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { paymentId, upiRef, token }) => {
     // Derive clearedBy from session token — never trust the client
@@ -97,7 +97,7 @@ export const clearPayment = mutation({
 });
 
 export const getPaymentsByUser = query({
-  args: { userId: v.id("users"), token: v.string() },
+  args: { userId: v.id("users"), token: v.optional(v.string()) },
   handler: async (ctx, { userId, token }) => {
     const caller = await getUserFromToken(ctx, token);
     if (!caller) throw new ConvexError("Not authenticated.");
@@ -123,7 +123,7 @@ export const getPaymentsByUser = query({
 });
 
 export const getPaymentsByCatering = query({
-  args: { cateringId: v.id("caterings"), token: v.string() },
+  args: { cateringId: v.id("caterings"), token: v.optional(v.string()) },
   handler: async (ctx, { cateringId, token }) => {
     await checkPermission(ctx, token, "manage_payments");
     const payments = await ctx.db
@@ -162,7 +162,7 @@ export const createPaymentGroup = mutation({
     cateringId: v.id("caterings"),
     headUserId: v.id("users"),
     memberRegIds: v.array(v.id("registrations")),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const admin = await checkPermission(ctx, args.token, "manage_payments");
@@ -208,7 +208,7 @@ export const createPaymentGroup = mutation({
 export const clearPaymentGroup = mutation({
   args: {
     groupId: v.id("paymentGroups"),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { groupId, token }) => {
     const admin = await checkPermission(ctx, token, "manage_payments");
@@ -275,7 +275,7 @@ export const clearPaymentGroup = mutation({
 });
 
 export const disbandGroup = mutation({
-  args: { groupId: v.id("paymentGroups"), token: v.string() },
+  args: { groupId: v.id("paymentGroups"), token: v.optional(v.string()) },
   handler: async (ctx, { groupId, token }) => {
     await checkPermission(ctx, token, "manage_payments");
     const group = await ctx.db.get(groupId);
@@ -298,7 +298,7 @@ export const removeMemberFromPaymentGroup = mutation({
   args: { 
     groupId: v.id("paymentGroups"), 
     registrationId: v.id("registrations"), 
-    token: v.string() 
+    token: v.optional(v.string()) 
   },
   handler: async (ctx, { groupId, registrationId, token }) => {
     await checkPermission(ctx, token, "manage_payments");
@@ -339,7 +339,7 @@ export const removeMemberFromPaymentGroup = mutation({
 
 
 export const getPendingPayments = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     await checkPermission(ctx, token, "manage_payments");
     const payments = await ctx.db
@@ -367,7 +367,7 @@ export const getPendingPayments = query({
 });
 
 export const getMonthlyAnalytics = query({
-  args: { month: v.number(), year: v.number(), token: v.string() },
+  args: { month: v.number(), year: v.number(), token: v.optional(v.string()) },
   handler: async (ctx, { month, year, token }) => {
     await checkPermission(ctx, token, "manage_payments");
     const start = new Date(year, month - 1, 1).getTime();
@@ -420,7 +420,7 @@ export const getMonthlyAnalytics = query({
 
 
 export const getStudentFinancialSummary = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user) throw new ConvexError("Not authenticated.");

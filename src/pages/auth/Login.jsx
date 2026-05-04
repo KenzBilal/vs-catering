@@ -67,7 +67,7 @@ export default function Login() {
     <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-stone-200/50 p-8 border border-stone-100">
         <div className="text-center mb-10">
-          <div className="h-16 w-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+          <div className="h-16 w-16 bg-stone-100 text-stone-900 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
             <Lock className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-bold text-stone-800">Welcome Back</h1>
@@ -91,7 +91,7 @@ export default function Login() {
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                className={`block w-full pl-11 pr-4 py-3.5 bg-stone-50 border ${errors.identifier ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-orange-500 focus:ring-orange-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
+                className={`block w-full pl-11 pr-4 py-3.5 bg-white border ${errors.identifier ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-stone-800 focus:ring-stone-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
                 placeholder="admin@example.com or 9876543210"
               />
             </div>
@@ -101,7 +101,7 @@ export default function Login() {
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-semibold text-stone-700">Password</label>
-              <Link to="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">
+              <Link to="/forgot-password" className="text-sm font-medium text-stone-900 hover:text-stone-700 transition-colors">
                 Forgot?
               </Link>
             </div>
@@ -113,7 +113,7 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={`block w-full pl-11 pr-4 py-3.5 bg-stone-50 border ${errors.password ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-orange-500 focus:ring-orange-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
+                className={`block w-full pl-11 pr-4 py-3.5 bg-white border ${errors.password ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-stone-800 focus:ring-stone-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
                 placeholder="••••••••"
               />
             </div>
@@ -123,7 +123,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center py-3.5 px-4 mt-6 border border-transparent rounded-xl shadow-sm text-base font-bold text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-200 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+            className="w-full flex items-center justify-center py-3.5 px-4 mt-6 border border-transparent rounded-xl shadow-sm text-base font-bold text-white bg-stone-900 hover:bg-stone-800 focus:outline-none focus:ring-4 focus:ring-stone-200 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
           >
             {loading ? (
               <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
@@ -142,7 +142,7 @@ export default function Login() {
         <div className="mt-8 text-center">
           <p className="text-stone-500 text-sm">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-orange-600 font-bold hover:text-orange-700 ml-1 transition-colors">
+            <Link to="/signup" className="text-stone-900 font-bold hover:text-stone-700 ml-1 transition-colors">
               Create an account
             </Link>
           </p>

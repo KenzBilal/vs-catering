@@ -3,7 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { requireAdmin, getUserFromToken } from "./auth";
 
 export const seedDropPoints = mutation({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     await requireAdmin(ctx, token);
     const existing = await ctx.db.query("dropPoints").collect();
@@ -16,7 +16,7 @@ export const seedDropPoints = mutation({
 });
 
 export const getDropPoints = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user) throw new ConvexError("Not authenticated.");
@@ -29,7 +29,7 @@ export const getDropPoints = query({
 });
 
 export const addDropPoint = mutation({
-  args: { name: v.string(), token: v.string() },
+  args: { name: v.string(), token: v.optional(v.string()) },
   handler: async (ctx, { name, token }) => {
     await requireAdmin(ctx, token);
     return await ctx.db.insert("dropPoints", { name, isActive: true });
@@ -37,7 +37,7 @@ export const addDropPoint = mutation({
 });
 
 export const deactivateDropPoint = mutation({
-  args: { dropPointId: v.id("dropPoints"), token: v.string() },
+  args: { dropPointId: v.id("dropPoints"), token: v.optional(v.string()) },
   handler: async (ctx, { dropPointId, token }) => {
     await requireAdmin(ctx, token);
     await ctx.db.patch(dropPointId, { isActive: false });

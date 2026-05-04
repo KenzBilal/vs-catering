@@ -12,7 +12,7 @@ export const register = mutation({
 
 
   args: {
-    token: v.string(),
+    token: v.optional(v.string()),
     cateringId: v.id("caterings"),
     role: v.string(),
     dropPoint: v.string(),
@@ -148,7 +148,7 @@ export const register = mutation({
 // ─── getRegistrationsByCatering ───────────────────────────────────────────────
 
 export const getRegistrationsByCatering = query({
-  args: { cateringId: v.id("caterings"), token: v.string() },
+  args: { cateringId: v.id("caterings"), token: v.optional(v.string()) },
   handler: async (ctx, { cateringId, token }) => {
     const caller = await getUserFromToken(ctx, token);
     if (!caller) throw new ConvexError("Unauthorized: Authentication required to view participant list.");
@@ -207,7 +207,7 @@ export const getRegistrationsByCatering = query({
 // ─── getRegistrationsByUser ───────────────────────────────────────────────────
 
 export const getRegistrationsByUser = query({
-  args: { userId: v.id("users"), token: v.string() },
+  args: { userId: v.id("users"), token: v.optional(v.string()) },
   handler: async (ctx, { userId, token }) => {
     const caller = await getUserFromToken(ctx, token);
     if (!caller) throw new ConvexError("Not authenticated.");
@@ -251,7 +251,7 @@ export const markAttendance = mutation({
       v.literal("absent")
     ),
     rejectionReason: v.optional(v.string()),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { registrationId, status, rejectionReason, token }) => {
     await checkPermission(ctx, token, "mark_attendance");
@@ -378,7 +378,7 @@ export const changeRole = mutation({
   args: {
     registrationId: v.id("registrations"),
     role: v.string(),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { registrationId, role, token }) => {
     await checkPermission(ctx, token, "mark_attendance");
@@ -483,7 +483,7 @@ export const changeRole = mutation({
 export const cancelRegistration = mutation({
   args: {
     registrationId: v.id("registrations"),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { registrationId, token }) => {
     const caller = await getUserFromToken(ctx, token);
@@ -560,7 +560,7 @@ export const verifyAttendance = mutation({
   args: {
     registrationId: v.id("registrations"),
     verified: v.boolean(),
-    token: v.string(),
+    token: v.optional(v.string()),
   },
   handler: async (ctx, { registrationId, verified, token }) => {
     const user = await getUserFromToken(ctx, token);
@@ -600,7 +600,7 @@ export const verifyAttendance = mutation({
 });
 
 export const getPendingVerification = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user) return null;

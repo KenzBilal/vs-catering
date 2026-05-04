@@ -33,7 +33,7 @@ export const cleanLoginAttempts = internalMutation({
 // NUCLEAR RESET: Clears ALL data from the database
 // (Use for testing only, deletes everything except the calling admin)
 export const nuclearReset = mutation({
-  args: { token: v.string(), confirmationCode: v.string() },
+  args: { token: v.optional(v.string()), confirmationCode: v.string() },
   handler: async (ctx, { token, confirmationCode }) => {
     if (confirmationCode !== "RESET_NUCLEAR_DATA") {
       throw new ConvexError("Invalid confirmation code.");

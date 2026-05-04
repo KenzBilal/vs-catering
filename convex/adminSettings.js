@@ -37,7 +37,7 @@ const DEFAULT_PERMISSIONS = [
 // ─── QUERIES ────────────────────────────────────────────────────────────────
 
 export const getSettings = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     await requireAdmin(ctx, token);
     const settings = await ctx.db
@@ -50,7 +50,7 @@ export const getSettings = query({
 
 
 export const getSubAdminPermissions = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     // Both admins and sub-admins can view permissions
     const user = await getUserFromToken(ctx, token);
@@ -68,7 +68,7 @@ export const getSubAdminPermissions = query({
 
 
 export const getMyPermissions = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user) return DEFAULT_PERMISSIONS.map(p => ({ ...p, enabled: false }));
@@ -90,7 +90,7 @@ export const getMyPermissions = query({
 });
 
 export const getPermissionConfig = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user || (user.role !== "admin" && user.role !== "sub_admin")) {
@@ -107,7 +107,7 @@ export const getPermissionConfig = query({
 });
 
 export const getSubAdmins = query({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     await requireAdmin(ctx, token);
     return await ctx.db
@@ -120,7 +120,7 @@ export const getSubAdmins = query({
 // ─── MUTATIONS ──────────────────────────────────────────────────────────────
 
 export const initializeSettings = mutation({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     await requireAdmin(ctx, token);
     const existing = await ctx.db
@@ -157,7 +157,7 @@ export const initializeSettings = mutation({
 
 export const togglePermission = mutation({
   args: { 
-    token: v.string(), 
+    token: v.optional(v.string()), 
     permission: v.string(), 
     enabled: v.boolean() 
   },
@@ -194,7 +194,7 @@ export const getSiteSettings = query({
 
 export const updateSiteSettings = mutation({
   args: { 
-    token: v.string(), 
+    token: v.optional(v.string()), 
     siteName: v.optional(v.string()), 
     siteLogo: v.optional(v.union(v.id("_storage"), v.null())) 
   },

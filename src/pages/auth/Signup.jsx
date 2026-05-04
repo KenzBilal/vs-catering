@@ -88,7 +88,7 @@ export default function Signup() {
         </h2>
         <p className="mt-2 text-center text-sm text-stone-600">
           Or{' '}
-          <Link to="/login" className="font-medium text-orange-600 hover:text-orange-500 transition-colors">
+          <Link to="/login" className="font-medium text-stone-900 hover:text-stone-800 transition-colors">
             sign in to your existing account
           </Link>
         </p>
@@ -113,7 +113,7 @@ export default function Signup() {
                   type="text"
                   value={form.name}
                   onChange={(e) => set("name", e.target.value)}
-                  className={`block w-full pl-11 pr-4 py-3 bg-stone-50 border ${errors.name ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-orange-500 focus:ring-orange-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
+                  className={`block w-full pl-11 pr-4 py-3 bg-white border ${errors.name ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-stone-800 focus:ring-stone-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
                   placeholder="John Doe"
                 />
               </div>
@@ -130,7 +130,7 @@ export default function Signup() {
                   type="email"
                   value={form.email}
                   onChange={(e) => set("email", e.target.value)}
-                  className={`block w-full pl-11 pr-4 py-3 bg-stone-50 border ${errors.email ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-orange-500 focus:ring-orange-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
+                  className={`block w-full pl-11 pr-4 py-3 bg-white border ${errors.email ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-stone-800 focus:ring-stone-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
                   placeholder="john@example.com"
                 />
               </div>
@@ -147,7 +147,7 @@ export default function Signup() {
                   type="password"
                   value={form.password}
                   onChange={(e) => set("password", e.target.value)}
-                  className={`block w-full pl-11 pr-4 py-3 bg-stone-50 border ${errors.password ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-orange-500 focus:ring-orange-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
+                  className={`block w-full pl-11 pr-4 py-3 bg-white border ${errors.password ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-stone-800 focus:ring-stone-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
                   placeholder="••••••••"
                 />
               </div>
@@ -164,7 +164,7 @@ export default function Signup() {
                   type="tel"
                   value={form.phone}
                   onChange={(e) => set("phone", e.target.value)}
-                  className={`block w-full pl-11 pr-4 py-3 bg-stone-50 border ${errors.phone ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-orange-500 focus:ring-orange-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
+                  className={`block w-full pl-11 pr-4 py-3 bg-white border ${errors.phone ? 'border-red-300 focus:ring-red-200' : 'border-stone-200 focus:border-stone-800 focus:ring-stone-200'} rounded-xl text-stone-800 placeholder-stone-400 focus:ring-4 transition-all outline-none`}
                   placeholder="9876543210"
                 />
               </div>
@@ -201,7 +201,7 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-6"
+              className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-stone-900 hover:bg-stone-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-6"
             >
               {loading ? (
                 <div className="flex items-center">

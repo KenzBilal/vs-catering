@@ -10,12 +10,12 @@
 
 import type * as adminSettings from "../adminSettings.js";
 import type * as auth from "../auth.js";
-import type * as auth_actions from "../auth_actions.js";
 import type * as caterings from "../caterings.js";
 import type * as caterings_util from "../caterings_util.js";
 import type * as crons from "../crons.js";
 import type * as dropPoints from "../dropPoints.js";
 import type * as files from "../files.js";
+import type * as http from "../http.js";
 import type * as maintenance from "../maintenance.js";
 import type * as migrations from "../migrations.js";
 import type * as notifications from "../notifications.js";
@@ -33,12 +33,12 @@ import type {
 declare const fullApi: ApiFromModules<{
   adminSettings: typeof adminSettings;
   auth: typeof auth;
-  auth_actions: typeof auth_actions;
   caterings: typeof caterings;
   caterings_util: typeof caterings_util;
   crons: typeof crons;
   dropPoints: typeof dropPoints;
   files: typeof files;
+  http: typeof http;
   maintenance: typeof maintenance;
   migrations: typeof migrations;
   notifications: typeof notifications;

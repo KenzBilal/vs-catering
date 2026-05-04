@@ -4,12 +4,21 @@ import { requireAdmin, getAuthUser, checkPermission } from "./auth";
 import { sanitizeString, validatePhone, validateEmail } from "./utils";
 
 // ─── getCurrentUser ─────────────────────────────────────────────────────────
+
+
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
-    return await getAuthUser(ctx);
+    try {
+      return await getAuthUser(ctx);
+    } catch (e) {
+      console.error(e);
+      return { error_debug: e.message, stack: e.stack };
+    }
   },
 });
+
+
 
 // ─── getUser ─────────────────────────────────────────────────────────────────
 export const getUser = query({

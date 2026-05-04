@@ -3,7 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { getUserFromToken } from "./auth";
 
 export const generateUploadUrl = mutation({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user) {
@@ -26,7 +26,7 @@ export const getImageUrl = query({
 });
 
 export const deleteFile = mutation({
-  args: { storageId: v.id("_storage"), token: v.string() },
+  args: { storageId: v.id("_storage"), token: v.optional(v.string()) },
   handler: async (ctx, { storageId, token }) => {
     const user = await getUserFromToken(ctx, token);
     if (!user) throw new ConvexError("Unauthorized");

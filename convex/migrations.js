@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { requireAdmin } from "./auth";
 
 export const cleanupAdminSettings = mutation({
-  args: { token: v.string() },
+  args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     await requireAdmin(ctx, token);
     const settings = await ctx.db
