@@ -5,18 +5,21 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 
 export default function VerificationPopup() {
-  const { token } = useAuth();
-  const pending = useQuery(api.registrations.getPendingVerification, { token: token || "" });
+  const { isAuthenticated } = useAuth();
+  const pending = useQuery(
+    api.registrations.getPendingVerification,
+    isAuthenticated ? {} : "skip"
+  );
   const verify = useMutation(api.registrations.verifyAttendance);
   const [loading, setLoading] = useState(false);
 
-  if (!pending || !token) return null;
+  if (!pending) return null;
 
   const handleResponse = async (verified) => {
     setLoading(true);
     try {
-      await verify({ registrationId: pending.registrationId, verified, token });
-      toast.success(verified ? "Attendance Confirmed 👍" : "Withdrawn 👎");
+      await verify({ registrationId: pending.registrationId, verified });
+      toast.success(verified ? "Attendance Confirmed" : "Withdrawn");
     } catch (e) {
       toast.error("Action failed");
     } finally {
