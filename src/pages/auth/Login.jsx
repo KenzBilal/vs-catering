@@ -74,19 +74,16 @@ export default function Login() {
 
     setLoading(true);
     try {
-      console.log("Attempting login with:", finalEmail);
-      // ✅ Use FormData — required by Convex Auth Password provider
       const formData = new FormData();
       formData.set("email", finalEmail);
       formData.set("password", password);
       formData.set("flow", "signIn");
 
       await signIn("password", formData);
-      console.log("Login successful, waiting for session...");
-      
-      // Wait a moment for session to be established
-      await new Promise(r => setTimeout(r, 500));
-      
+
+      // Wait a moment for session to establish before redirect
+      await new Promise(r => setTimeout(r, 400));
+
       navigate("/", { replace: true });
     } catch (err) {
       console.error("Login Error:", err);
@@ -158,9 +155,6 @@ export default function Login() {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-1.5">
                 <label className="label mb-0">Password</label>
-                <Link to="/forgot-password" className="text-[12px] text-stone-400 hover:text-stone-600 font-semibold transition-colors">
-                  Forgot?
-                </Link>
               </div>
               <div className="relative">
                 <Lock size={15} className={ICON_CLS(errors.password)} />

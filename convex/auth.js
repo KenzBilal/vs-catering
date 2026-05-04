@@ -38,18 +38,12 @@ export async function getAuthUser(ctx) {
   }
 }
 
-// Retro-compatible helper so we don't break existing files passing "token" arg
-// (We will remove the token arg from client calls later)
-export async function getUserFromToken(ctx, token) {
-  try {
-    return await getAuthUser(ctx);
-  } catch (e) {
-    console.error("getUserFromToken error:", e);
-    return null;
-  }
+// Alias: retro-compatible, token arg ignored (session-based auth only)
+export async function getUserFromToken(ctx, _token) {
+  return await getAuthUser(ctx);
 }
 
-export async function requireAdmin(ctx, token) {
+export async function requireAdmin(ctx) {
   const user = await getAuthUser(ctx);
   if (!user || user.role !== "admin") {
     throw new ConvexError("Unauthorized: Admin access required.");
@@ -57,7 +51,7 @@ export async function requireAdmin(ctx, token) {
   return user;
 }
 
-export async function requireSubAdmin(ctx, token) {
+export async function requireSubAdmin(ctx) {
   const user = await getAuthUser(ctx);
   if (!user || (user.role !== "admin" && user.role !== "sub_admin")) {
     throw new ConvexError("Unauthorized: Sub-admin or admin access required.");
@@ -65,7 +59,7 @@ export async function requireSubAdmin(ctx, token) {
   return user;
 }
 
-export async function checkPermission(ctx, token, permissionKey) {
+export async function checkPermission(ctx, _token, permissionKey) {
   const user = await getAuthUser(ctx);
   if (!user) throw new ConvexError("Not authenticated.");
   

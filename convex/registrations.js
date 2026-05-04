@@ -36,10 +36,6 @@ export const register = mutation({
     if (catering.status === "ended") throw new ConvexError("This event has ended. Registration is closed.");
     if (catering.status === "cancelled") throw new ConvexError("This event has been cancelled.");
 
-    // Mandatory Email Verification Check
-    if (!caller.emailVerified) {
-      throw new ConvexError("Please verify your email address before registering for events.");
-    }
 
     // Duplicate check
     const existing = await ctx.db
