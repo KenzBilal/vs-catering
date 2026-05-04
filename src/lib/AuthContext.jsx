@@ -27,6 +27,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{ 
       user: validUser || null, 
+      token: validUser?._id ? String(validUser._id) : null,
       permissions,
       logout,
       loading,

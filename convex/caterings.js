@@ -272,42 +272,47 @@ import { paginationOptsValidator } from "convex/server";
 export const listCaterings = query({
   args: { paginationOpts: paginationOptsValidator, token: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const caller = args.token ? await getUserFromToken(ctx, args.token) : null;
-    const isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
+    try {
+      const caller = args.token ? await getUserFromToken(ctx, args.token) : null;
+      const isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
 
-    const results = await ctx.db
-      .query("caterings")
-      .withIndex("by_date")
-      .order("desc")
-      .paginate(args.paginationOpts);
+      const results = await ctx.db
+        .query("caterings")
+        .withIndex("by_date")
+        .order("desc")
+        .paginate(args.paginationOpts);
 
-    const cateringsWithStats = [];
-    for (const c of results.page) {
-      let stats = {};
-      if (isAdmin) {
-        if (c.registeredCount !== undefined && c.verifiedCount !== undefined) {
-          stats = {
-            registeredCount: c.registeredCount,
-            verifiedCount: c.verifiedCount,
-            attendanceStarted: c.registeredCount > 0 && c.verifiedCount > 0
-          };
-        } else {
-          const regs = await ctx.db
-            .query("registrations")
-            .withIndex("by_catering", (q) => q.eq("cateringId", c._id))
-            .collect();
-          
-          stats = {
-            registeredCount: regs.filter(r => r.status === "registered").length,
-            verifiedCount: regs.filter(r => r.verificationStatus === "verified").length,
-            attendanceStarted: regs.some(r => r.status !== "registered")
-          };
+      const cateringsWithStats = [];
+      for (const c of results.page) {
+        let stats = {};
+        if (isAdmin) {
+          if (c.registeredCount !== undefined && c.verifiedCount !== undefined) {
+            stats = {
+              registeredCount: c.registeredCount,
+              verifiedCount: c.verifiedCount,
+              attendanceStarted: c.registeredCount > 0 && c.verifiedCount > 0
+            };
+          } else {
+            const regs = await ctx.db
+              .query("registrations")
+              .withIndex("by_catering", (q) => q.eq("cateringId", c._id))
+              .collect();
+            
+            stats = {
+              registeredCount: regs.filter(r => r.status === "registered").length,
+              verifiedCount: regs.filter(r => r.verificationStatus === "verified").length,
+              attendanceStarted: regs.some(r => r.status !== "registered")
+            };
+          }
         }
+        cateringsWithStats.push({ ...c, ...stats });
       }
-      cateringsWithStats.push({ ...c, ...stats });
-    }
 
-    return { ...results, page: cateringsWithStats };
+      return { ...results, page: cateringsWithStats };
+    } catch (e) {
+      console.error("listCaterings error:", e);
+      throw new Error("Failed to load caterings");
+    }
   },
 });
 

@@ -17,6 +17,11 @@ export const { auth, signIn, signOut, store } = convexAuth({
           role: "student",
         };
       },
+      validatePasswordRequirements(password) {
+        if (password.length < 6) {
+          throw new Error("Password must be at least 6 characters");
+        }
+      },
     }),
   ],
 });
@@ -28,10 +33,15 @@ export async function getAuthUser(ctx) {
   return await ctx.db.get(userId);
 }
 
-// Retro-compatible helper so we don't break existing files passing "token" arg 
+// Retro-compatible helper so we don't break existing files passing "token" arg
 // (We will remove the token arg from client calls later)
 export async function getUserFromToken(ctx, token) {
-  return await getAuthUser(ctx);
+  try {
+    return await getAuthUser(ctx);
+  } catch (e) {
+    console.error("getUserFromToken error:", e);
+    return null;
+  }
 }
 
 export async function requireAdmin(ctx, token) {

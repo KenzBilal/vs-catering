@@ -10,10 +10,11 @@ export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
     try {
-      return await getAuthUser(ctx);
+      const user = await getAuthUser(ctx);
+      return user || null;
     } catch (e) {
       console.error(e);
-      return { error_debug: e.message, stack: e.stack };
+      return null;
     }
   },
 });
