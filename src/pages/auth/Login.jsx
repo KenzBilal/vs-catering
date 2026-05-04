@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Phone, ArrowRight, Loader2, User } from "lucide-react";
-import { useAuthActions, useConvexAuth } from "@convex-dev/auth/react";
+import { useAuthActions } from "@convex-dev/auth/react";
 import toast from "react-hot-toast";
 import ConvexImage from "../../components/shared/ConvexImage";
 
@@ -17,16 +17,8 @@ const ICON_CLS = (err) =>
 
 export default function Login() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useConvexAuth();
   const siteSettings = useQuery(api.adminSettings.getSiteSettings);
   const { signIn } = useAuthActions();
-
-  // Auto-redirect when authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/", { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -54,18 +46,13 @@ export default function Login() {
     let finalEmail = identifier.toLowerCase().trim();
 
     if (isPhone) {
+      // resolvedEmail comes from the useQuery hook — already resolved by the time user submits
       if (resolvedEmail === undefined) {
-        // Wait a moment for the query to resolve
-        setLoading(true);
-        const deadline = Date.now() + 2000;
-        while (Date.now() < deadline) {
-          await new Promise(r => setTimeout(r, 80));
-          if (resolvedEmail !== undefined) break;
-        }
+        // Still loading — ask user to wait a moment
+        setErrors({ identifier: "Looking up account, please try again." });
+        return;
       }
-
       if (!resolvedEmail) {
-        setLoading(false);
         setErrors({ identifier: "No account found with this phone number." });
         return;
       }
@@ -80,10 +67,6 @@ export default function Login() {
       formData.set("flow", "signIn");
 
       await signIn("password", formData);
-
-      // Wait a moment for session to establish before redirect
-      await new Promise(r => setTimeout(r, 400));
-
       navigate("/", { replace: true });
     } catch (err) {
       console.error("Login Error:", err);

@@ -19,10 +19,12 @@ export const getCurrentUser = query({
   },
 });
 
-// Debug: list all users
+// Admin-only: list all users (secured)
 export const listAllUsers = query({
   args: {},
   handler: async (ctx) => {
+    const caller = await getAuthUser(ctx);
+    if (!caller || caller.role !== "admin") throw new ConvexError("Unauthorized");
     const users = await ctx.db.query("users").collect();
     return users.map(u => ({ _id: u._id, email: u.email, name: u.name, role: u.role }));
   },
