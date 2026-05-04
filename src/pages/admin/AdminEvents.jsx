@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate } from "react-router-dom";
 import { formatDate, formatCurrency, getStatusBadgeClass, getStatusLabel, getRoleLabel, formatTime12h } from "../../lib/helpers";
@@ -23,13 +23,16 @@ export default function AdminEvents() {
   const canManageCaterings = user?.role === "admin" || permissions.some(p => p.permission === "manage_caterings" && p.enabled);
   const canMarkAttendance = user?.role === "admin" || permissions.some(p => p.permission === "mark_attendance" && p.enabled);
   const canManagePayments = user?.role === "admin" || permissions.some(p => p.permission === "manage_payments" && p.enabled);
-  const cateringsRaw = useQuery(api.caterings.listCaterings, { token });
-  const { data: caterings, timedOut } = useQueryWithTimeout(cateringsRaw);
+  
+  const { results: caterings, status, loadMore } = usePaginatedQuery(
+    api.caterings.listCaterings, 
+    { token },
+    { initialNumItems: 20 }
+  );
+  
   const cancelCatering = useMutation(api.caterings.cancelCatering);
 
-  if (timedOut) {
-    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
-  }
+  const isLoading = status === "LoadingFirstPage";
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -110,12 +113,12 @@ export default function AdminEvents() {
       </div>
 
       {/* Loading skeleton */}
-      {caterings === undefined && (
+      {isLoading && (
         <LoadingState rows={3} />
       )}
 
       {/* Empty */}
-      {caterings !== undefined && filtered.length === 0 && (
+      {!isLoading && filtered.length === 0 && (
         <EmptyState 
           icon={CalendarDays} 
           title="No events found" 
@@ -221,6 +224,24 @@ export default function AdminEvents() {
           );
         })}
       </div>
+      
+      {status === "CanLoadMore" && (
+        <div className="flex justify-center mt-8 mb-4">
+          <button 
+            className="btn-secondary py-2.5 px-6 rounded-full text-[13px] font-bold shadow-sm"
+            onClick={() => loadMore(10)}
+          >
+            Load More Events
+          </button>
+        </div>
+      )}
+      {status === "LoadingMore" && (
+        <div className="flex justify-center mt-8 mb-4">
+          <div className="py-2.5 px-6 rounded-full text-[13px] font-bold text-stone-400 border border-stone-200">
+            Loading...
+          </div>
+        </div>
+      )}
 
       <ConfirmModal 
         isOpen={!!confirmCancel}

@@ -4,7 +4,22 @@ import { ConvexError } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const { auth, signIn, signOut, store } = convexAuth({
-  providers: [Password],
+  providers: [
+    Password({
+      profile(params) {
+        return {
+          email: params.email,
+          name: params.name,
+          phone: params.phone,
+          stayType: params.stayType,
+          gender: params.gender,
+          defaultDropPoint: params.defaultDropPoint,
+          role: "student",
+          emailVerified: false,
+        };
+      },
+    }),
+  ],
 });
 
 // Helper to get user ID and user doc

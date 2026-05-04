@@ -87,7 +87,6 @@ export default defineSchema({
     cateringId: v.id("caterings"),
     role: v.string(),
     dropPoint: v.string(),
-    photoUrl: v.optional(v.string()), // Legacy
     photoStorageId: v.optional(v.id("_storage")),
     queuePosition: v.number(),
     isConfirmed: v.boolean(),

@@ -267,43 +267,31 @@ export const startVerification = mutation({
   },
 });
 
+import { paginationOptsValidator } from "convex/server";
+
 export const listCaterings = query({
-  args: { token: v.optional(v.string()) },
-  handler: async (ctx, { token }) => {
-    const caller = token ? await getUserFromToken(ctx, token) : null;
+  args: { paginationOpts: paginationOptsValidator, token: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const caller = args.token ? await getUserFromToken(ctx, args.token) : null;
     const isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
 
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split("T")[0];
-
-    // Fetch recent and upcoming caterings from database (Scalable)
-    const all = await ctx.db
+    const results = await ctx.db
       .query("caterings")
-      .withIndex("by_date", (q) => q.gte("date", thirtyDaysAgoStr))
-      .collect();
-
-    // Sort descending by date in memory (since we have few recent ones)
-    all.sort((a, b) => b.date.localeCompare(a.date));
+      .withIndex("by_date")
+      .order("desc")
+      .paginate(args.paginationOpts);
 
     const cateringsWithStats = [];
-    for (const c of all) {
-      const eventDateStr = c.date || (c.dates && c.dates[0]);
-      if (!eventDateStr) continue;
-
+    for (const c of results.page) {
       let stats = {};
       if (isAdmin) {
         if (c.registeredCount !== undefined && c.verifiedCount !== undefined) {
           stats = {
             registeredCount: c.registeredCount,
             verifiedCount: c.verifiedCount,
-            // Still need to check attendanceStarted but that's cheaper if denormalized too?
-            // For now, let's just use what's there or a small query if needed.
-            // If we really want to optimize, we'd denormalize attendanceStarted too.
-            attendanceStarted: c.registeredCount > 0 && c.verifiedCount > 0 // Heuristic or check first reg
+            attendanceStarted: c.registeredCount > 0 && c.verifiedCount > 0
           };
         } else {
-          // Fallback for legacy
           const regs = await ctx.db
             .query("registrations")
             .withIndex("by_catering", (q) => q.eq("cateringId", c._id))
@@ -316,11 +304,10 @@ export const listCaterings = query({
           };
         }
       }
-
       cateringsWithStats.push({ ...c, ...stats });
     }
 
-    return cateringsWithStats;
+    return { ...results, page: cateringsWithStats };
   },
 });
 

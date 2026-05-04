@@ -16,7 +16,6 @@ export const register = mutation({
     cateringId: v.id("caterings"),
     role: v.string(),
     dropPoint: v.string(),
-    photoUrl: v.optional(v.string()), // Legacy
     photoStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
@@ -51,12 +50,7 @@ export const register = mutation({
       .first();
     if (existing) throw new ConvexError("You are already registered for this event.");
 
-    // Sanitize photo URL
-    let photoUrl = args.photoUrl;
-    if (photoUrl) {
-      photoUrl = photoUrl.trim().slice(0, 1000);
-      if (!/^https?:\/\/.+/.test(photoUrl)) throw new ConvexError("Photo URL must be a valid http/https link.");
-    }
+    // No photoUrl mapping anymore
 
     // #15: Queue position is per-role (Optimized with index)
     const lastReg = await ctx.db
@@ -105,7 +99,7 @@ export const register = mutation({
     }
 
     // #24: Strict photo requirement check
-    if (catering.photoRequired && !finalPhotoStorageId && !args.photoUrl) {
+    if (catering.photoRequired && !finalPhotoStorageId) {
       throw new ConvexError("This event requires a profile photo. Please upload one before registering.");
     }
 
@@ -114,7 +108,6 @@ export const register = mutation({
       cateringId: args.cateringId,
       role: args.role,
       dropPoint: sanitizeString(args.dropPoint).slice(0, 100),
-      ...(photoUrl ? { photoUrl } : {}),
       ...(finalPhotoStorageId ? { photoStorageId: finalPhotoStorageId } : {}),
       queuePosition,
       isConfirmed,
