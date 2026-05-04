@@ -1,49 +1,45 @@
-import { v, ConvexError } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { convexAuth } from "@convex-dev/auth/server";
+import { Password } from "@convex-dev/auth/providers/Password";
+import { ConvexError } from "convex/values";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
-// Helper to get user from token
-export async function getUserFromToken(ctx, token) {
-  if (!token) return null;
-  
-  const session = await ctx.db
-    .query("sessions")
-    .withIndex("by_token", (q) => q.eq("token", token))
-    .first();
-    
-  if (!session) return null;
-  
-  // Check if expired
-  if (session.expiresAt < Date.now()) {
-    return null;
-  }
-  
-  return await ctx.db.get(session.userId);
+export const { auth, signIn, signOut, store } = convexAuth({
+  providers: [Password],
+});
+
+// Helper to get user ID and user doc
+export async function getAuthUser(ctx) {
+  const userId = await getAuthUserId(ctx);
+  if (!userId) return null;
+  return await ctx.db.get(userId);
 }
 
-// Helper to enforce admin role
+// Retro-compatible helper so we don't break existing files passing "token" arg 
+// (We will remove the token arg from client calls later)
+export async function getUserFromToken(ctx, token) {
+  return await getAuthUser(ctx);
+}
+
 export async function requireAdmin(ctx, token) {
-  const user = await getUserFromToken(ctx, token);
+  const user = await getAuthUser(ctx);
   if (!user || user.role !== "admin") {
     throw new ConvexError("Unauthorized: Admin access required.");
   }
   return user;
 }
 
-// Helper to enforce sub-admin or admin role
 export async function requireSubAdmin(ctx, token) {
-  const user = await getUserFromToken(ctx, token);
+  const user = await getAuthUser(ctx);
   if (!user || (user.role !== "admin" && user.role !== "sub_admin")) {
     throw new ConvexError("Unauthorized: Sub-admin or admin access required.");
   }
   return user;
 }
 
-// Helper to check granular permissions for sub-admins
 export async function checkPermission(ctx, token, permissionKey) {
-  const user = await getUserFromToken(ctx, token);
+  const user = await getAuthUser(ctx);
   if (!user) throw new ConvexError("Not authenticated.");
   
-  // Admin has all permissions
   if (user.role === "admin") return user;
   
   if (user.role === "sub_admin") {
@@ -63,7 +59,6 @@ export async function checkPermission(ctx, token, permissionKey) {
   throw new ConvexError("Unauthorized access.");
 }
 
-// Helper to get all admins and sub-admins for notification targeting
 export async function getAllAdmins(ctx) {
   const admins = await ctx.db
     .query("users")
@@ -75,11 +70,3 @@ export async function getAllAdmins(ctx) {
     .collect();
   return [...admins, ...subAdmins];
 }
-
-
-export const validateSession = query({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    return await getUserFromToken(ctx, token);
-  },
-});

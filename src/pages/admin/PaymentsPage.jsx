@@ -14,7 +14,7 @@ import ConfirmModal from "../../components/shared/ConfirmModal";
 import ConvexImage from "../../components/shared/ConvexImage";
 import toast from "react-hot-toast";
 
-
+import IndividualPaymentCard from "./components/IndividualPaymentCard";
 
 export default function PaymentsPage() {
   const { id } = useParams();
@@ -70,15 +70,11 @@ export default function PaymentsPage() {
   };
 
   const handleCreatePayment = async (reg) => {
-    const pay = getPayForRole(reg.role);
     const method = methods[reg._id] || "cash";
     setSaving((s) => ({ ...s, [reg._id]: true }));
     try {
       await createPayment({
-        cateringId: id,
         registrationId: reg._id,
-        role: reg.role,
-        amount: pay,
         method,
         token,
       });
@@ -256,136 +252,20 @@ export default function PaymentsPage() {
         <div className="flex flex-col gap-4">
         {displayRegs.map((reg) => {
           const payment = getPaymentForReg(reg._id);
-          const pay = getPayForRole(reg.role);
-          const isLead = payment?.group && payment?.group?.headUserId === reg.userId;
-
           return (
-            <div 
-              key={reg._id} 
-              onClick={() => {
-                if (isLead) {
-                  setViewingTeam(payment.group);
-                  return;
-                }
-                if (!payment || payment.status === 'cleared') return;
-                setSelectedReg(reg);
-              }}
-              className={`card bg-white p-5 hover:border-stone-300 transition-all cursor-pointer group animate-fade-in ${isLead ? (payment.group.memberRegIds.length >= 3 ? 'card-stack-3' : 'card-stack-2') : ''} ${payment?.status === 'pending' ? 'ring-1 ring-transparent hover:ring-stone-200' : ''}`}
-            >
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 w-10 h-10 rounded-xl overflow-hidden border border-cream-200 bg-stone-50 flex items-center justify-center shrink-0">
-                    {reg.user?.photoStorageId ? (
-                      <ConvexImage storageId={reg.user.photoStorageId} className="w-full h-full object-cover" />
-                    ) : (
-                      <Users size={18} className="text-stone-300" />
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="font-bold text-[16px] text-stone-900 flex items-center gap-2">
-                      {reg.user?.name}
-                      {isLead && (
-                        <span className="bg-stone-900 text-cream-50 text-[9px] font-bold uppercase tracking-tight px-2 py-0.5 rounded-full">Lead</span>
-                      )}
-                    </p>
-                    <p className="text-[13px] text-stone-500 mt-0.5 font-medium">
-                      {reg.user?.phone} <span className="mx-1.5">•</span> {getRoleLabel(reg.role)}
-                    </p>
-                  </div>
-                </div>
-                <div className="bg-cream-100 border border-cream-200 px-3 py-1.5 rounded-lg flex flex-col items-end">
-                  <p className="font-bold text-[16px] text-stone-900">{formatCurrency(pay)}</p>
-                  {isLead && (
-                    <p className="text-[10px] font-bold text-stone-500 uppercase mt-0.5">Total: {formatCurrency(payment.group.totalAmount)}</p>
-                  )}
-                </div>
-              </div>
-
-              {!payment && (
-                 <div className="pt-4 border-t border-cream-100 flex items-center justify-between">
-                    <p className="text-[12px] font-medium text-stone-400">Not initialized</p>
-                    <button className="text-[12px] font-bold text-stone-900 hover:underline" onClick={(e) => { e.stopPropagation(); handleCreatePayment(reg); }}>Initialize</button>
-                 </div>
-              )}
-
-              {payment && payment.status === "pending" && (
-                <div className="pt-4 border-t border-cream-100">
-                  {isLead ? (
-                    <div className="flex flex-col gap-3">
-                       <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#8b3a00] bg-[#fdf0e6] border border-[#f5d0aa] rounded-full px-2.5 py-1">
-                          <Users size={12} /> Team Pending ({formatCurrency(payment.group.totalAmount)})
-                        </span>
-
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setConfirmDisband(payment.group._id); }}
-                          className="text-stone-400 hover:text-red-500 transition-colors p-1"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-
-                      {confirmClearGroup === payment.group._id ? (
-                        <div className="flex items-center gap-2 animate-fade-in">
-                          <button
-                            className="btn-primary flex-1 py-2 text-[13px] bg-[#1a5c3a] hover:bg-[#134229] border-[#1a5c3a]"
-                            disabled={saving[payment.group._id]}
-                            onClick={(e) => { e.stopPropagation(); handleClearGroup(payment.group._id); }}
-                          >
-                            <CheckCircle2 size={16} /> Confirm
-                          </button>
-                          <button className="btn-secondary py-2 text-[13px]" onClick={(e) => { e.stopPropagation(); setConfirmClearGroup(null); }}>Cancel</button>
-                        </div>
-                      ) : (
-                        <button
-                          className="btn-primary w-full py-2.5 text-[13px]"
-                          onClick={(e) => { e.stopPropagation(); setConfirmClearGroup(payment.group._id); }}
-                        >
-                          Clear Team
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#8b3a00] bg-[#fdf0e6] border border-[#f5d0aa] rounded-full px-2.5 py-1">
-                          <Clock size={12} /> Pending
-                        </span>
-                      </div>
-                      
-                      {confirmClear === payment._id ? (
-                        <div className="flex items-center gap-2 animate-fade-in">
-                          <button
-                            className="btn-primary py-2 text-[13px] bg-[#1a5c3a] hover:bg-[#134229] border-[#1a5c3a]"
-                            disabled={saving[payment._id]}
-                            onClick={(e) => { e.stopPropagation(); handleClearPayment(payment._id); }}
-                          >
-                            Confirm
-                          </button>
-                          <button className="btn-secondary py-2 text-[13px]" onClick={(e) => { e.stopPropagation(); setConfirmClear(null); }}>Cancel</button>
-                        </div>
-                      ) : (
-                        <button
-                          className="btn-primary py-2 text-[13px] px-4"
-                          onClick={(e) => { e.stopPropagation(); setConfirmClear(payment._id); }}
-                        >
-                          Clear
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {payment && payment.status === "cleared" && (
-                <div className="pt-4 border-t border-cream-100 flex flex-wrap items-center gap-3">
-                  <span className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 border text-[#1a5c3a] bg-[#e8f5ee] border-[#b8dfc8]`}>
-                    <CheckCircle2 size={12} /> CLEARED
-                  </span>
-                </div>
-              )}
-            </div>
+            <IndividualPaymentCard
+              key={reg._id}
+              reg={reg}
+              payment={payment}
+              getPayForRole={getPayForRole}
+              methods={methods}
+              setMethods={setMethods}
+              saving={saving}
+              handleCreatePayment={handleCreatePayment}
+              setConfirmClear={setConfirmClear}
+              setSelectedReg={setSelectedReg}
+              setViewingTeam={setViewingTeam}
+            />
           );
         })}
         </div>

@@ -4,22 +4,22 @@
   "graph": {},
   "nodes": [
     {
+      "label": "update_payments.py",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/update_payments.py",
+      "source_location": "L1",
+      "id": "home_kenz_projects_web_catering_update_payments_py",
+      "community": 38,
+      "norm_label": "update_payments.py"
+    },
+    {
       "label": "tailwind.config.js",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/tailwind.config.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_tailwind_config_js",
-      "community": 35,
+      "community": 39,
       "norm_label": "tailwind.config.js"
-    },
-    {
-      "label": "fix_spacing.py",
-      "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/fix_spacing.py",
-      "source_location": "L1",
-      "id": "home_kenz_projects_web_catering_fix_spacing_py",
-      "community": 36,
-      "norm_label": "fix_spacing.py"
     },
     {
       "label": "vite.config.js",
@@ -27,7 +27,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/vite.config.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_vite_config_js",
-      "community": 37,
+      "community": 40,
       "norm_label": "vite.config.js"
     },
     {
@@ -36,7 +36,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/postcss.config.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_postcss_config_js",
-      "community": 38,
+      "community": 41,
       "norm_label": "postcss.config.js"
     },
     {
@@ -52,7 +52,7 @@
       "label": "BrandingWrapper()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L55",
+      "source_location": "L61",
       "id": "app_brandingwrapper",
       "community": 0,
       "norm_label": "brandingwrapper()"
@@ -61,7 +61,7 @@
       "label": "ProtectedRoute()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L79",
+      "source_location": "L85",
       "id": "app_protectedroute",
       "community": 0,
       "norm_label": "protectedroute()"
@@ -70,7 +70,7 @@
       "label": "NotFound()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L102",
+      "source_location": "L108",
       "id": "app_notfound",
       "community": 0,
       "norm_label": "notfound()"
@@ -79,7 +79,7 @@
       "label": "StudentPage()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L119",
+      "source_location": "L125",
       "id": "app_studentpage",
       "community": 0,
       "norm_label": "studentpage()"
@@ -88,7 +88,7 @@
       "label": "AppRoutes()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L128",
+      "source_location": "L134",
       "id": "app_approutes",
       "community": 0,
       "norm_label": "approutes()"
@@ -97,7 +97,7 @@
       "label": "App()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L196",
+      "source_location": "L208",
       "id": "app_app",
       "community": 0,
       "norm_label": "app()"
@@ -108,7 +108,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/main.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_main_jsx",
-      "community": 39,
+      "community": 42,
       "norm_label": "main.jsx"
     },
     {
@@ -128,15 +128,6 @@
       "id": "usequerywithtimeout_usequerywithtimeout",
       "community": 2,
       "norm_label": "usequerywithtimeout()"
-    },
-    {
-      "label": "parseMutationError()",
-      "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/src/hooks/useQueryWithTimeout.js",
-      "source_location": "L49",
-      "id": "usequerywithtimeout_parsemutationerror",
-      "community": 2,
-      "norm_label": "parsemutationerror()"
     },
     {
       "label": "usePermission.js",
@@ -171,7 +162,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/firebase.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_lib_firebase_js",
-      "community": 40,
+      "community": 43,
       "norm_label": "firebase.js"
     },
     {
@@ -214,7 +205,7 @@
       "label": "formatTime12h()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L34",
+      "source_location": "L40",
       "id": "helpers_formattime12h",
       "community": 1,
       "norm_label": "formattime12h()"
@@ -223,7 +214,7 @@
       "label": "formatCurrency()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L49",
+      "source_location": "L55",
       "id": "helpers_formatcurrency",
       "community": 3,
       "norm_label": "formatcurrency()"
@@ -232,7 +223,7 @@
       "label": "generateWhatsAppMessage()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L53",
+      "source_location": "L60",
       "id": "helpers_generatewhatsappmessage",
       "community": 1,
       "norm_label": "generatewhatsappmessage()"
@@ -241,7 +232,7 @@
       "label": "getStatusBadgeClass()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L88",
+      "source_location": "L102",
       "id": "helpers_getstatusbadgeclass",
       "community": 1,
       "norm_label": "getstatusbadgeclass()"
@@ -250,7 +241,7 @@
       "label": "getStatusLabel()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L99",
+      "source_location": "L113",
       "id": "helpers_getstatuslabel",
       "community": 1,
       "norm_label": "getstatuslabel()"
@@ -259,7 +250,7 @@
       "label": "isValidEmail()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L111",
+      "source_location": "L125",
       "id": "helpers_isvalidemail",
       "community": 1,
       "norm_label": "isvalidemail()"
@@ -268,7 +259,7 @@
       "label": "isValidPhone()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L116",
+      "source_location": "L130",
       "id": "helpers_isvalidphone",
       "community": 1,
       "norm_label": "isvalidphone()"
@@ -277,10 +268,19 @@
       "label": "isValidRegNumber()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L122",
+      "source_location": "L136",
       "id": "helpers_isvalidregnumber",
       "community": 1,
       "norm_label": "isvalidregnumber()"
+    },
+    {
+      "label": "parseError()",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
+      "source_location": "L147",
+      "id": "helpers_parseerror",
+      "community": 1,
+      "norm_label": "parseerror()"
     },
     {
       "label": "appUrl.js",
@@ -288,7 +288,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/appUrl.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_lib_appurl_js",
-      "community": 41,
+      "community": 44,
       "norm_label": "appurl.js"
     },
     {
@@ -304,7 +304,7 @@
       "label": "AuthProvider()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/AuthContext.jsx",
-      "source_location": "L9",
+      "source_location": "L10",
       "id": "authcontext_authprovider",
       "community": 0,
       "norm_label": "authprovider()"
@@ -313,7 +313,7 @@
       "label": "useAuth()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/AuthContext.jsx",
-      "source_location": "L93",
+      "source_location": "L124",
       "id": "authcontext_useauth",
       "community": 0,
       "norm_label": "useauth()"
@@ -351,7 +351,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/home/components/HomeFilters.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_home_components_homefilters_jsx",
-      "community": 13,
+      "community": 14,
       "norm_label": "homefilters.jsx"
     },
     {
@@ -360,7 +360,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/home/components/HomeFilters.jsx",
       "source_location": "L3",
       "id": "homefilters_homefilters",
-      "community": 13,
+      "community": 14,
       "norm_label": "homefilters()"
     },
     {
@@ -369,7 +369,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/home/components/FinancialSummary.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_home_components_financialsummary_jsx",
-      "community": 14,
+      "community": 15,
       "norm_label": "financialsummary.jsx"
     },
     {
@@ -378,7 +378,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/home/components/FinancialSummary.jsx",
       "source_location": "L4",
       "id": "financialsummary_financialsummary",
-      "community": 14,
+      "community": 15,
       "norm_label": "financialsummary()"
     },
     {
@@ -387,7 +387,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/home/components/HomeStats.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_home_components_homestats_jsx",
-      "community": 15,
+      "community": 16,
       "norm_label": "homestats.jsx"
     },
     {
@@ -396,7 +396,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/home/components/HomeStats.jsx",
       "source_location": "L1",
       "id": "homestats_homestats",
-      "community": 15,
+      "community": 16,
       "norm_label": "homestats()"
     },
     {
@@ -416,33 +416,6 @@
       "id": "eventcard_eventcard",
       "community": 1,
       "norm_label": "eventcard()"
-    },
-    {
-      "label": "MyCaterings.jsx",
-      "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/my_events/MyCaterings.jsx",
-      "source_location": "L1",
-      "id": "home_kenz_projects_web_catering_src_pages_my_events_mycaterings_jsx",
-      "community": 3,
-      "norm_label": "mycaterings.jsx"
-    },
-    {
-      "label": "MyCaterings()",
-      "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/my_events/MyCaterings.jsx",
-      "source_location": "L15",
-      "id": "mycaterings_mycaterings",
-      "community": 3,
-      "norm_label": "mycaterings()"
-    },
-    {
-      "label": "StatBox()",
-      "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/my_events/MyCaterings.jsx",
-      "source_location": "L160",
-      "id": "mycaterings_statbox",
-      "community": 3,
-      "norm_label": "statbox()"
     },
     {
       "label": "MyEvents.jsx",
@@ -466,7 +439,7 @@
       "label": "StatBox()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/my_events/MyEvents.jsx",
-      "source_location": "L199",
+      "source_location": "L197",
       "id": "myevents_statbox",
       "community": 3,
       "norm_label": "statbox()"
@@ -484,7 +457,7 @@
       "label": "CateringDetail()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/CateringDetail.jsx",
-      "source_location": "L24",
+      "source_location": "L25",
       "id": "cateringdetail_cateringdetail",
       "community": 1,
       "norm_label": "cateringdetail()"
@@ -502,7 +475,7 @@
       "label": "AdminActionButtons()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/MiscComponents.jsx",
-      "source_location": "L3",
+      "source_location": "L4",
       "id": "misccomponents_adminactionbuttons",
       "community": 9,
       "norm_label": "adminactionbuttons()"
@@ -511,7 +484,7 @@
       "label": "CateringDressCode()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/MiscComponents.jsx",
-      "source_location": "L23",
+      "source_location": "L42",
       "id": "misccomponents_cateringdresscode",
       "community": 9,
       "norm_label": "cateringdresscode()"
@@ -538,7 +511,7 @@
       "label": "ModalRow()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/UserProfileModal.jsx",
-      "source_location": "L52",
+      "source_location": "L49",
       "id": "userprofilemodal_modalrow",
       "community": 10,
       "norm_label": "modalrow()"
@@ -556,7 +529,7 @@
       "label": "AdminSummary()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/AdminSummary.jsx",
-      "source_location": "L11",
+      "source_location": "L13",
       "id": "adminsummary_adminsummary",
       "community": 1,
       "norm_label": "adminsummary()"
@@ -567,7 +540,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/RegistrationList.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_catering_detail_components_registrationlist_jsx",
-      "community": 16,
+      "community": 17,
       "norm_label": "registrationlist.jsx"
     },
     {
@@ -576,7 +549,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/RegistrationList.jsx",
       "source_location": "L6",
       "id": "registrationlist_registrationlist",
-      "community": 16,
+      "community": 17,
       "norm_label": "registrationlist()"
     },
     {
@@ -603,7 +576,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/CateringSlots.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_catering_detail_components_cateringslots_jsx",
-      "community": 17,
+      "community": 18,
       "norm_label": "cateringslots.jsx"
     },
     {
@@ -612,7 +585,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/CateringSlots.jsx",
       "source_location": "L4",
       "id": "cateringslots_cateringslots",
-      "community": 17,
+      "community": 18,
       "norm_label": "cateringslots()"
     },
     {
@@ -637,7 +610,7 @@
       "label": "InfoItem()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/CateringInfoGrid.jsx",
-      "source_location": "L19",
+      "source_location": "L12",
       "id": "cateringinfogrid_infoitem",
       "community": 11,
       "norm_label": "infoitem()"
@@ -673,7 +646,7 @@
       "label": "Register()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/Register.jsx",
-      "source_location": "L23",
+      "source_location": "L22",
       "id": "register_register",
       "community": 2,
       "norm_label": "register()"
@@ -684,7 +657,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/PhotoUpload.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_register_components_photoupload_jsx",
-      "community": 18,
+      "community": 19,
       "norm_label": "photoupload.jsx"
     },
     {
@@ -693,7 +666,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/PhotoUpload.jsx",
       "source_location": "L4",
       "id": "photoupload_photoupload",
-      "community": 18,
+      "community": 19,
       "norm_label": "photoupload()"
     },
     {
@@ -702,7 +675,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/DressCodeWheel.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_register_components_dresscodewheel_jsx",
-      "community": 19,
+      "community": 20,
       "norm_label": "dresscodewheel.jsx"
     },
     {
@@ -711,7 +684,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/DressCodeWheel.jsx",
       "source_location": "L4",
       "id": "dresscodewheel_dresscodewheel",
-      "community": 19,
+      "community": 20,
       "norm_label": "dresscodewheel()"
     },
     {
@@ -720,7 +693,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/RegisterSuccess.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_register_components_registersuccess_jsx",
-      "community": 20,
+      "community": 21,
       "norm_label": "registersuccess.jsx"
     },
     {
@@ -729,26 +702,8 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/RegisterSuccess.jsx",
       "source_location": "L3",
       "id": "registersuccess_registersuccess",
-      "community": 20,
+      "community": 21,
       "norm_label": "registersuccess()"
-    },
-    {
-      "label": "DaySelector.jsx",
-      "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/DaySelector.jsx",
-      "source_location": "L1",
-      "id": "home_kenz_projects_web_catering_src_pages_register_components_dayselector_jsx",
-      "community": 1,
-      "norm_label": "dayselector.jsx"
-    },
-    {
-      "label": "DaySelector()",
-      "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/DaySelector.jsx",
-      "source_location": "L4",
-      "id": "dayselector_dayselector",
-      "community": 1,
-      "norm_label": "dayselector()"
     },
     {
       "label": "RoleSelector.jsx",
@@ -756,7 +711,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/RoleSelector.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_register_components_roleselector_jsx",
-      "community": 21,
+      "community": 22,
       "norm_label": "roleselector.jsx"
     },
     {
@@ -765,7 +720,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/RoleSelector.jsx",
       "source_location": "L3",
       "id": "roleselector_roleselector",
-      "community": 21,
+      "community": 22,
       "norm_label": "roleselector()"
     },
     {
@@ -817,7 +772,7 @@
       "label": "StatCard()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/history/History.jsx",
-      "source_location": "L155",
+      "source_location": "L153",
       "id": "history_statcard",
       "community": 3,
       "norm_label": "statcard()"
@@ -826,37 +781,64 @@
       "label": "Tag()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/history/History.jsx",
-      "source_location": "L164",
+      "source_location": "L162",
       "id": "history_tag",
       "community": 3,
       "norm_label": "tag()"
     },
     {
-      "label": "Settings.jsx",
+      "label": "SettingsMenu.jsx",
       "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/Settings.jsx",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/SettingsMenu.jsx",
       "source_location": "L1",
-      "id": "home_kenz_projects_web_catering_src_pages_settings_settings_jsx",
-      "community": 2,
-      "norm_label": "settings.jsx"
+      "id": "home_kenz_projects_web_catering_src_pages_settings_settingsmenu_jsx",
+      "community": 0,
+      "norm_label": "settingsmenu.jsx"
     },
     {
-      "label": "Settings()",
+      "label": "SettingsMenu()",
       "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/Settings.jsx",
-      "source_location": "L21",
-      "id": "settings_settings",
-      "community": 2,
-      "norm_label": "settings()"
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/SettingsMenu.jsx",
+      "source_location": "L11",
+      "id": "settingsmenu_settingsmenu",
+      "community": 0,
+      "norm_label": "settingsmenu()"
     },
     {
-      "label": "Row()",
+      "label": "PersonalSettings.jsx",
       "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/Settings.jsx",
-      "source_location": "L204",
-      "id": "settings_row",
-      "community": 2,
-      "norm_label": "row()"
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/PersonalSettings.jsx",
+      "source_location": "L1",
+      "id": "home_kenz_projects_web_catering_src_pages_settings_personalsettings_jsx",
+      "community": 12,
+      "norm_label": "personalsettings.jsx"
+    },
+    {
+      "label": "PersonalSettings()",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/PersonalSettings.jsx",
+      "source_location": "L7",
+      "id": "personalsettings_personalsettings",
+      "community": 12,
+      "norm_label": "personalsettings()"
+    },
+    {
+      "label": "PreferenceSettings.jsx",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/PreferenceSettings.jsx",
+      "source_location": "L1",
+      "id": "home_kenz_projects_web_catering_src_pages_settings_preferencesettings_jsx",
+      "community": 0,
+      "norm_label": "preferencesettings.jsx"
+    },
+    {
+      "label": "PreferenceSettings()",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/PreferenceSettings.jsx",
+      "source_location": "L11",
+      "id": "preferencesettings_preferencesettings",
+      "community": 0,
+      "norm_label": "preferencesettings()"
     },
     {
       "label": "ManageSubAdmins.jsx",
@@ -907,7 +889,7 @@
       "label": "AttendancePage()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/AttendancePage.jsx",
-      "source_location": "L16",
+      "source_location": "L18",
       "id": "attendancepage_attendancepage",
       "community": 2,
       "norm_label": "attendancepage()"
@@ -976,13 +958,13 @@
       "norm_label": "settingsmenu.jsx"
     },
     {
-      "label": "SettingsMenu()",
+      "label": "PersonalSettings.jsx",
       "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/SettingsMenu.jsx",
-      "source_location": "L11",
-      "id": "settingsmenu_settingsmenu",
-      "community": 0,
-      "norm_label": "settingsmenu()"
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/PersonalSettings.jsx",
+      "source_location": "L1",
+      "id": "home_kenz_projects_web_catering_src_pages_admin_personalsettings_jsx",
+      "community": 12,
+      "norm_label": "personalsettings.jsx"
     },
     {
       "label": "AdminDashboard.jsx",
@@ -1006,7 +988,7 @@
       "label": "StatCard()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/AdminDashboard.jsx",
-      "source_location": "L340",
+      "source_location": "L259",
       "id": "admindashboard_statcard",
       "community": 3,
       "norm_label": "statcard()"
@@ -1051,7 +1033,7 @@
       "label": "SlotEditor()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/EditCatering.jsx",
-      "source_location": "L281",
+      "source_location": "L293",
       "id": "editcatering_sloteditor",
       "community": 2,
       "norm_label": "sloteditor()"
@@ -1098,7 +1080,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/ManageInterface.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_admin_manageinterface_jsx",
-      "community": 12,
+      "community": 0,
       "norm_label": "manageinterface.jsx"
     },
     {
@@ -1107,7 +1089,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/ManageInterface.jsx",
       "source_location": "L9",
       "id": "manageinterface_manageinterface",
-      "community": 12,
+      "community": 0,
       "norm_label": "manageinterface()"
     },
     {
@@ -1116,7 +1098,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/ManageInterface.jsx",
       "source_location": "L82",
       "id": "manageinterface_toggleitem",
-      "community": 12,
+      "community": 0,
       "norm_label": "toggleitem()"
     },
     {
@@ -1125,7 +1107,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/UserSearchFilters.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_admin_components_usersearchfilters_jsx",
-      "community": 22,
+      "community": 23,
       "norm_label": "usersearchfilters.jsx"
     },
     {
@@ -1134,8 +1116,44 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/UserSearchFilters.jsx",
       "source_location": "L5",
       "id": "usersearchfilters_usersearchfilters",
-      "community": 22,
+      "community": 23,
       "norm_label": "usersearchfilters()"
+    },
+    {
+      "label": "IndividualPaymentCard.jsx",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/IndividualPaymentCard.jsx",
+      "source_location": "L1",
+      "id": "home_kenz_projects_web_catering_src_pages_admin_components_individualpaymentcard_jsx",
+      "community": 3,
+      "norm_label": "individualpaymentcard.jsx"
+    },
+    {
+      "label": "IndividualPaymentCard()",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/IndividualPaymentCard.jsx",
+      "source_location": "L5",
+      "id": "individualpaymentcard_individualpaymentcard",
+      "community": 3,
+      "norm_label": "individualpaymentcard()"
+    },
+    {
+      "label": "AttendanceCard.jsx",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/AttendanceCard.jsx",
+      "source_location": "L1",
+      "id": "home_kenz_projects_web_catering_src_pages_admin_components_attendancecard_jsx",
+      "community": 1,
+      "norm_label": "attendancecard.jsx"
+    },
+    {
+      "label": "AttendanceCard()",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/AttendanceCard.jsx",
+      "source_location": "L5",
+      "id": "attendancecard_attendancecard",
+      "community": 1,
+      "norm_label": "attendancecard()"
     },
     {
       "label": "UserStats.jsx",
@@ -1143,7 +1161,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/UserStats.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_admin_components_userstats_jsx",
-      "community": 23,
+      "community": 24,
       "norm_label": "userstats.jsx"
     },
     {
@@ -1152,7 +1170,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/UserStats.jsx",
       "source_location": "L1",
       "id": "userstats_userstats",
-      "community": 23,
+      "community": 24,
       "norm_label": "userstats()"
     },
     {
@@ -1161,7 +1179,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/UserList.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_pages_admin_components_userlist_jsx",
-      "community": 24,
+      "community": 25,
       "norm_label": "userlist.jsx"
     },
     {
@@ -1170,7 +1188,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/UserList.jsx",
       "source_location": "L16",
       "id": "userlist_userlist",
-      "community": 24,
+      "community": 25,
       "norm_label": "userlist()"
     },
     {
@@ -1208,6 +1226,24 @@
       "id": "verifyemail_verifyemail",
       "community": 0,
       "norm_label": "verifyemail()"
+    },
+    {
+      "label": "AuthActionHandler.jsx",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/auth/AuthActionHandler.jsx",
+      "source_location": "L1",
+      "id": "home_kenz_projects_web_catering_src_pages_auth_authactionhandler_jsx",
+      "community": 26,
+      "norm_label": "authactionhandler.jsx"
+    },
+    {
+      "label": "AuthActionHandler()",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/auth/AuthActionHandler.jsx",
+      "source_location": "L5",
+      "id": "authactionhandler_authactionhandler",
+      "community": 26,
+      "norm_label": "authactionhandler()"
     },
     {
       "label": "CompleteProfile.jsx",
@@ -1269,7 +1305,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/ui/CustomSelect.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_components_ui_customselect_jsx",
-      "community": 25,
+      "community": 27,
       "norm_label": "customselect.jsx"
     },
     {
@@ -1278,7 +1314,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/ui/CustomSelect.jsx",
       "source_location": "L4",
       "id": "customselect_customselect",
-      "community": 25,
+      "community": 27,
       "norm_label": "customselect()"
     },
     {
@@ -1287,7 +1323,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/ui/SegmentedControl.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_components_ui_segmentedcontrol_jsx",
-      "community": 26,
+      "community": 28,
       "norm_label": "segmentedcontrol.jsx"
     },
     {
@@ -1296,7 +1332,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/ui/SegmentedControl.jsx",
       "source_location": "L1",
       "id": "segmentedcontrol_segmentedcontrol",
-      "community": 26,
+      "community": 28,
       "norm_label": "segmentedcontrol()"
     },
     {
@@ -1305,7 +1341,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/ui/Toggle.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_components_ui_toggle_jsx",
-      "community": 27,
+      "community": 29,
       "norm_label": "toggle.jsx"
     },
     {
@@ -1314,7 +1350,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/ui/Toggle.jsx",
       "source_location": "L3",
       "id": "toggle_toggle",
-      "community": 27,
+      "community": 29,
       "norm_label": "toggle()"
     },
     {
@@ -1323,7 +1359,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/LoadingState.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_components_shared_loadingstate_jsx",
-      "community": 28,
+      "community": 30,
       "norm_label": "loadingstate.jsx"
     },
     {
@@ -1332,7 +1368,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/LoadingState.jsx",
       "source_location": "L1",
       "id": "loadingstate_loadingstate",
-      "community": 28,
+      "community": 30,
       "norm_label": "loadingstate()"
     },
     {
@@ -1449,7 +1485,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/ConvexImage.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_components_shared_conveximage_jsx",
-      "community": 29,
+      "community": 31,
       "norm_label": "conveximage.jsx"
     },
     {
@@ -1458,7 +1494,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/ConvexImage.jsx",
       "source_location": "L4",
       "id": "conveximage_conveximage",
-      "community": 29,
+      "community": 31,
       "norm_label": "conveximage()"
     },
     {
@@ -1467,7 +1503,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/ErrorState.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_components_shared_errorstate_jsx",
-      "community": 30,
+      "community": 32,
       "norm_label": "errorstate.jsx"
     },
     {
@@ -1476,7 +1512,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/ErrorState.jsx",
       "source_location": "L45",
       "id": "errorstate_errorstate",
-      "community": 30,
+      "community": 32,
       "norm_label": "errorstate()"
     },
     {
@@ -1485,7 +1521,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/Navbar.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_components_shared_navbar_jsx",
-      "community": 0,
+      "community": 13,
       "norm_label": "navbar.jsx"
     },
     {
@@ -1494,7 +1530,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/Navbar.jsx",
       "source_location": "L8",
       "id": "navbar_navbar",
-      "community": 0,
+      "community": 13,
       "norm_label": "navbar()"
     },
     {
@@ -1503,7 +1539,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/Navbar.jsx",
       "source_location": "L57",
       "id": "navbar_navlink",
-      "community": 0,
+      "community": 13,
       "norm_label": "navlink()"
     },
     {
@@ -1512,7 +1548,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/OfflineBanner.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_components_shared_offlinebanner_jsx",
-      "community": 31,
+      "community": 33,
       "norm_label": "offlinebanner.jsx"
     },
     {
@@ -1521,7 +1557,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/OfflineBanner.jsx",
       "source_location": "L8",
       "id": "offlinebanner_offlinebanner",
-      "community": 31,
+      "community": 33,
       "norm_label": "offlinebanner()"
     },
     {
@@ -1530,7 +1566,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/ConfirmModal.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_components_shared_confirmmodal_jsx",
-      "community": 32,
+      "community": 34,
       "norm_label": "confirmmodal.jsx"
     },
     {
@@ -1539,7 +1575,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/ConfirmModal.jsx",
       "source_location": "L3",
       "id": "confirmmodal_confirmmodal",
-      "community": 32,
+      "community": 34,
       "norm_label": "confirmmodal()"
     },
     {
@@ -1602,7 +1638,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/EmptyState.jsx",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_src_components_shared_emptystate_jsx",
-      "community": 33,
+      "community": 35,
       "norm_label": "emptystate.jsx"
     },
     {
@@ -1611,7 +1647,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/src/components/shared/EmptyState.jsx",
       "source_location": "L3",
       "id": "emptystate_emptystate",
-      "community": 33,
+      "community": 35,
       "norm_label": "emptystate()"
     },
     {
@@ -1741,19 +1777,10 @@
       "norm_label": "sanitizestring()"
     },
     {
-      "label": "validateRegistrationNumber()",
-      "file_type": "code",
-      "source_file": "/home/kenz/Projects/web/Catering/convex/utils.js",
-      "source_location": "L17",
-      "id": "utils_validateregistrationnumber",
-      "community": 7,
-      "norm_label": "validateregistrationnumber()"
-    },
-    {
       "label": "validatePhone()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/convex/utils.js",
-      "source_location": "L27",
+      "source_location": "L17",
       "id": "utils_validatephone",
       "community": 7,
       "norm_label": "validatephone()"
@@ -1762,10 +1789,37 @@
       "label": "validateEmail()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/convex/utils.js",
-      "source_location": "L36",
+      "source_location": "L26",
       "id": "utils_validateemail",
       "community": 7,
       "norm_label": "validateemail()"
+    },
+    {
+      "label": "caterings_util.js",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/convex/caterings_util.js",
+      "source_location": "L1",
+      "id": "home_kenz_projects_web_catering_convex_caterings_util_js",
+      "community": 36,
+      "norm_label": "caterings_util.js"
+    },
+    {
+      "label": "syncCateringCounters()",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/convex/caterings_util.js",
+      "source_location": "L6",
+      "id": "caterings_util_synccateringcounters",
+      "community": 36,
+      "norm_label": "synccateringcounters()"
+    },
+    {
+      "label": "auth_actions.js",
+      "file_type": "code",
+      "source_file": "/home/kenz/Projects/web/Catering/convex/auth_actions.js",
+      "source_location": "L1",
+      "id": "home_kenz_projects_web_catering_convex_auth_actions_js",
+      "community": 45,
+      "norm_label": "auth_actions.js"
     },
     {
       "label": "migrations.js",
@@ -1773,7 +1827,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/migrations.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_migrations_js",
-      "community": 42,
+      "community": 46,
       "norm_label": "migrations.js"
     },
     {
@@ -1782,7 +1836,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/dropPoints.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_droppoints_js",
-      "community": 43,
+      "community": 47,
       "norm_label": "droppoints.js"
     },
     {
@@ -1791,7 +1845,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/maintenance.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_maintenance_js",
-      "community": 44,
+      "community": 48,
       "norm_label": "maintenance.js"
     },
     {
@@ -1800,7 +1854,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/notifications.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_notifications_js",
-      "community": 45,
+      "community": 49,
       "norm_label": "notifications.js"
     },
     {
@@ -1809,7 +1863,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/crons.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_crons_js",
-      "community": 46,
+      "community": 50,
       "norm_label": "crons.js"
     },
     {
@@ -1818,7 +1872,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/users.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_users_js",
-      "community": 34,
+      "community": 37,
       "norm_label": "users.js"
     },
     {
@@ -1827,7 +1881,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/users.js",
       "source_location": "L12",
       "id": "users_maketoken",
-      "community": 34,
+      "community": 37,
       "norm_label": "maketoken()"
     },
     {
@@ -1836,7 +1890,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/schema.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_schema_js",
-      "community": 47,
+      "community": 51,
       "norm_label": "schema.js"
     },
     {
@@ -1845,7 +1899,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/files.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_files_js",
-      "community": 48,
+      "community": 52,
       "norm_label": "files.js"
     },
     {
@@ -1854,7 +1908,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/registrations.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_registrations_js",
-      "community": 49,
+      "community": 53,
       "norm_label": "registrations.js"
     },
     {
@@ -1863,7 +1917,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/adminSettings.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_adminsettings_js",
-      "community": 50,
+      "community": 54,
       "norm_label": "adminsettings.js"
     },
     {
@@ -1872,7 +1926,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/payments.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_payments_js",
-      "community": 51,
+      "community": 55,
       "norm_label": "payments.js"
     },
     {
@@ -1897,19 +1951,19 @@
       "label": "validateSlots()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/convex/caterings.js",
-      "source_location": "L26",
+      "source_location": "L24",
       "id": "caterings_validateslots",
       "community": 8,
       "norm_label": "validateslots()"
     },
     {
-      "label": "validateDates()",
+      "label": "validateDate()",
       "file_type": "code",
       "source_file": "/home/kenz/Projects/web/Catering/convex/caterings.js",
-      "source_location": "L38",
-      "id": "caterings_validatedates",
+      "source_location": "L36",
+      "id": "caterings_validatedate",
       "community": 8,
-      "norm_label": "validatedates()"
+      "norm_label": "validatedate()"
     },
     {
       "label": "dataModel.d.ts",
@@ -1917,7 +1971,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/_generated/dataModel.d.ts",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_generated_datamodel_d_ts",
-      "community": 52,
+      "community": 56,
       "norm_label": "datamodel.d.ts"
     },
     {
@@ -1926,7 +1980,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/_generated/server.d.ts",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_generated_server_d_ts",
-      "community": 53,
+      "community": 57,
       "norm_label": "server.d.ts"
     },
     {
@@ -1935,7 +1989,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/_generated/api.d.ts",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_generated_api_d_ts",
-      "community": 54,
+      "community": 58,
       "norm_label": "api.d.ts"
     },
     {
@@ -1944,7 +1998,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/_generated/api.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_generated_api_js",
-      "community": 55,
+      "community": 59,
       "norm_label": "api.js"
     },
     {
@@ -1953,7 +2007,7 @@
       "source_file": "/home/kenz/Projects/web/Catering/convex/_generated/server.js",
       "source_location": "L1",
       "id": "home_kenz_projects_web_catering_convex_generated_server_js",
-      "community": 56,
+      "community": 60,
       "norm_label": "server.js"
     }
   ],
@@ -1962,7 +2016,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L55",
+      "source_location": "L61",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_app_jsx",
       "_tgt": "app_brandingwrapper",
@@ -1974,7 +2028,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L79",
+      "source_location": "L85",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_app_jsx",
       "_tgt": "app_protectedroute",
@@ -1986,7 +2040,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L102",
+      "source_location": "L108",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_app_jsx",
       "_tgt": "app_notfound",
@@ -1998,7 +2052,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L119",
+      "source_location": "L125",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_app_jsx",
       "_tgt": "app_studentpage",
@@ -2010,7 +2064,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L128",
+      "source_location": "L134",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_app_jsx",
       "_tgt": "app_approutes",
@@ -2022,7 +2076,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/App.jsx",
-      "source_location": "L196",
+      "source_location": "L208",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_app_jsx",
       "_tgt": "app_app",
@@ -2076,18 +2130,6 @@
       "_tgt": "usequerywithtimeout_usequerywithtimeout",
       "source": "home_kenz_projects_web_catering_src_hooks_usequerywithtimeout_js",
       "target": "usequerywithtimeout_usequerywithtimeout",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "/home/kenz/Projects/web/Catering/src/hooks/useQueryWithTimeout.js",
-      "source_location": "L49",
-      "weight": 1.0,
-      "_src": "home_kenz_projects_web_catering_src_hooks_usequerywithtimeout_js",
-      "_tgt": "usequerywithtimeout_parsemutationerror",
-      "source": "home_kenz_projects_web_catering_src_hooks_usequerywithtimeout_js",
-      "target": "usequerywithtimeout_parsemutationerror",
       "confidence_score": 1.0
     },
     {
@@ -2149,18 +2191,6 @@
       "_tgt": "history_history",
       "source": "usequerywithtimeout_usequerywithtimeout",
       "target": "history_history"
-    },
-    {
-      "relation": "calls",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/Settings.jsx",
-      "source_location": "L24",
-      "weight": 1.0,
-      "_src": "usequerywithtimeout_usequerywithtimeout",
-      "_tgt": "settings_settings",
-      "source": "usequerywithtimeout_usequerywithtimeout",
-      "target": "settings_settings"
     },
     {
       "relation": "calls",
@@ -2358,7 +2388,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L34",
+      "source_location": "L40",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_lib_helpers_js",
       "_tgt": "helpers_formattime12h",
@@ -2370,7 +2400,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L49",
+      "source_location": "L55",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_lib_helpers_js",
       "_tgt": "helpers_formatcurrency",
@@ -2382,7 +2412,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L53",
+      "source_location": "L60",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_lib_helpers_js",
       "_tgt": "helpers_generatewhatsappmessage",
@@ -2394,7 +2424,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L88",
+      "source_location": "L102",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_lib_helpers_js",
       "_tgt": "helpers_getstatusbadgeclass",
@@ -2406,7 +2436,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L99",
+      "source_location": "L113",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_lib_helpers_js",
       "_tgt": "helpers_getstatuslabel",
@@ -2418,7 +2448,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L111",
+      "source_location": "L125",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_lib_helpers_js",
       "_tgt": "helpers_isvalidemail",
@@ -2430,7 +2460,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L116",
+      "source_location": "L130",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_lib_helpers_js",
       "_tgt": "helpers_isvalidphone",
@@ -2442,12 +2472,24 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L122",
+      "source_location": "L136",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_lib_helpers_js",
       "_tgt": "helpers_isvalidregnumber",
       "source": "home_kenz_projects_web_catering_src_lib_helpers_js",
       "target": "helpers_isvalidregnumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
+      "source_location": "L147",
+      "weight": 1.0,
+      "_src": "home_kenz_projects_web_catering_src_lib_helpers_js",
+      "_tgt": "helpers_parseerror",
+      "source": "home_kenz_projects_web_catering_src_lib_helpers_js",
+      "target": "helpers_parseerror",
       "confidence_score": 1.0
     },
     {
@@ -2466,6 +2508,30 @@
       "relation": "calls",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/IndividualPaymentCard.jsx",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_src": "individualpaymentcard_individualpaymentcard",
+      "_tgt": "helpers_getrolelabel",
+      "source": "helpers_getrolelabel",
+      "target": "individualpaymentcard_individualpaymentcard"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/AttendanceCard.jsx",
+      "source_location": "L56",
+      "weight": 1.0,
+      "_src": "attendancecard_attendancecard",
+      "_tgt": "helpers_getrolelabel",
+      "source": "helpers_getrolelabel",
+      "target": "attendancecard_attendancecard"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/CateringDetail.jsx",
       "source_location": "L329",
       "weight": 1.0,
@@ -2478,7 +2544,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L70",
+      "source_location": "L88",
       "weight": 1.0,
       "_src": "helpers_generatewhatsappmessage",
       "_tgt": "helpers_gettimeofdaylabel",
@@ -2509,18 +2575,6 @@
       "_tgt": "cateringdetail_cateringdetail",
       "source": "helpers_gettimeofdaylabel",
       "target": "cateringdetail_cateringdetail"
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L63",
-      "weight": 1.0,
-      "_src": "helpers_generatewhatsappmessage",
-      "_tgt": "helpers_formatdate",
-      "source": "helpers_formatdate",
-      "target": "helpers_generatewhatsappmessage",
-      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -2562,18 +2616,6 @@
       "relation": "calls",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/DaySelector.jsx",
-      "source_location": "L36",
-      "weight": 1.0,
-      "_src": "helpers_formatdate",
-      "_tgt": "dayselector_dayselector",
-      "source": "helpers_formatdate",
-      "target": "dayselector_dayselector"
-    },
-    {
-      "relation": "calls",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/AttendancePage.jsx",
       "source_location": "L87",
       "weight": 1.0,
@@ -2593,6 +2635,18 @@
       "_tgt": "paymentspage_paymentspage",
       "source": "helpers_formatdate",
       "target": "paymentspage_paymentspage"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/IndividualPaymentCard.jsx",
+      "source_location": "L115",
+      "weight": 1.0,
+      "_src": "individualpaymentcard_individualpaymentcard",
+      "_tgt": "helpers_formatdate",
+      "source": "helpers_formatdate",
+      "target": "individualpaymentcard_individualpaymentcard"
     },
     {
       "relation": "calls",
@@ -2622,7 +2676,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/helpers.js",
-      "source_location": "L70",
+      "source_location": "L88",
       "weight": 1.0,
       "_src": "helpers_generatewhatsappmessage",
       "_tgt": "helpers_formattime12h",
@@ -2694,18 +2748,6 @@
       "relation": "calls",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/MyCaterings.jsx",
-      "source_location": "L39",
-      "weight": 1.0,
-      "_src": "helpers_formatcurrency",
-      "_tgt": "mycaterings_mycaterings",
-      "source": "helpers_formatcurrency",
-      "target": "mycaterings_mycaterings"
-    },
-    {
-      "relation": "calls",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/MyEvents.jsx",
       "source_location": "L71",
       "weight": 1.0,
@@ -2749,6 +2791,18 @@
       "_tgt": "admindashboard_admindashboard",
       "source": "helpers_formatcurrency",
       "target": "admindashboard_admindashboard"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/IndividualPaymentCard.jsx",
+      "source_location": "L54",
+      "weight": 1.0,
+      "_src": "individualpaymentcard_individualpaymentcard",
+      "_tgt": "helpers_formatcurrency",
+      "source": "helpers_formatcurrency",
+      "target": "individualpaymentcard_individualpaymentcard"
     },
     {
       "relation": "calls",
@@ -2874,7 +2928,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/AuthContext.jsx",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_lib_authcontext_jsx",
       "_tgt": "authcontext_authprovider",
@@ -2886,7 +2940,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/lib/AuthContext.jsx",
-      "source_location": "L93",
+      "source_location": "L124",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_lib_authcontext_jsx",
       "_tgt": "authcontext_useauth",
@@ -2905,18 +2959,6 @@
       "_tgt": "home_dashboard",
       "source": "authcontext_useauth",
       "target": "home_dashboard"
-    },
-    {
-      "relation": "calls",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/MyCaterings.jsx",
-      "source_location": "L16",
-      "weight": 1.0,
-      "_src": "authcontext_useauth",
-      "_tgt": "mycaterings_mycaterings",
-      "source": "authcontext_useauth",
-      "target": "mycaterings_mycaterings"
     },
     {
       "relation": "calls",
@@ -2994,13 +3036,37 @@
       "relation": "calls",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/Settings.jsx",
-      "source_location": "L22",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/SettingsMenu.jsx",
+      "source_location": "L12",
       "weight": 1.0,
       "_src": "authcontext_useauth",
-      "_tgt": "settings_settings",
+      "_tgt": "settingsmenu_settingsmenu",
       "source": "authcontext_useauth",
-      "target": "settings_settings"
+      "target": "settingsmenu_settingsmenu"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/PersonalSettings.jsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_src": "personalsettings_personalsettings",
+      "_tgt": "authcontext_useauth",
+      "source": "authcontext_useauth",
+      "target": "personalsettings_personalsettings"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/PreferenceSettings.jsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_src": "preferencesettings_preferencesettings",
+      "_tgt": "authcontext_useauth",
+      "source": "authcontext_useauth",
+      "target": "preferencesettings_preferencesettings"
     },
     {
       "relation": "calls",
@@ -3073,18 +3139,6 @@
       "_tgt": "createcatering_createcatering",
       "source": "authcontext_useauth",
       "target": "createcatering_createcatering"
-    },
-    {
-      "relation": "calls",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/SettingsMenu.jsx",
-      "source_location": "L12",
-      "weight": 1.0,
-      "_src": "authcontext_useauth",
-      "_tgt": "settingsmenu_settingsmenu",
-      "source": "authcontext_useauth",
-      "target": "settingsmenu_settingsmenu"
     },
     {
       "relation": "calls",
@@ -3365,30 +3419,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/my_events/MyCaterings.jsx",
-      "source_location": "L15",
-      "weight": 1.0,
-      "_src": "home_kenz_projects_web_catering_src_pages_my_events_mycaterings_jsx",
-      "_tgt": "mycaterings_mycaterings",
-      "source": "home_kenz_projects_web_catering_src_pages_my_events_mycaterings_jsx",
-      "target": "mycaterings_mycaterings",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/my_events/MyCaterings.jsx",
-      "source_location": "L160",
-      "weight": 1.0,
-      "_src": "home_kenz_projects_web_catering_src_pages_my_events_mycaterings_jsx",
-      "_tgt": "mycaterings_statbox",
-      "source": "home_kenz_projects_web_catering_src_pages_my_events_mycaterings_jsx",
-      "target": "mycaterings_statbox",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/my_events/MyEvents.jsx",
       "source_location": "L21",
       "weight": 1.0,
@@ -3402,7 +3432,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/my_events/MyEvents.jsx",
-      "source_location": "L199",
+      "source_location": "L197",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_my_events_myevents_jsx",
       "_tgt": "myevents_statbox",
@@ -3414,7 +3444,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/CateringDetail.jsx",
-      "source_location": "L24",
+      "source_location": "L25",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_catering_detail_cateringdetail_jsx",
       "_tgt": "cateringdetail_cateringdetail",
@@ -3426,7 +3456,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/MiscComponents.jsx",
-      "source_location": "L3",
+      "source_location": "L4",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_catering_detail_components_misccomponents_jsx",
       "_tgt": "misccomponents_adminactionbuttons",
@@ -3438,7 +3468,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/MiscComponents.jsx",
-      "source_location": "L23",
+      "source_location": "L42",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_catering_detail_components_misccomponents_jsx",
       "_tgt": "misccomponents_cateringdresscode",
@@ -3462,7 +3492,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/UserProfileModal.jsx",
-      "source_location": "L52",
+      "source_location": "L49",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_catering_detail_components_userprofilemodal_jsx",
       "_tgt": "userprofilemodal_modalrow",
@@ -3474,7 +3504,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/AdminSummary.jsx",
-      "source_location": "L11",
+      "source_location": "L13",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_catering_detail_components_adminsummary_jsx",
       "_tgt": "adminsummary_adminsummary",
@@ -3534,7 +3564,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/catering_detail/components/CateringInfoGrid.jsx",
-      "source_location": "L19",
+      "source_location": "L12",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_catering_detail_components_cateringinfogrid_jsx",
       "_tgt": "cateringinfogrid_infoitem",
@@ -3558,7 +3588,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/Register.jsx",
-      "source_location": "L23",
+      "source_location": "L22",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_register_register_jsx",
       "_tgt": "register_register",
@@ -3600,18 +3630,6 @@
       "_tgt": "registersuccess_registersuccess",
       "source": "home_kenz_projects_web_catering_src_pages_register_components_registersuccess_jsx",
       "target": "registersuccess_registersuccess",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/register/components/DaySelector.jsx",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_src": "home_kenz_projects_web_catering_src_pages_register_components_dayselector_jsx",
-      "_tgt": "dayselector_dayselector",
-      "source": "home_kenz_projects_web_catering_src_pages_register_components_dayselector_jsx",
-      "target": "dayselector_dayselector",
       "confidence_score": 1.0
     },
     {
@@ -3666,7 +3684,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/history/History.jsx",
-      "source_location": "L155",
+      "source_location": "L153",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_history_history_jsx",
       "_tgt": "history_statcard",
@@ -3678,7 +3696,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/history/History.jsx",
-      "source_location": "L164",
+      "source_location": "L162",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_history_history_jsx",
       "_tgt": "history_tag",
@@ -3689,25 +3707,61 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/Settings.jsx",
-      "source_location": "L21",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/SettingsMenu.jsx",
+      "source_location": "L5",
       "weight": 1.0,
-      "_src": "home_kenz_projects_web_catering_src_pages_settings_settings_jsx",
-      "_tgt": "settings_settings",
-      "source": "home_kenz_projects_web_catering_src_pages_settings_settings_jsx",
-      "target": "settings_settings",
+      "_src": "home_kenz_projects_web_catering_src_pages_settings_settingsmenu_jsx",
+      "_tgt": "settingsmenu_settingsmenu",
+      "source": "home_kenz_projects_web_catering_src_pages_settings_settingsmenu_jsx",
+      "target": "settingsmenu_settingsmenu",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/Settings.jsx",
-      "source_location": "L204",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/SettingsMenu.jsx",
+      "source_location": "L11",
       "weight": 1.0,
-      "_src": "home_kenz_projects_web_catering_src_pages_settings_settings_jsx",
-      "_tgt": "settings_row",
-      "source": "home_kenz_projects_web_catering_src_pages_settings_settings_jsx",
-      "target": "settings_row",
+      "_src": "home_kenz_projects_web_catering_src_pages_admin_settingsmenu_jsx",
+      "_tgt": "settingsmenu_settingsmenu",
+      "source": "settingsmenu_settingsmenu",
+      "target": "home_kenz_projects_web_catering_src_pages_admin_settingsmenu_jsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/PersonalSettings.jsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_src": "home_kenz_projects_web_catering_src_pages_settings_personalsettings_jsx",
+      "_tgt": "personalsettings_personalsettings",
+      "source": "home_kenz_projects_web_catering_src_pages_settings_personalsettings_jsx",
+      "target": "personalsettings_personalsettings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/PersonalSettings.jsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_src": "home_kenz_projects_web_catering_src_pages_admin_personalsettings_jsx",
+      "_tgt": "personalsettings_personalsettings",
+      "source": "personalsettings_personalsettings",
+      "target": "home_kenz_projects_web_catering_src_pages_admin_personalsettings_jsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/settings/PreferenceSettings.jsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_src": "home_kenz_projects_web_catering_src_pages_settings_preferencesettings_jsx",
+      "_tgt": "preferencesettings_preferencesettings",
+      "source": "home_kenz_projects_web_catering_src_pages_settings_preferencesettings_jsx",
+      "target": "preferencesettings_preferencesettings",
       "confidence_score": 1.0
     },
     {
@@ -3738,7 +3792,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/AttendancePage.jsx",
-      "source_location": "L16",
+      "source_location": "L18",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_admin_attendancepage_jsx",
       "_tgt": "attendancepage_attendancepage",
@@ -3785,18 +3839,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/SettingsMenu.jsx",
-      "source_location": "L11",
-      "weight": 1.0,
-      "_src": "home_kenz_projects_web_catering_src_pages_admin_settingsmenu_jsx",
-      "_tgt": "settingsmenu_settingsmenu",
-      "source": "home_kenz_projects_web_catering_src_pages_admin_settingsmenu_jsx",
-      "target": "settingsmenu_settingsmenu",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/AdminDashboard.jsx",
       "source_location": "L18",
       "weight": 1.0,
@@ -3810,7 +3852,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/AdminDashboard.jsx",
-      "source_location": "L340",
+      "source_location": "L259",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_admin_admindashboard_jsx",
       "_tgt": "admindashboard_statcard",
@@ -3846,7 +3888,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/EditCatering.jsx",
-      "source_location": "L281",
+      "source_location": "L293",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_src_pages_admin_editcatering_jsx",
       "_tgt": "editcatering_sloteditor",
@@ -3917,6 +3959,30 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/IndividualPaymentCard.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_src": "home_kenz_projects_web_catering_src_pages_admin_components_individualpaymentcard_jsx",
+      "_tgt": "individualpaymentcard_individualpaymentcard",
+      "source": "home_kenz_projects_web_catering_src_pages_admin_components_individualpaymentcard_jsx",
+      "target": "individualpaymentcard_individualpaymentcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/AttendanceCard.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_src": "home_kenz_projects_web_catering_src_pages_admin_components_attendancecard_jsx",
+      "_tgt": "attendancecard_attendancecard",
+      "source": "home_kenz_projects_web_catering_src_pages_admin_components_attendancecard_jsx",
+      "target": "attendancecard_attendancecard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/src/pages/admin/components/UserStats.jsx",
       "source_location": "L1",
       "weight": 1.0,
@@ -3960,6 +4026,18 @@
       "_tgt": "verifyemail_verifyemail",
       "source": "home_kenz_projects_web_catering_src_pages_auth_verifyemail_jsx",
       "target": "verifyemail_verifyemail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/kenz/Projects/web/Catering/src/pages/auth/AuthActionHandler.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_src": "home_kenz_projects_web_catering_src_pages_auth_authactionhandler_jsx",
+      "_tgt": "authactionhandler_authactionhandler",
+      "source": "home_kenz_projects_web_catering_src_pages_auth_authactionhandler_jsx",
+      "target": "authactionhandler_authactionhandler",
       "confidence_score": 1.0
     },
     {
@@ -4437,18 +4515,6 @@
       "source_location": "L17",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_convex_utils_js",
-      "_tgt": "utils_validateregistrationnumber",
-      "source": "home_kenz_projects_web_catering_convex_utils_js",
-      "target": "utils_validateregistrationnumber",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "/home/kenz/Projects/web/Catering/convex/utils.js",
-      "source_location": "L27",
-      "weight": 1.0,
-      "_src": "home_kenz_projects_web_catering_convex_utils_js",
       "_tgt": "utils_validatephone",
       "source": "home_kenz_projects_web_catering_convex_utils_js",
       "target": "utils_validatephone",
@@ -4458,12 +4524,24 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/convex/utils.js",
-      "source_location": "L36",
+      "source_location": "L26",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_convex_utils_js",
       "_tgt": "utils_validateemail",
       "source": "home_kenz_projects_web_catering_convex_utils_js",
       "target": "utils_validateemail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/kenz/Projects/web/Catering/convex/caterings_util.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_src": "home_kenz_projects_web_catering_convex_caterings_util_js",
+      "_tgt": "caterings_util_synccateringcounters",
+      "source": "home_kenz_projects_web_catering_convex_caterings_util_js",
+      "target": "caterings_util_synccateringcounters",
       "confidence_score": 1.0
     },
     {
@@ -4494,7 +4572,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/convex/caterings.js",
-      "source_location": "L26",
+      "source_location": "L24",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_convex_caterings_js",
       "_tgt": "caterings_validateslots",
@@ -4506,12 +4584,12 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/home/kenz/Projects/web/Catering/convex/caterings.js",
-      "source_location": "L38",
+      "source_location": "L36",
       "weight": 1.0,
       "_src": "home_kenz_projects_web_catering_convex_caterings_js",
-      "_tgt": "caterings_validatedates",
+      "_tgt": "caterings_validatedate",
       "source": "home_kenz_projects_web_catering_convex_caterings_js",
-      "target": "caterings_validatedates",
+      "target": "caterings_validatedate",
       "confidence_score": 1.0
     }
   ],

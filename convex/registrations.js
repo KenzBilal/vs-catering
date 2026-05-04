@@ -59,13 +59,13 @@ export const register = mutation({
     }
 
     // #15: Queue position is per-role (Optimized with index)
-    const sameRoleDayRegs = await ctx.db
+    const lastReg = await ctx.db
       .query("registrations")
-      .withIndex("by_catering_role", (q) => q.eq("cateringId", args.cateringId).eq("role", args.role))
-      .collect();
+      .withIndex("by_catering_role_queue", (q) => q.eq("cateringId", args.cateringId).eq("role", args.role))
+      .order("desc")
+      .first();
     
-    const maxPos = sameRoleDayRegs.reduce((max, r) => Math.max(max, r.queuePosition || 0), 0);
-    const queuePosition = maxPos + 1;
+    const queuePosition = lastReg ? (lastReg.queuePosition || 0) + 1 : 1;
 
     const slot = catering.slots.find((s) => s.role === args.role);
     
@@ -524,18 +524,16 @@ export const cancelRegistration = mutation({
       const slot = catering?.slots.find((s) => s.role === reg.role);
       if (slot) {
         // Find all unconfirmed registrations for same role, order by queuePosition
-        const allRegs = await ctx.db
+        const allRoleRegs = await ctx.db
           .query("registrations")
-          .withIndex("by_catering", (q) => q.eq("cateringId", reg.cateringId))
+          .withIndex("by_catering_role", (q) => q.eq("cateringId", reg.cateringId).eq("role", reg.role))
           .collect();
           
-        const waitlisted = allRegs
-          .filter((r) => r.role === reg.role && !r.isConfirmed)
-          .sort((a, b) => a.queuePosition - b.queuePosition);
+        const waitlisted = allRoleRegs
+          .filter((r) => !r.isConfirmed)
+          .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0));
 
-        const confirmedCount = allRegs.filter(
-          (r) => r.role === reg.role && r.isConfirmed
-        ).length;
+        const confirmedCount = allRoleRegs.filter((r) => r.isConfirmed).length;
 
         if (waitlisted.length > 0 && confirmedCount < slot.limit) {
           const promotedUser = await ctx.db.get(waitlisted[0].userId);

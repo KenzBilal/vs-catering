@@ -1,26 +1,31 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
+  ...authTables,
   users: defineTable({
-    name: v.string(),
-    email: v.string(),
-    phone: v.string(),
-    stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
-    gender: v.union(v.literal("male"), v.literal("female")),
-    defaultDropPoint: v.string(),
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
+    isAnonymous: v.optional(v.boolean()),
+
+    stayType: v.optional(v.union(v.literal("hostel"), v.literal("day_scholar"))),
+    gender: v.optional(v.union(v.literal("male"), v.literal("female"))),
+    defaultDropPoint: v.optional(v.string()),
     photoStorageId: v.optional(v.union(v.id("_storage"), v.null())),
 
-    role: v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student")),
+    role: v.optional(v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student"))),
     lastReadNotificationsAt: v.optional(v.number()),
     adminPreferences: v.optional(v.object({
       showAnalytics: v.boolean(),
       showPendingPayments: v.boolean(),
       showActiveEvents: v.boolean(),
     })),
-    createdAt: v.number(),
-
-    // Email Verification
+    createdAt: v.optional(v.number()),
     emailVerified: v.optional(v.boolean()),
   })
 
@@ -28,19 +33,9 @@ export default defineSchema({
     .index("by_phone", ["phone"])
     .index("by_role", ["role"]),
 
-  sessions: defineTable({
-    userId: v.id("users"),
-    token: v.string(),
-    expiresAt: v.number(),
-  }).index("by_token", ["token"])
-    .index("by_user", ["userId"]),
 
-  // Rate limiting for login attempts
-  loginAttempts: defineTable({
-    email: v.string(),
-    attempts: v.number(),
-    windowStart: v.number(), // timestamp of first attempt in current window
-  }).index("by_email", ["email"]),
+
+
 
   dropPoints: defineTable({
     name: v.string(),
@@ -114,7 +109,8 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_catering", ["cateringId"])
     .index("by_user_catering", ["userId", "cateringId"])
-    .index("by_catering_role", ["cateringId", "role"]),
+    .index("by_catering_role", ["cateringId", "role"])
+    .index("by_catering_role_queue", ["cateringId", "role", "queuePosition"]),
 
   payments: defineTable({
     userId: v.id("users"),

@@ -1,4 +1,5 @@
 import { ConvexProvider, ConvexReactClient, useQuery } from "convex/react";
+import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { api } from "../convex/_generated/api";
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -46,11 +47,6 @@ import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 // Auth pages
 import Login  from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
-import VerifyEmail from "./pages/auth/VerifyEmail";
-import ResetPassword from "./pages/auth/ResetPassword";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import AuthActionHandler from "./pages/auth/AuthActionHandler";
-import CompleteProfile from "./pages/auth/CompleteProfile";
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
 if (!convexUrl) {
@@ -152,12 +148,7 @@ function AppRoutes() {
       {/* ── Auth ─────────────────────────────────────── */}
       <Route path="/login"  element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Login />} />
       <Route path="/signup" element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Signup />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/auth-action" element={<AuthActionHandler />} />
-      <Route path="/complete-profile" element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <CompleteProfile />} />
-
+                              
       {/* ── Student portal ───────────────────────────── */}
       <Route path="/"           element={isAdmin ? <Navigate to="/admin" replace /> : <StudentPage page={<Dashboard />} />} />
       <Route path="/my-events"  element={<StudentPage page={<MyEvents />} />} />
@@ -209,7 +200,7 @@ export default function App() {
   // #11: Removed global right-click disable — it breaks legitimate browser UX
   return (
     <ErrorBoundary>
-      <ConvexProvider client={convex}>
+      <ConvexAuthProvider client={convex}>
         <AuthProvider>
           <Toaster
             position="bottom-center"
@@ -231,7 +222,7 @@ export default function App() {
             <AppRoutes />
           </BrowserRouter>
         </AuthProvider>
-      </ConvexProvider>
+      </ConvexAuthProvider>
     </ErrorBoundary>
   );
 }

@@ -1,176 +1,39 @@
 import { v, ConvexError } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
-import { requireAdmin, getUserFromToken, checkPermission } from "./auth";
-
+import { mutation, query } from "./_generated/server";
+import { requireAdmin, getAuthUser, checkPermission } from "./auth";
 import { sanitizeString, validatePhone, validateEmail } from "./utils";
 
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const RATE_LIMIT_MAX = 5;
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-function makeToken() {
-  // 128-bit hex token — cryptographically secure via Web Crypto API
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-// ─── createUser ──────────────────────────────────────────────────────────────
-
-export const createUserInternal = internalMutation({
-  args: {
-    name: v.string(),
-    email: v.string(),
-    phone: v.string(),
-    stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
-    gender: v.union(v.literal("male"), v.literal("female")),
-    defaultDropPoint: v.string(),
-    rememberMe: v.optional(v.boolean()),
-  },
-  handler: async (ctx, args) => {
-    const email = args.email.toLowerCase().trim();
-    if (!validateEmail(email)) throw new ConvexError("Enter a valid email address.");
-
-    const phone = args.phone.replace(/\D/g, "").slice(-10);
-    if (!validatePhone(phone)) throw new ConvexError("Enter a valid 10-digit mobile number.");
-
-    const name = sanitizeString(args.name).slice(0, 50);
-    if (name.length < 2) throw new ConvexError("Name is too short.");
-
-    const existingEmail = await ctx.db.query("users").withIndex("by_email", (q) => q.eq("email", email)).first();
-    if (existingEmail) throw new ConvexError("This email is already registered.");
-
-    const existingPhone = await ctx.db.query("users").withIndex("by_phone", (q) => q.eq("phone", phone)).first();
-    if (existingPhone) throw new ConvexError("This phone number is already registered.");
-
-    const userId = await ctx.db.insert("users", {
-      name,
-      email,
-      phone,
-      stayType: args.stayType,
-      gender: args.gender,
-      defaultDropPoint: sanitizeString(args.defaultDropPoint).slice(0, 100),
-      role: "student",
-      createdAt: Date.now(),
-      emailVerified: false, 
-    });
-
-    const user = await ctx.db.get(userId);
-    // DO NOT create session here. User must verify email first.
-    return { ...user };
+// ─── getCurrentUser ─────────────────────────────────────────────────────────
+export const getCurrentUser = query({
+  args: {},
+  handler: async (ctx) => {
+    return await getAuthUser(ctx);
   },
 });
 
-// ─── loginUser ───────────────────────────────────────────────────────────────
+// ─── getUser ─────────────────────────────────────────────────────────────────
+export const getUser = query({
+  args: { userId: v.id("users"), token: v.optional(v.string()) },
+  handler: async (ctx, { userId }) => {
+    const caller = await getAuthUser(ctx);
+    if (!caller) throw new ConvexError("Unauthorized");
 
-export const loginUserInternal = internalMutation({
-  args: { email: v.string(), rememberMe: v.optional(v.boolean()), firebaseVerified: v.optional(v.boolean()) },
-  handler: async (ctx, { email, rememberMe, firebaseVerified }) => {
-    const cleanEmail = email.toLowerCase().trim();
-    if (!validateEmail(cleanEmail)) throw new ConvexError("Enter a valid email address.");
+    let canViewAll = false;
+    if (caller.role === "admin" || caller.role === "sub_admin") canViewAll = true;
 
-    const now = Date.now();
-
-    // Rate limiting
-    const attemptRecord = await ctx.db
-      .query("loginAttempts")
-      .withIndex("by_email", (q) => q.eq("email", cleanEmail))
-      .first();
-
-    if (attemptRecord) {
-      const timeSinceStart = now - attemptRecord.windowStart;
-      const withinWindow = timeSinceStart >= 0 && timeSinceStart < RATE_LIMIT_WINDOW_MS;
-
-      if (withinWindow && attemptRecord.attempts >= RATE_LIMIT_MAX) {
-        const waitMins = Math.ceil((RATE_LIMIT_WINDOW_MS - timeSinceStart) / 60000);
-        throw new ConvexError(`Too many login attempts. Try again in ${waitMins} minute${waitMins !== 1 ? "s" : ""}.`);
-      }
-      if (!withinWindow) {
-        await ctx.db.patch(attemptRecord._id, { attempts: 0, windowStart: now });
-      }
+    if (caller._id !== userId && !canViewAll) {
+      throw new ConvexError("Unauthorized: You can only view your own profile.");
     }
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", cleanEmail))
-      .first();
-
-    if (!user) {
-      // Record failed attempt
-      if (attemptRecord) {
-        const timeSinceStart = now - attemptRecord.windowStart;
-        const withinWindow = timeSinceStart >= 0 && timeSinceStart < RATE_LIMIT_WINDOW_MS;
-        await ctx.db.patch(attemptRecord._id, {
-          attempts: withinWindow ? attemptRecord.attempts + 1 : 1,
-          windowStart: withinWindow ? attemptRecord.windowStart : now,
-        });
-      } else {
-        await ctx.db.insert("loginAttempts", { email: cleanEmail, attempts: 1, windowStart: now });
-      }
-      return null;
-    }
-
-    // Successful login — reset rate limiter, clean up stale sessions
-    if (attemptRecord) {
-      await ctx.db.patch(attemptRecord._id, { attempts: 0, windowStart: now });
-    }
-
-    // Sync verification status from Firebase
-    if (firebaseVerified === true && user.emailVerified === false) {
-      await ctx.db.patch(user._id, { emailVerified: true });
-      user.emailVerified = true;
-    }
-
-    // Check if email is verified
-    if (user.emailVerified === false) {
-      return { _id: user._id, email: user.email, emailVerified: false };
-    }
-
-    // Delete old sessions for this user to prevent session pile-up
-    const oldSessions = await ctx.db
-      .query("sessions")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    for (const s of oldSessions) {
-      await ctx.db.delete(s._id);
-    }
-
-    const token = makeToken();
-    const duration = rememberMe ? 1000 * 60 * 60 * 24 * 30 : 1000 * 60 * 60 * 24;
-    const expiresAt = Date.now() + duration;
-    await ctx.db.insert("sessions", { userId: user._id, token, expiresAt });
-    return { ...user, token, emailVerified: true };
+    return await ctx.db.get(userId);
   },
 });
 
-// ─── logoutUser ──────────────────────────────────────────────────────────────
-
-export const logoutUser = mutation({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const session = await ctx.db
-      .query("sessions")
-      .withIndex("by_token", (q) => q.eq("token", token))
-      .first();
-    if (session) await ctx.db.delete(session._id);
-  },
-});
-
-// Admin mutation to delete a user with cascade session cleanup
+// Admin mutation to delete a user with cascade cleanup
 export const deleteUser = mutation({
-  args: { userId: v.id("users"), token: v.string() },
-  handler: async (ctx, { userId, token }) => {
-    await requireAdmin(ctx, token);
-
-    // Cascade delete sessions
-    const sessions = await ctx.db
-      .query("sessions")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-    for (const s of sessions) {
-      await ctx.db.delete(s._id);
-    }
+  args: { userId: v.id("users"), token: v.optional(v.string()) },
+  handler: async (ctx, { userId }) => {
+    await requireAdmin(ctx);
 
     // Cascade delete registrations
     const regs = await ctx.db
@@ -190,18 +53,6 @@ export const deleteUser = mutation({
       await ctx.db.delete(p._id);
     }
 
-    // Delete login attempts
-    const user = await ctx.db.get(userId);
-    if (user) {
-      const attempts = await ctx.db
-        .query("loginAttempts")
-        .withIndex("by_email", (q) => q.eq("email", user.email))
-        .collect();
-      for (const a of attempts) {
-        await ctx.db.delete(a._id);
-      }
-    }
-
     // Cleanup paymentGroups where user was head
     const groupsAsHead = await ctx.db
       .query("paymentGroups")
@@ -215,84 +66,37 @@ export const deleteUser = mutation({
   },
 });
 
-// ─── getUser ─────────────────────────────────────────────────────────────────
-
-export const getUser = query({
-  args: { userId: v.id("users"), token: v.string() },
-  handler: async (ctx, { userId, token }) => {
-    const caller = await getUserFromToken(ctx, token);
-    if (!caller) throw new ConvexError("Unauthorized");
-
-    let canViewAll = false;
-    try {
-      await checkPermission(ctx, token, "manage_users");
-      canViewAll = true;
-    } catch (e) {
-      canViewAll = false;
-    }
-
-    if (caller._id !== userId && !canViewAll) {
-      throw new ConvexError("Unauthorized: You can only view your own profile.");
-    }
-
-    const user = await ctx.db.get(userId);
-    if (!user) return null;
-
-    if (caller.role === "sub_admin" && caller._id !== userId) {
-      return {
-        _id: user._id,
-        _creationTime: user._creationTime,
-        name: user.name,
-        role: user.role,
-        gender: user.gender,
-        photoStorageId: user.photoStorageId,
-      };
-    }
-
-    return user;
-  },
-});
-
-// ─── updatePreferences ────────────────
-
-export const updatePreferences = mutation({
+export const updateProfile = mutation({
   args: {
-    token: v.string(),
-    defaultDropPoint: v.string(),
-    stayType: v.union(v.literal("hostel"), v.literal("day_scholar")),
-    photoStorageId: v.optional(v.id("_storage")),
+    phone: v.optional(v.string()),
+    stayType: v.optional(v.union(v.literal("hostel"), v.literal("day_scholar"))),
+    gender: v.optional(v.union(v.literal("male"), v.literal("female"))),
+    defaultDropPoint: v.optional(v.string()),
+    name: v.optional(v.string())
   },
-  handler: async (ctx, { token, defaultDropPoint, stayType, photoStorageId }) => {
-    const caller = await getUserFromToken(ctx, token);
-    if (!caller) throw new ConvexError("Not authenticated.");
-
-    if (photoStorageId && caller.photoStorageId && photoStorageId !== caller.photoStorageId) {
-      try {
-        await ctx.storage.delete(caller.photoStorageId);
-      } catch (e) {
-        console.error("Failed to delete old photo:", e);
-      }
-    }
-
+  handler: async (ctx, args) => {
+    const caller = await getAuthUser(ctx);
+    if (!caller) throw new ConvexError("Unauthorized");
+    
     await ctx.db.patch(caller._id, {
-      defaultDropPoint: sanitizeString(defaultDropPoint).slice(0, 100),
-      stayType,
-      ...(photoStorageId ? { photoStorageId } : {}),
+      ...(args.name !== undefined && { name: args.name }),
+      ...(args.phone !== undefined && { phone: args.phone }),
+      ...(args.stayType !== undefined && { stayType: args.stayType }),
+      ...(args.gender !== undefined && { gender: args.gender }),
+      ...(args.defaultDropPoint !== undefined && { defaultDropPoint: args.defaultDropPoint }),
+      role: caller.role || "student" // Ensure role exists
     });
-  },
+  }
 });
-
-
-// ─── setUserRole ─────────────────────────────────────────────────────────────
 
 export const setUserRole = mutation({
   args: {
-    token: v.string(),
+    token: v.optional(v.string()),
     userId: v.id("users"),
     role: v.union(v.literal("admin"), v.literal("sub_admin"), v.literal("student")),
   },
-  handler: async (ctx, { token, userId, role }) => {
-    await requireAdmin(ctx, token);
+  handler: async (ctx, { userId, role }) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(userId, { role });
     
     const user = await ctx.db.get(userId);
@@ -309,18 +113,17 @@ export const setUserRole = mutation({
   },
 });
 
-
 export const updateAdminPreferences = mutation({
   args: {
-    token: v.string(),
+    token: v.optional(v.string()),
     preferences: v.object({
       showAnalytics: v.boolean(),
       showPendingPayments: v.boolean(),
       showActiveEvents: v.boolean(),
     }),
   },
-  handler: async (ctx, { token, preferences }) => {
-    const caller = await getUserFromToken(ctx, token);
+  handler: async (ctx, { preferences }) => {
+    const caller = await getAuthUser(ctx);
     if (!caller || (caller.role !== "admin" && caller.role !== "sub_admin")) {
       throw new ConvexError("Unauthorized");
     }
@@ -328,14 +131,12 @@ export const updateAdminPreferences = mutation({
   },
 });
 
-// ─── getAllStudents ─────────────
-
-
 export const getAllStudents = query({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const caller = await checkPermission(ctx, token, "manage_users");
+  args: { token: v.optional(v.string()) },
+  handler: async (ctx) => {
+    const caller = await checkPermission(ctx, null, "manage_users");
     
+    // Fallback: If caller isn't strictly sub_admin/admin, throw. (checkPermission handles this)
     const users = await ctx.db.query("users").collect();
     if (caller.role === "sub_admin") {
       return users.filter((u) => u.role === "student");
@@ -344,7 +145,6 @@ export const getAllStudents = query({
   },
 });
 
-// #9: Pre-check for existing account to avoid orphaned Firebase accounts
 export const checkUserExists = query({
   args: { email: v.string(), phone: v.string() },
   handler: async (ctx, { email, phone }) => {
