@@ -6,7 +6,7 @@ import { formatCurrency, formatDate, getRoleLabel, formatTime12h } from "../../l
 import CustomSelect from "../../components/ui/CustomSelect";
 import { useState } from "react";
 import {
-  Plus, UserCheck, CreditCard, AlertCircle, BarChart3,
+  UserCheck, CreditCard,
   TrendingUp, CalendarDays, Users, IndianRupee, Clock, ArrowRight
 } from "lucide-react";
 
@@ -238,15 +238,28 @@ export default function AdminDashboard() {
                       ))}
                     </div>
 
-                    {[...new Set(payments.map(p => p.cateringId))].map((cid, i) => (
-                      <button
-                        key={cid}
-                        className="w-full py-2 text-[12px] font-bold text-[#8b3a00] bg-[#fdf0e6] rounded-xl hover:bg-white transition-all border border-[#f5d0aa] active:scale-95"
-                        onClick={() => navigate(`/admin/catering/${cid}/payments`)}
-                      >
-                        {payments.find(p => p.cateringId === cid)?.catering?.place || `Event ${i + 1}`} → View Payments
-                      </button>
-                    ))}
+                    {(() => {
+                      const uniqueCaterings = [...new Set(payments.map(p => p.cateringId))];
+                      const displayCaterings = uniqueCaterings.slice(0, 3);
+                      return (
+                        <div className="space-y-2">
+                          {displayCaterings.map((cid, i) => (
+                            <button
+                              key={cid}
+                              className="w-full py-2 text-[12px] font-bold text-[#8b3a00] bg-[#fdf0e6] rounded-xl hover:bg-white transition-all border border-[#f5d0aa] active:scale-95"
+                              onClick={() => navigate(`/admin/catering/${cid}/payments`)}
+                            >
+                              {payments.find(p => p.cateringId === cid)?.catering?.place || `Event ${i + 1}`} → View Payments
+                            </button>
+                          ))}
+                          {uniqueCaterings.length > 3 && (
+                            <div className="text-center text-[11px] font-bold text-stone-400">
+                              + {uniqueCaterings.length - 3} more events
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}

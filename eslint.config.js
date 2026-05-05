@@ -28,7 +28,8 @@ export default [
         Promise: "readonly",
         navigator: "readonly",
         fetch: "readonly",
-        URL: "readonly"
+        URL: "readonly",
+        process: "readonly"
       }
     },
     plugins: {
@@ -39,7 +40,7 @@ export default [
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
       "no-unused-vars": "warn",
-      "no-undef": "error", // Now we can use it since we defined globals
+      "no-undef": "error", 
     },
   },
 ];

@@ -6,13 +6,10 @@ import { api } from "../../../convex/_generated/api";
 import {
   LayoutDashboard,
   CalendarDays,
-  UserCheck,
-  CreditCard,
   Users,
   Settings,
   LogOut,
-  UtensilsCrossed,
-  ChevronRight,
+  UtensilsCrossed
 } from "lucide-react";
 
 import NotificationBell from "../shared/NotificationBell";
@@ -28,7 +25,7 @@ const NAV_ITEMS = [
 export default function AdminShell({ children }) {
   const { user, permissions, logout } = useAuth();
   const navigate = useNavigate();
-  const settingsRaw = useQuery(api.adminSettings.getSettings, user?.role === "admin" ? { token: user?.token || "" } : "skip");
+  const settingsRaw = useQuery(api.adminSettings.getSettings, user?.role === "admin" && user?.token ? { token: user.token } : "skip");
   const siteSettings = useQuery(api.adminSettings.getSiteSettings);
   const initializeSettings = useMutation(api.adminSettings.initializeSettings);
 
@@ -156,7 +153,7 @@ export default function AdminShell({ children }) {
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-cream-200 z-40 flex">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-cream-200 z-40 flex pb-[env(safe-area-inset-bottom)]">
         {filteredNav.map(({ to, label, icon: Icon, exact }) => (
           <NavLink
             key={to}

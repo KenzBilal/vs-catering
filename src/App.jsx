@@ -1,10 +1,10 @@
-import { ConvexProvider, ConvexReactClient, useQuery } from "convex/react";
+import { ConvexReactClient, useQuery } from "convex/react";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { api } from "../convex/_generated/api";
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import OfflineBanner from "./components/shared/OfflineBanner";
@@ -17,36 +17,36 @@ import StudentShell from "./components/student/StudentShell";
 import AdminShell   from "./components/admin/AdminShell";
 
 // Student pages
-import Dashboard    from "./pages/home/Home";
-import MyEvents     from "./pages/my_events/MyEvents";
-import History      from "./pages/history/History";
-import SettingsMenuStudent from "./pages/settings/SettingsMenu";
-import PersonalSettingsStudent from "./pages/settings/PersonalSettings";
-import PreferenceSettings from "./pages/settings/PreferenceSettings";
-import CateringDetail from "./pages/catering_detail/CateringDetail";
-import Register     from "./pages/register/Register";
-import NotificationsPage from "./pages/notifications/NotificationsPage";
+const Dashboard    = lazy(() => import("./pages/home/Home"));
+const MyEvents     = lazy(() => import("./pages/my_events/MyEvents"));
+const History      = lazy(() => import("./pages/history/History"));
+const SettingsMenuStudent = lazy(() => import("./pages/settings/SettingsMenu"));
+const PersonalSettingsStudent = lazy(() => import("./pages/settings/PersonalSettings"));
+const PreferenceSettings = lazy(() => import("./pages/settings/PreferenceSettings"));
+const CateringDetail = lazy(() => import("./pages/catering_detail/CateringDetail"));
+const Register     = lazy(() => import("./pages/register/Register"));
+const NotificationsPage = lazy(() => import("./pages/notifications/NotificationsPage"));
 
 // Admin pages
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminEvents    from "./pages/admin/AdminEvents";
-import AdminUsers     from "./pages/admin/AdminUsers";
-import CreateCatering from "./pages/admin/CreateCatering";
-import EditCatering   from "./pages/admin/EditCatering";
-import AttendancePage from "./pages/admin/AttendancePage";
-import PaymentsPage   from "./pages/admin/PaymentsPage";
-import SettingsMenu   from "./pages/admin/SettingsMenu";
-import ManageDropPoints from "./pages/admin/ManageDropPoints";
-import ManageSubAdmins  from "./pages/admin/ManageSubAdmins";
-import ManagePayouts    from "./pages/admin/ManagePayouts";
-import ManageInterface  from "./pages/admin/ManageInterface";
-import ManageBranding   from "./pages/admin/ManageBranding";
-import PersonalSettings from "./pages/admin/PersonalSettings";
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminEvents    = lazy(() => import("./pages/admin/AdminEvents"));
+const AdminUsers     = lazy(() => import("./pages/admin/AdminUsers"));
+const CreateCatering = lazy(() => import("./pages/admin/CreateCatering"));
+const EditCatering   = lazy(() => import("./pages/admin/EditCatering"));
+const AttendancePage = lazy(() => import("./pages/admin/AttendancePage"));
+const PaymentsPage   = lazy(() => import("./pages/admin/PaymentsPage"));
+const SettingsMenu   = lazy(() => import("./pages/admin/SettingsMenu"));
+const ManageDropPoints = lazy(() => import("./pages/admin/ManageDropPoints"));
+const ManageSubAdmins  = lazy(() => import("./pages/admin/ManageSubAdmins"));
+const ManagePayouts    = lazy(() => import("./pages/admin/ManagePayouts"));
+const ManageInterface  = lazy(() => import("./pages/admin/ManageInterface"));
+const ManageBranding   = lazy(() => import("./pages/admin/ManageBranding"));
+const PersonalSettings = lazy(() => import("./pages/admin/PersonalSettings"));
 import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 
 // Auth pages
-import Login  from "./pages/auth/Login";
-import Signup from "./pages/auth/Signup";
+const Login  = lazy(() => import("./pages/auth/Login"));
+const Signup = lazy(() => import("./pages/auth/Signup"));
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
 if (!convexUrl) {
@@ -115,7 +115,7 @@ function NotFound() {
         <h1 className="text-xl font-bold text-stone-900 mb-2">Page Not Found</h1>
         <p className="text-stone-500 font-medium mb-6">The page you're looking for doesn't exist.</p>
         <a href={user ? (isAdmin ? "/admin" : "/") : "/login"} className="btn-primary inline-flex">
-          Go Home
+          {user ? "Go Home" : "Log In"}
         </a>
       </div>
     </div>
@@ -144,53 +144,54 @@ function AppRoutes() {
       {/* Global offline detector — renders everywhere */}
       <OfflineBanner />
 
-      <Routes>
-      {/* ── Auth ─────────────────────────────────────── */}
-      <Route path="/login"  element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Login />} />
-      <Route path="/signup" element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Signup />} />
-                              
-      {/* ── Student portal ───────────────────────────── */}
-      <Route path="/"           element={isAdmin ? <Navigate to="/admin" replace /> : <StudentPage page={<Dashboard />} />} />
-      <Route path="/my-events"  element={<StudentPage page={<MyEvents />} />} />
-      <Route path="/history"    element={<StudentPage page={<History />} />} />
-      <Route path="/settings"   element={<StudentPage page={<SettingsMenuStudent />} />} />
-      <Route path="/settings/personal" element={<StudentPage page={<PersonalSettingsStudent />} />} />
-      <Route path="/settings/preferences" element={<StudentPage page={<PreferenceSettings />} />} />
-      <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+        {/* ── Auth ─────────────────────────────────────── */}
+        <Route path="/login"  element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Login />} />
+        <Route path="/signup" element={user ? <Navigate to={isAdmin ? "/admin" : "/"} replace /> : <Signup />} />
+                                
+        {/* ── Student portal ───────────────────────────── */}
+        <Route path="/"           element={isAdmin ? <Navigate to="/admin" replace /> : <StudentPage page={<Dashboard />} />} />
+        <Route path="/my-events"  element={<StudentPage page={<MyEvents />} />} />
+        <Route path="/history"    element={<StudentPage page={<History />} />} />
+        <Route path="/settings"   element={<StudentPage page={<SettingsMenuStudent />} />} />
+        <Route path="/settings/personal" element={<StudentPage page={<PersonalSettingsStudent />} />} />
+        <Route path="/settings/preferences" element={<StudentPage page={<PreferenceSettings />} />} />
+        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
-      {/* These stay outside shell (full-page detail views) */}
-      <Route path="/catering/:id"          element={<ProtectedRoute><CateringDetail /></ProtectedRoute>} />
-      <Route path="/catering/:id/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
+        {/* These stay outside shell (full-page detail views) */}
+        <Route path="/catering/:id"          element={<ProtectedRoute><CateringDetail /></ProtectedRoute>} />
+        <Route path="/catering/:id/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
 
-      {/* Legacy redirects */}
-      <Route path="/my-caterings" element={<Navigate to="/my-events" replace />} />
-      <Route path="/profile"      element={<Navigate to="/settings"  replace />} />
+        {/* Legacy redirects */}
+        <Route path="/my-caterings" element={<Navigate to="/my-events" replace />} />
+        <Route path="/profile"      element={<Navigate to="/settings"  replace />} />
 
-      {/* ── Admin portal ─────────────────────────────── */}
-      <Route path="/admin"                          element={<ProtectedRoute adminOnly><AdminShell><AdminDashboard /></AdminShell></ProtectedRoute>} />
-      <Route path="/admin/events"                   element={<ProtectedAdminRoute permission="manage_caterings"><AdminEvents /></ProtectedAdminRoute>} />
-      <Route path="/admin/events/create"            element={<ProtectedAdminRoute permission="manage_caterings"><CreateCatering /></ProtectedAdminRoute>} />
-      <Route path="/admin/catering/:id/edit"        element={<ProtectedAdminRoute permission="manage_caterings"><EditCatering /></ProtectedAdminRoute>} />
-      <Route path="/admin/catering/:id/attendance"  element={<ProtectedAdminRoute permission="mark_attendance"><AttendancePage /></ProtectedAdminRoute>} />
-      <Route path="/admin/catering/:id/payments"    element={<ProtectedAdminRoute permission="manage_payments"><PaymentsPage /></ProtectedAdminRoute>} />
-      <Route path="/admin/users"                    element={<ProtectedAdminRoute permission="manage_users"><AdminUsers /></ProtectedAdminRoute>} />
-      
-      {/* Settings Sub-Routes (Super Admin Only) */}
-      <Route path="/admin/settings"             element={<ProtectedRoute adminOnly><AdminShell><SettingsMenu /></AdminShell></ProtectedRoute>} />
-      <Route path="/admin/settings/drop-points" element={<ProtectedRoute superAdminOnly><AdminShell><ManageDropPoints /></AdminShell></ProtectedRoute>} />
-      <Route path="/admin/settings/personal"    element={<ProtectedRoute adminOnly><AdminShell><PersonalSettings /></AdminShell></ProtectedRoute>} />
-      <Route path="/admin/settings/sub-admins"  element={<ProtectedRoute superAdminOnly><AdminShell><ManageSubAdmins /></AdminShell></ProtectedRoute>} />
-      <Route path="/admin/settings/payouts"     element={<ProtectedRoute superAdminOnly><AdminShell><ManagePayouts /></AdminShell></ProtectedRoute>} />
-      <Route path="/admin/settings/interface"   element={<ProtectedRoute adminOnly><AdminShell><ManageInterface /></AdminShell></ProtectedRoute>} />
-      <Route path="/admin/settings/branding"    element={<ProtectedRoute superAdminOnly><AdminShell><ManageBranding /></AdminShell></ProtectedRoute>} />
+        {/* ── Admin portal ─────────────────────────────── */}
+        <Route path="/admin"                          element={<ProtectedRoute adminOnly><AdminShell><AdminDashboard /></AdminShell></ProtectedRoute>} />
+        <Route path="/admin/events"                   element={<ProtectedAdminRoute permission="manage_caterings"><AdminEvents /></ProtectedAdminRoute>} />
+        <Route path="/admin/events/create"            element={<ProtectedAdminRoute permission="manage_caterings"><CreateCatering /></ProtectedAdminRoute>} />
+        <Route path="/admin/catering/:id/edit"        element={<ProtectedAdminRoute permission="manage_caterings"><EditCatering /></ProtectedAdminRoute>} />
+        <Route path="/admin/catering/:id/attendance"  element={<ProtectedAdminRoute permission="mark_attendance"><AttendancePage /></ProtectedAdminRoute>} />
+        <Route path="/admin/catering/:id/payments"    element={<ProtectedAdminRoute permission="manage_payments"><PaymentsPage /></ProtectedAdminRoute>} />
+        <Route path="/admin/users"                    element={<ProtectedAdminRoute permission="manage_users"><AdminUsers /></ProtectedAdminRoute>} />
+        
+        {/* Settings Sub-Routes (Super Admin Only) */}
+        <Route path="/admin/settings"             element={<ProtectedRoute adminOnly><AdminShell><SettingsMenu /></AdminShell></ProtectedRoute>} />
+        <Route path="/admin/settings/drop-points" element={<ProtectedRoute superAdminOnly><AdminShell><ManageDropPoints /></AdminShell></ProtectedRoute>} />
+        <Route path="/admin/settings/personal"    element={<ProtectedRoute adminOnly><AdminShell><PersonalSettings /></AdminShell></ProtectedRoute>} />
+        <Route path="/admin/settings/sub-admins"  element={<ProtectedRoute superAdminOnly><AdminShell><ManageSubAdmins /></AdminShell></ProtectedRoute>} />
+        <Route path="/admin/settings/payouts"     element={<ProtectedRoute superAdminOnly><AdminShell><ManagePayouts /></AdminShell></ProtectedRoute>} />
+        <Route path="/admin/settings/interface"   element={<ProtectedRoute adminOnly><AdminShell><ManageInterface /></AdminShell></ProtectedRoute>} />
+        <Route path="/admin/settings/branding"    element={<ProtectedRoute superAdminOnly><AdminShell><ManageBranding /></AdminShell></ProtectedRoute>} />
 
+        {/* Legacy admin redirect */}
+        <Route path="/admin/create-catering" element={<Navigate to="/admin/events/create" replace />} />
 
-      {/* Legacy admin redirect */}
-      <Route path="/admin/create-catering" element={<Navigate to="/admin/events/create" replace />} />
-
-      {/* #30: 404 page */}
-      <Route path="*" element={user ? <NotFound /> : <Navigate to="/login" replace />} />
-      </Routes>
+        {/* #30: 404 page */}
+        <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </BrandingWrapper>
   );
 }
