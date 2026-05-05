@@ -5,7 +5,6 @@ import { requireSubAdmin, getUserFromToken, checkPermission, getAllAdmins } from
 import { sanitizeString } from "./utils";
 import { syncCateringCounters } from "./caterings_util";
 
-const VALID_ROLES = ["service_boy", "service_girl", "captain_male", "captain_female"];
 // ─── register — userId derived from token (fixes #4) ──────────────────────────
 
 export const register = mutation({
@@ -23,10 +22,22 @@ export const register = mutation({
     const caller = await getUserFromToken(ctx, args.token);
     if (!caller) throw new ConvexError("Not authenticated.");
 
-    if (!VALID_ROLES.includes(args.role)) throw new ConvexError("Invalid role selected.");
-
     const catering = await ctx.db.get(args.cateringId);
     if (!catering) throw new ConvexError("Event not found.");
+    
+    // Validate role against event slots
+    const slotExists = catering.slots.some(s => s.role === args.role);
+    if (!slotExists) throw new ConvexError("Invalid role selected for this event.");
+    
+    // Rate Limiting: Prevent rapid-fire registrations (10 seconds cooldown)
+    const recentRegs = await ctx.db
+      .query("registrations")
+      .withIndex("by_user", q => q.eq("userId", caller._id))
+      .order("desc")
+      .first();
+    if (recentRegs && (Date.now() - recentRegs._creationTime) < 10000) {
+      throw new ConvexError("Please wait a few seconds before registering again.");
+    }
     
     // Check registration deadline if set
     if (catering.registrationDeadline && Date.now() > catering.registrationDeadline) {
@@ -48,17 +59,18 @@ export const register = mutation({
 
     // No photoUrl mapping anymore
 
-    // Gender-based role restrictions — validate before queue position
-    if (caller.gender === "male") {
-      if (args.role !== "service_boy" && args.role !== "captain_male") {
-        throw new ConvexError("Males can only register as Service Boy or Captain.");
-      }
-    } else if (caller.gender === "female") {
-      if (args.role !== "service_girl" && args.role !== "captain_female") {
-        throw new ConvexError("Females can only register as Service Girl or Captain.");
-      }
-    } else {
+    // Gender-based role restrictions — dynamic validation
+    if (!caller.gender) {
       throw new ConvexError("Your profile is missing gender information. Please update your profile before registering.");
+    }
+    
+    const isFemaleRole = args.role.includes("girl") || args.role.includes("female") || args.role.includes("woman");
+    const isMaleRole = args.role.includes("boy") || args.role.includes("male") || args.role.includes("man");
+
+    if (caller.gender === "male" && isFemaleRole) {
+      throw new ConvexError("Males cannot register for female-specific roles.");
+    } else if (caller.gender === "female" && isMaleRole) {
+      throw new ConvexError("Females cannot register for male-specific roles.");
     }
 
     // #15: Queue position is per-role (Optimized with index)
@@ -355,13 +367,17 @@ export const changeRole = mutation({
   },
   handler: async (ctx, { registrationId, role, token }) => {
     await checkPermission(ctx, token, "mark_attendance");
-    if (!VALID_ROLES.includes(role)) throw new ConvexError("Invalid role.");
     const reg = await ctx.db.get(registrationId);
     if (!reg) throw new ConvexError("Registration not found.");
     const user = await ctx.db.get(reg.userId);
     if (!user) throw new ConvexError("User not found.");
 
     const catering = await ctx.db.get(reg.cateringId);
+    
+    // Validate role against event slots
+    const slotExists = catering.slots.some(s => s.role === role);
+    if (!slotExists) throw new ConvexError("Invalid role selected for this event.");
+    
     if (catering?.payoutDate) {
       throw new ConvexError("Cannot change role after a payout date has been scheduled for this event.");
     }
@@ -378,14 +394,14 @@ export const changeRole = mutation({
     }
 
 
-    if (user.gender === "male") {
-      if (role !== "service_boy" && role !== "captain_male") {
-        throw new ConvexError("Male students can only be assigned to Service Boy or Captain roles.");
-      }
-    } else if (user.gender === "female") {
-      if (role !== "service_girl" && role !== "captain_female") {
-        throw new ConvexError("Female students can only be assigned to Service Girl or Captain roles.");
-      }
+    // Dynamic role gender validation
+    const isFemaleRole = role.includes("girl") || role.includes("female") || role.includes("woman");
+    const isMaleRole = role.includes("boy") || role.includes("male") || role.includes("man");
+
+    if (user.gender === "male" && isFemaleRole) {
+      throw new ConvexError("Male students cannot be assigned to female-specific roles.");
+    } else if (user.gender === "female" && isMaleRole) {
+      throw new ConvexError("Female students cannot be assigned to male-specific roles.");
     }
 
     await ctx.db.patch(registrationId, { role });

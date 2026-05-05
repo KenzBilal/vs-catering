@@ -22,11 +22,14 @@ export default function ManageSubAdmins() {
   const initializeSettings = useMutation(api.adminSettings.initializeSettings);
 
   // Users
-  const allUsersRaw = useQuery(api.users.getAllStudents, { token });
-  const { data: allUsers, timedOut: usersTimeout } = useQueryWithTimeout(allUsersRaw);
+  const subAdminsRaw = useQuery(api.adminSettings.getSubAdmins, { token });
+  const { data: subAdmins, timedOut: usersTimeout } = useQueryWithTimeout(subAdminsRaw);
+  
+  const [search, setSearch] = useState("");
+  const filteredUsers = useQuery(api.users.searchStudents, search.length >= 2 ? { searchQuery: search, token } : "skip");
+  
   const setUserRole = useMutation(api.users.setUserRole);
 
-  const [search, setSearch] = useState("");
   const [promoting, setPromoting] = useState({});
   const [confirmRevoke, setConfirmRevoke] = useState(null); // userId to revoke
 
@@ -38,13 +41,7 @@ export default function ManageSubAdmins() {
   }, [settings, initializeSettings, token]);
 
   if (settingsTimeout || usersTimeout) return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
-  if (settings === undefined || allUsers === undefined) return <LoadingState rows={10} />;
-
-  const subAdmins = allUsers.filter(u => u.role === "sub_admin");
-  const filteredUsers = allUsers.filter(u => 
-    u.role === "student" && 
-    (u.name.toLowerCase().includes(search.toLowerCase()) || u.phone.includes(search))
-  ).slice(0, 5);
+  if (settings === undefined || subAdmins === undefined) return <LoadingState rows={10} />;
 
   const handleToggle = async (permission, current) => {
     try {
@@ -140,9 +137,11 @@ export default function ManageSubAdmins() {
               />
             </div>
 
-            {search && (
+            {search.length >= 2 && (
               <div className="space-y-2 mb-4 animate-fade-in">
-                {filteredUsers.length === 0 ? (
+                {filteredUsers === undefined ? (
+                  <div className="flex justify-center p-4"><Loader2 size={16} className="animate-spin text-stone-400" /></div>
+                ) : filteredUsers.length === 0 ? (
                   <p className="text-[13px] text-stone-400 text-center py-2">No students found matching "{search}"</p>
                 ) : (
                   filteredUsers.map(u => (

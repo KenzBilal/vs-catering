@@ -112,7 +112,7 @@ export const getSubAdmins = query({
     await requireAdmin(ctx, token);
     return await ctx.db
       .query("users")
-      .filter(q => q.eq(q.field("role"), "sub_admin"))
+      .withIndex("by_role", q => q.eq("role", "sub_admin"))
       .collect();
   },
 });

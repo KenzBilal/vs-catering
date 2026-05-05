@@ -1,5 +1,5 @@
 import React from "react";
-import { formatCurrency, getRoleLabel } from "../../../lib/helpers";
+import { formatCurrency, getRoleLabel, formatDate } from "../../../lib/helpers";
 import { CheckCircle2, UserPlus, Users } from "lucide-react";
 
 export default function IndividualPaymentCard({

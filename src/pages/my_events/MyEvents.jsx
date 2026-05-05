@@ -30,13 +30,13 @@ export default function MyEvents() {
   const { data: payments, timedOut: payTimeout } = useQueryWithTimeout(paymentsRaw);
   const cancelRegistration = useMutation(api.registrations.cancelRegistration);
 
-  if (regTimeout || payTimeout) {
-    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
-  }
-
   const [confirmCancel, setConfirmCancel] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState("");
+
+  if (regTimeout || payTimeout) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const pendingPayments = (payments || []).filter((p) => p.status === "pending");
   const totalPending = pendingPayments.reduce((sum, p) => sum + p.amount, 0);
