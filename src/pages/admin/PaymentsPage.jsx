@@ -53,6 +53,10 @@ export default function PaymentsPage() {
     return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
   }
 
+  if (catering === undefined || registrations === undefined || payments === undefined) {
+    return <LoadingState message="Loading payments..." />;
+  }
+
   // Attended students only
   const attendedRegs = (registrations || []).filter((r) => r.status === "attended");
   const getPaymentForReg = (regId) => (payments || []).find((p) => p.registrationId === regId);

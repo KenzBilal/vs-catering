@@ -1,5 +1,5 @@
 import { mutation, internalMutation } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { requireAdmin } from "./auth";
 
 // Cleans up expired sessions (runs hourly via cron)
@@ -16,19 +16,7 @@ export const cleanExpiredSessions = internalMutation({
   },
 });
 
-// Cleans up old login attempt records (older than 1 hour)
-export const cleanLoginAttempts = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    const cutoff = Date.now() - 60 * 60 * 1000;
-    const records = await ctx.db.query("loginAttempts").collect();
-    for (const record of records) {
-      if (record.windowStart < cutoff) {
-        await ctx.db.delete(record._id);
-      }
-    }
-  },
-});
+// loginAttempts table removed — no rate-limiting table in schema.
 
 // NUCLEAR RESET: Clears ALL data from the database
 // (Use for testing only, deletes everything except the calling admin)

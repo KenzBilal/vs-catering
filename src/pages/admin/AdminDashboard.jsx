@@ -28,6 +28,8 @@ export default function AdminDashboard() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
+  const currentYear = now.getFullYear();
+  const years = [currentYear - 1, currentYear, currentYear + 1];
   const analyticsRaw = useQuery(api.payments.getMonthlyAnalytics, canManagePayments ? { month, year, token } : "skip");
 
   const { data: cateringsData, timedOut: catTimeout } = useQueryWithTimeout(cateringsRaw);
@@ -89,7 +91,7 @@ export default function AdminDashboard() {
             />
             <div className="w-px h-5 bg-stone-200 self-center" />
             <CustomSelect
-              options={[2024, 2025, 2026].map(y => ({ label: y.toString(), value: y }))}
+              options={years.map(y => ({ label: y.toString(), value: y }))}
               value={year}
               onChange={setYear}
               className="w-[90px] !border-0 !shadow-none !bg-transparent font-bold text-[13px]"
@@ -236,16 +238,15 @@ export default function AdminDashboard() {
                       ))}
                     </div>
 
-                    <button
-                      className="w-full py-3 text-[12.5px] font-black text-white bg-[#8b3a00] rounded-xl hover:bg-[#722f00] transition-all shadow-lg shadow-orange-100/50 active:scale-95"
-                      onClick={() => {
-                        if (payments && payments.length > 0) {
-                          navigate(`/admin/catering/${payments[0].cateringId}/payments`);
-                        }
-                      }}
-                    >
-                      Resolve All
-                    </button>
+                    {[...new Set(payments.map(p => p.cateringId))].map((cid, i) => (
+                      <button
+                        key={cid}
+                        className="w-full py-2 text-[12px] font-bold text-[#8b3a00] bg-[#fdf0e6] rounded-xl hover:bg-white transition-all border border-[#f5d0aa] active:scale-95"
+                        onClick={() => navigate(`/admin/catering/${cid}/payments`)}
+                      >
+                        {payments.find(p => p.cateringId === cid)?.catering?.place || `Event ${i + 1}`} → View Payments
+                      </button>
+                    ))}
                   </div>
                 );
               })}

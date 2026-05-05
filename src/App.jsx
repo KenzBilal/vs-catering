@@ -78,13 +78,17 @@ function BrandingWrapper({ children }) {
 }
 
 
-function ProtectedRoute({ children, adminOnly, superAdminOnly, permission }) {
-  const { user, permissions, loading } = useAuth();
-  if (loading) return (
+function PageLoader() {
+  return (
     <div className="min-h-screen flex items-center justify-center bg-cream-bg">
       <p className="text-stone-500 font-medium animate-pulse">Loading...</p>
     </div>
   );
+}
+
+function ProtectedRoute({ children, adminOnly, superAdminOnly, permission }) {
+  const { user, permissions, loading } = useAuth();
+  if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/login" replace />;
   if (adminOnly && user.role === "student") return <Navigate to="/" replace />;
   
@@ -129,11 +133,7 @@ function StudentPage({ page }) {
 
 function AppRoutes() {
   const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-cream-bg">
-      <p className="text-stone-500 font-medium animate-pulse">Loading...</p>
-    </div>
-  );
+  if (loading) return <PageLoader />;
 
 
   const isAdmin = user?.role === "admin" || user?.role === "sub_admin";

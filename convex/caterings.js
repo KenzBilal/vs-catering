@@ -1,21 +1,22 @@
 import { v, ConvexError } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
-import { requireAdmin, requireSubAdmin, getUserFromToken, checkPermission } from "./auth";
+import { requireAdmin, requireSubAdmin, getUserFromToken, checkPermission, getAuthUser } from "./auth";
 
 import { sanitizeString } from "./utils";
 
+// IST = UTC+5:30. All date strings are YYYY-MM-DD in IST.
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
+function getISTDateString(date = new Date()) {
+  return new Date(date.getTime() + IST_OFFSET_MS).toISOString().slice(0, 10);
+}
+
 function computeStatus(dateStr) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const eventDate = new Date(dateStr);
-  eventDate.setHours(0, 0, 0, 0);
-
-  if (eventDate < today) return "ended";
-  if (eventDate.getTime() === today.getTime()) return "today";
-  if (eventDate.getTime() === tomorrow.getTime()) return "tomorrow";
+  const todayIST = getISTDateString();
+  const tomorrowIST = getISTDateString(new Date(Date.now() + 24 * 60 * 60 * 1000));
+  if (dateStr < todayIST) return "ended";
+  if (dateStr === todayIST) return "today";
+  if (dateStr === tomorrowIST) return "tomorrow";
   return "upcoming";
 }
 
@@ -66,28 +67,33 @@ export const createCatering = mutation({
     token: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await checkPermission(ctx, args.token, "manage_caterings");
+    // Derive createdBy from authenticated session — never trust client-supplied value
+    const caller = await checkPermission(ctx, args.token, "manage_caterings");
 
     const place = sanitizeString(args.place).slice(0, 200);
     const dressCodeNotes = sanitizeString(args.dressCodeNotes).slice(0, 2000);
     if (!place) throw new ConvexError("Place is required.");
-    
+
     validateDate(args.date);
     validateSlots(args.slots);
 
-    const { token, place: _p, dressCodeNotes: _d, ...rest } = args;
     const status = computeStatus(args.date);
 
     const cateringId = await ctx.db.insert("caterings", {
-      ...rest,
-      place,
-      dressCodeNotes,
       title: place,
+      place,
+      timeOfDay: args.timeOfDay,
+      specificTime: args.specificTime,
+      date: args.date,
+      photoRequired: args.photoRequired,
+      dressCodeNotes,
+      limitSlots: args.limitSlots,
+      slots: args.slots,
+      createdBy: caller._id, // Always from session
       status,
       createdAt: Date.now(),
     });
 
-    // Create notification
     await ctx.db.insert("notifications", {
       type: "catering",
       category: "global",
@@ -275,55 +281,51 @@ export const listCaterings = query({
     token: v.optional(v.string()) 
   },
   handler: async (ctx, args) => {
+    let isAdmin = false;
     try {
-      let isAdmin = false;
-      try {
-        const caller = await getAuthUser(ctx);
-        isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
-      } catch (authErr) {
-        console.warn("Auth check skipped:", authErr);
-      }
-
-      const paginationOpts = args.paginationOpts || { numItems: 50, cursor: null };
-      
-      const results = await ctx.db
-        .query("caterings")
-        .withIndex("by_date")
-        .order("desc")
-        .paginate(paginationOpts);
-
-      const cateringsWithStats = [];
-      for (const c of results.page) {
-        let stats = {};
-        if (isAdmin) {
-          if (c.registeredCount !== undefined && c.verifiedCount !== undefined) {
-            stats = {
-              registeredCount: c.registeredCount,
-              verifiedCount: c.verifiedCount,
-              attendanceStarted: c.registeredCount > 0 && c.verifiedCount > 0
-            };
-          } else {
-            const regs = await ctx.db
-              .query("registrations")
-              .withIndex("by_catering", (q) => q.eq("cateringId", c._id))
-              .collect();
-            
-            stats = {
-              registeredCount: regs.filter(r => r.status === "registered").length,
-              verifiedCount: regs.filter(r => r.verificationStatus === "verified").length,
-              attendanceStarted: regs.some(r => r.status !== "registered")
-            };
-          }
-        }
-        cateringsWithStats.push({ ...c, ...stats });
-      }
-
-      return { ...results, page: cateringsWithStats };
-    } catch (e) {
-      console.error("listCaterings error:", e);
-      return { page: [], continue: false, hasMore: false };
+      const caller = await getAuthUser(ctx);
+      isAdmin = caller ? (caller.role === "admin" || caller.role === "sub_admin") : false;
+    } catch (authErr) {
+      console.warn("Auth check skipped:", authErr);
     }
+
+    const paginationOpts = args.paginationOpts || { numItems: 50, cursor: null };
+
+    const results = await ctx.db
+      .query("caterings")
+      .withIndex("by_date")
+      .order("desc")
+      .paginate(paginationOpts);
+
+    const cateringsWithStats = [];
+    for (const c of results.page) {
+      let stats = {};
+      if (isAdmin) {
+        if (c.registeredCount !== undefined && c.verifiedCount !== undefined) {
+          stats = {
+            registeredCount: c.registeredCount,
+            verifiedCount: c.verifiedCount,
+            attendanceStarted: c.registeredCount > 0 && c.verifiedCount > 0
+          };
+        } else {
+          const regs = await ctx.db
+            .query("registrations")
+            .withIndex("by_catering", (q) => q.eq("cateringId", c._id))
+            .collect();
+
+          stats = {
+            registeredCount: regs.filter(r => r.status === "registered").length,
+            verifiedCount: regs.filter(r => r.verificationStatus === "verified").length,
+            attendanceStarted: regs.some(r => r.status !== "registered")
+          };
+        }
+      }
+      cateringsWithStats.push({ ...c, ...stats });
+    }
+
+    return { ...results, page: cateringsWithStats };
   },
+
 });
 
 export const getCatering = query({
@@ -339,7 +341,6 @@ export const getCatering = query({
 
     return {
       ...catering,
-      date: catering.date || (catering.dates && catering.dates[0]),
       attendanceStarted: regs.some(r => r.status !== "registered")
     };
   },
@@ -363,34 +364,25 @@ export const getFinishedCaterings = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, { token }) => {
     await checkPermission(ctx, token, "manage_payments");
-    
-    const caterings = await ctx.db
-      .query("caterings")
-      .filter((q) => 
-        q.and(
-          q.or(
-            q.eq(q.field("status"), "ended"),
-            q.eq(q.field("status"), "today"),
-            q.eq(q.field("status"), "tomorrow")
-          ),
-          q.neq(q.field("status"), "cancelled")
-        )
-      )
-      .order("desc")
-      .collect();
 
-    const cateringIds = caterings.map(c => c._id);
-    // Batch check for pending payments
+    // Use index per status to avoid full table scan
+    const [ended, today, tomorrow] = await Promise.all([
+      ctx.db.query("caterings").withIndex("by_status", q => q.eq("status", "ended")).collect(),
+      ctx.db.query("caterings").withIndex("by_status", q => q.eq("status", "today")).collect(),
+      ctx.db.query("caterings").withIndex("by_status", q => q.eq("status", "tomorrow")).collect(),
+    ]);
+    const caterings = [...ended, ...today, ...tomorrow];
+
     const pendingPayments = await Promise.all(
-      cateringIds.map(id => ctx.db
+      caterings.map(c => ctx.db
         .query("payments")
-        .withIndex("by_catering", (q) => q.eq("cateringId", id))
-        .filter((q) => q.eq(q.field("status"), "pending"))
+        .withIndex("by_catering", q => q.eq("cateringId", c._id))
+        .filter(q => q.eq(q.field("status"), "pending"))
         .first()
       )
     );
 
-    const hasPendingSet = new Set(pendingPayments.filter(p => !!p).map(p => p.cateringId));
+    const hasPendingSet = new Set(pendingPayments.filter(Boolean).map(p => p.cateringId));
     return caterings.filter(c => hasPendingSet.has(c._id));
   },
 });

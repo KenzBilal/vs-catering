@@ -167,6 +167,18 @@ export const createPaymentGroup = mutation({
   handler: async (ctx, args) => {
     const admin = await checkPermission(ctx, args.token, "manage_payments");
 
+    // Validate that headUserId has a registration in memberRegIds
+    const headReg = await ctx.db
+      .query("registrations")
+      .withIndex("by_user_catering", (q) =>
+        q.eq("userId", args.headUserId).eq("cateringId", args.cateringId)
+      )
+      .first();
+    if (!headReg) throw new ConvexError("Group head has no registration for this event.");
+    if (!args.memberRegIds.includes(headReg._id)) {
+      throw new ConvexError("Group head's registration must be included in the member list.");
+    }
+
     // 1. Calculate total amount and verify payments exist
     let totalAmount = 0;
     const paymentIds = [];
@@ -393,11 +405,12 @@ export const getMonthlyAnalytics = query({
 
     const uniqueStudents = new Set(monthPayments.map((p) => p.userId.toString())).size;
 
-    // Weekly trends for graphing
+    // Weekly trends — up to 5 buckets to cover all days in any month
     const weeklyTrends = [];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       const weekStart = start + (i * 7 * 24 * 60 * 60 * 1000);
-      const weekEnd = weekStart + (7 * 24 * 60 * 60 * 1000);
+      if (weekStart >= end) break; // no more days in this month
+      const weekEnd = Math.min(weekStart + (7 * 24 * 60 * 60 * 1000), end);
       const weekPayments = monthPayments.filter(p => p.createdAt >= weekStart && p.createdAt < weekEnd);
       weeklyTrends.push({
         week: i + 1,

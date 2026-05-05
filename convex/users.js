@@ -56,11 +56,34 @@ export const deleteUser = mutation({
   handler: async (ctx, { userId }) => {
     await requireAdmin(ctx);
 
-    // Cascade delete registrations
+    // Cascade delete registrations and collect their IDs for group cleanup
     const regs = await ctx.db
       .query("registrations")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
+
+    // Clean up paymentGroups where user is a non-head member
+    const cateringIds = [...new Set(regs.map(r => r.cateringId))];
+    const regIdSet = new Set(regs.map(r => r._id));
+    for (const cateringId of cateringIds) {
+      const groups = await ctx.db
+        .query("paymentGroups")
+        .withIndex("by_catering", (q) => q.eq("cateringId", cateringId))
+        .collect();
+      for (const group of groups) {
+        if (group.headUserId === userId) continue; // handled below
+        const hasRef = group.memberRegIds.some(id => regIdSet.has(id));
+        if (hasRef) {
+          const newMembers = group.memberRegIds.filter(id => !regIdSet.has(id));
+          if (newMembers.length < 2) {
+            await ctx.db.delete(group._id);
+          } else {
+            await ctx.db.patch(group._id, { memberRegIds: newMembers });
+          }
+        }
+      }
+    }
+
     for (const r of regs) {
       await ctx.db.delete(r._id);
     }
@@ -105,7 +128,23 @@ export const updateProfile = mutation({
       ...(args.stayType !== undefined && { stayType: args.stayType }),
       ...(args.gender !== undefined && { gender: args.gender }),
       ...(args.defaultDropPoint !== undefined && { defaultDropPoint: args.defaultDropPoint }),
-      role: caller.role || "student" // Ensure role exists
+    });
+  }
+});
+
+// Alias used by register flow — same as updateProfile
+export const updatePreferences = mutation({
+  args: {
+    token: v.optional(v.string()),
+    defaultDropPoint: v.optional(v.string()),
+    stayType: v.optional(v.union(v.literal("hostel"), v.literal("day_scholar"))),
+  },
+  handler: async (ctx, args) => {
+    const caller = await getAuthUser(ctx);
+    if (!caller) throw new ConvexError("Unauthorized");
+    await ctx.db.patch(caller._id, {
+      ...(args.defaultDropPoint !== undefined && { defaultDropPoint: args.defaultDropPoint }),
+      ...(args.stayType !== undefined && { stayType: args.stayType }),
     });
   }
 });
@@ -212,7 +251,7 @@ export const bootstrapAdmin = mutation({
   handler: async (ctx, { email }) => {
     const existingAdmin = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("role"), "admin"))
+      .withIndex("by_role", (q) => q.eq("role", "admin"))
       .first();
 
     if (existingAdmin) {

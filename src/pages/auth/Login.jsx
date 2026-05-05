@@ -46,12 +46,6 @@ export default function Login() {
     let finalEmail = identifier.toLowerCase().trim();
 
     if (isPhone) {
-      // resolvedEmail comes from the useQuery hook — already resolved by the time user submits
-      if (resolvedEmail === undefined) {
-        // Still loading — ask user to wait a moment
-        setErrors({ identifier: "Looking up account, please try again." });
-        return;
-      }
       if (!resolvedEmail) {
         setErrors({ identifier: "No account found with this phone number." });
         return;
@@ -79,6 +73,10 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  // True while the phone→email lookup is in-flight
+  const isResolving = isPhone && identifier.trim().length >= 10 && resolvedEmail === undefined;
+
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ background: "var(--cream-bg)" }}>
@@ -158,9 +156,11 @@ export default function Login() {
             <button
               type="submit"
               className="btn-primary w-full py-3 text-[14px]"
-              disabled={loading}
+              disabled={loading || isResolving}
             >
-              {loading ? (
+              {isResolving ? (
+                <><Loader2 size={17} className="animate-spin" /> Looking up account...</>
+              ) : loading ? (
                 <><Loader2 size={17} className="animate-spin" /> Authenticating...</>
               ) : (
                 <>Sign In <ArrowRight size={17} /></>

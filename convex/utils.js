@@ -5,11 +5,13 @@
 export function sanitizeString(str) {
   if (typeof str !== "string") return str;
   return str
-    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "") // Remove scripts
-    .replace(/on\w+="[^"]*"/gim, "") // Remove onmouseover, onclick, etc.
-    .replace(/javascript:[^"]*/gim, "") // Remove javascript: links
+    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "")
+    .replace(/on\w+="[^"]*"/gim, "")
+    .replace(/on\w+='[^']*'/gim, "")
+    .replace(/javascript:[^\s"']*/gim, "")
     .trim();
 }
+
 
 /**
  * Validates a phone number (10 digits).

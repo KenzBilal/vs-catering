@@ -17,10 +17,4 @@ crons.hourly(
   internal.maintenance.cleanExpiredSessions
 );
 
-crons.hourly(
-  "Clean old login attempts",
-  { minuteUTC: 20 },
-  internal.maintenance.cleanLoginAttempts
-);
-
 export default crons;

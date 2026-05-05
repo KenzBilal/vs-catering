@@ -48,24 +48,7 @@ export const register = mutation({
 
     // No photoUrl mapping anymore
 
-    // #15: Queue position is per-role (Optimized with index)
-    const lastReg = await ctx.db
-      .query("registrations")
-      .withIndex("by_catering_role_queue", (q) => q.eq("cateringId", args.cateringId).eq("role", args.role))
-      .order("desc")
-      .first();
-    
-    const queuePosition = lastReg ? (lastReg.queuePosition || 0) + 1 : 1;
-
-    const slot = catering.slots.find((s) => s.role === args.role);
-    
-    // Conditional confirmation logic based on limitSlots toggle
-    let isConfirmed = true;
-    if (catering.limitSlots) {
-      isConfirmed = slot ? queuePosition <= slot.limit : false;
-    }
-
-    // Gender-based role restrictions
+    // Gender-based role restrictions — validate before queue position
     if (caller.gender === "male") {
       if (args.role !== "service_boy" && args.role !== "captain_male") {
         throw new ConvexError("Males can only register as Service Boy or Captain.");
@@ -76,6 +59,23 @@ export const register = mutation({
       }
     } else {
       throw new ConvexError("Your profile is missing gender information. Please update your profile before registering.");
+    }
+
+    // #15: Queue position is per-role (Optimized with index)
+    const lastReg = await ctx.db
+      .query("registrations")
+      .withIndex("by_catering_role_queue", (q) => q.eq("cateringId", args.cateringId).eq("role", args.role))
+      .order("desc")
+      .first();
+
+    const queuePosition = lastReg ? (lastReg.queuePosition || 0) + 1 : 1;
+
+    const slot = catering.slots.find((s) => s.role === args.role);
+
+    // Conditional confirmation logic based on limitSlots toggle
+    let isConfirmed = true;
+    if (catering.limitSlots) {
+      isConfirmed = slot ? queuePosition <= slot.limit : false;
     }
 
     // Persistent photo: save new upload to profile or reuse existing
@@ -119,7 +119,7 @@ export const register = mutation({
           type: "catering",
           category: "individual",
           title: "Registration",
-          message: `${caller.name} registered for ${catering.place} as ${args.role.replace("_", " ")}`,
+      message: `${caller.name} registered for ${catering.place} as ${args.role.replace(/_/g, " ")}`,
           targetUserId: admin._id,
           cateringId: args.cateringId,
           isRead: false,
@@ -260,27 +260,23 @@ export const markAttendance = mutation({
       throw new ConvexError("Cannot change attendance after payment has been cleared.");
     }
 
-    await ctx.db.patch(registrationId, {
-
+    const patch = {
       status,
-      // #16: Clear isConfirmed when rejected or absent
       ...(status === "rejected" || status === "absent" ? { isConfirmed: false } : {}),
       ...(rejectionReason
         ? { rejectionReason: sanitizeString(rejectionReason).slice(0, 300) }
         : {}),
-    });
+    };
+    await ctx.db.patch(registrationId, patch);
     await syncCateringCounters(ctx, reg.cateringId);
 
-    // AUTO-PAYMENT: Create pending payment when marked as attended
     if (status === "attended") {
-      const existingPayment = await ctx.db
+      const existingPaymentCheck = await ctx.db
         .query("payments")
         .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
         .first();
 
-      if (!existingPayment) {
-        const reg = await ctx.db.get(registrationId);
-        const catering = await ctx.db.get(reg.cateringId);
+      if (!existingPaymentCheck) {
         const slot = catering.slots.find(s => s.role === reg.role);
         const amount = slot?.pay || 0;
 
@@ -289,13 +285,12 @@ export const markAttendance = mutation({
           cateringId: reg.cateringId,
           registrationId: reg._id,
           role: reg.role,
-          amount: amount,
-          method: "cash", // Default to cash, admin can change later
+          amount,
+          method: "cash",
           status: "pending",
           createdAt: Date.now(),
         });
 
-        // Notify student
         await ctx.db.insert("notifications", {
           type: "payment",
           category: "individual",
@@ -303,28 +298,24 @@ export const markAttendance = mutation({
           message: `₹${amount} is pending for your attendance at ${catering.place}.`,
           targetUserId: reg.userId,
           paymentId,
-          amount: amount,
+          amount,
           payoutDate: catering?.payoutDate,
           isRead: false,
           createdAt: Date.now(),
         });
       }
-      
-      // Explicit Attendance Notification
-      const regFinal = await ctx.db.get(registrationId);
-      const catFinal = await ctx.db.get(regFinal.cateringId);
+
       await ctx.db.insert("notifications", {
         type: "catering",
         category: "individual",
         title: "Attendance Updated",
-        message: `Your status has been updated to ${status} for ${catFinal.place}`,
-        targetUserId: regFinal.userId,
-        cateringId: regFinal.cateringId,
+        message: `Your status has been updated to ${status} for ${catering.place}`,
+        targetUserId: reg.userId,
+        cateringId: reg.cateringId,
         isRead: false,
         createdAt: Date.now(),
       });
     } else {
-      // If changed to absent/rejected, delete any PENDING payment to avoid orphaned records
       const pendingPayment = await ctx.db
         .query("payments")
         .withIndex("by_registration", (q) => q.eq("registrationId", registrationId))
@@ -338,16 +329,13 @@ export const markAttendance = mutation({
         await ctx.db.delete(pendingPayment._id);
       }
 
-      // Explicit Attendance Notification
-      const regFinal = await ctx.db.get(registrationId);
-      const catFinal = await ctx.db.get(regFinal.cateringId);
       await ctx.db.insert("notifications", {
         type: "catering",
         category: "individual",
         title: "Attendance Updated",
-        message: `Your status has been updated to ${status} for ${catFinal.place}`,
-        targetUserId: regFinal.userId,
-        cateringId: regFinal.cateringId,
+        message: `Your status has been updated to ${status} for ${catering.place}`,
+        targetUserId: reg.userId,
+        cateringId: reg.cateringId,
         isRead: false,
         createdAt: Date.now(),
       });
@@ -437,7 +425,7 @@ export const changeRole = mutation({
             type: "payment",
             category: "individual",
             title: "Payout",
-            message: `Payout for ${catering.place} set for ${catering.payoutDate}`,
+            message: `Your payout for ${catering.place} has been adjusted to ₹${newAmount} due to a role change.`,
             targetUserId: updatedReg.userId,
             paymentId: payment._id,
             amount: newAmount,

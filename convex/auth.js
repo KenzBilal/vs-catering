@@ -43,7 +43,8 @@ export async function getUserFromToken(ctx, _token) {
   return await getAuthUser(ctx);
 }
 
-export async function requireAdmin(ctx) {
+// _token param accepted for backwards compatibility; auth is session-based, token is ignored
+export async function requireAdmin(ctx, _token) {
   const user = await getAuthUser(ctx);
   if (!user || user.role !== "admin") {
     throw new ConvexError("Unauthorized: Admin access required.");

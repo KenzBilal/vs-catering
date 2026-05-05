@@ -26,17 +26,18 @@ export default function AttendancePage() {
   const markAttendance = useMutation(api.registrations.markAttendance);
   const changeRole = useMutation(api.registrations.changeRole);
 
-  if (catTimeout || regTimeout) {
-    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
-  }
 
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [rejectionInput, setRejectionInput] = useState({});
   const [saving, setSaving] = useState({});
-  const [viewPhoto, setViewPhoto] = useState(null); // { storageId, photoUrl }
+  const [viewPhoto, setViewPhoto] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+
+  if (catTimeout || regTimeout) {
+    return <ErrorState variant="timeout" onRetry={() => window.location.reload()} />;
+  }
 
   const handleMark = async (regId, status, reason) => {
     setSaving((s) => ({ ...s, [regId]: true }));
@@ -72,6 +73,10 @@ export default function AttendancePage() {
   });
 
   const roles = [...new Set((registrations || []).map((r) => r.role))];
+
+  // Compute once outside the map loop
+  const anyPaymentCleared = (registrations || []).some(r => r.paymentStatus === "cleared");
+  const isEventLocked = !!catering?.payoutDate || anyPaymentCleared;
 
   return (
     <div className="page-container" style={{ maxWidth: 760 }}>
@@ -177,9 +182,6 @@ export default function AttendancePage() {
           )}          
           <div className="flex flex-col gap-4">
           {filtered.map((reg) => {
-            const anyPaymentCleared = (registrations || []).some(r => r.paymentStatus === "cleared");
-            const isEventLocked = !!catering?.payoutDate || anyPaymentCleared;
-            
             const isPaid = reg.paymentStatus === "cleared";
             const isLocked = isPaid || isEventLocked;
             
@@ -199,6 +201,7 @@ export default function AttendancePage() {
           </div>
         </>
       )}
+
 
 
       {/* Photo View Modal */}

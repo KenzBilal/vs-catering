@@ -62,12 +62,15 @@ export const getUnreadCount = query({
       .filter((q) => q.eq(q.field("isRead"), false))
       .collect();
 
-    // Count unread global notifications (created after lastRead)
+    // Count unread global notifications (created after lastRead AND not explicitly read)
     let unreadGlobal = await ctx.db
       .query("notifications")
       .withIndex("by_category", (q) => q.eq("category", "global"))
-      .filter((q) => q.gt(q.field("createdAt"), lastRead))
-      .collect();
+      .filter((q) => q.and(
+        q.gt(q.field("createdAt"), lastRead),
+        q.eq(q.field("isRead"), false)
+      ))
+      .take(100); // bounded — sufficient for a badge count
 
     // Filter out redundant global notifications for admins so count matches inbox
     if (user.role === "admin" || user.role === "sub_admin") {
